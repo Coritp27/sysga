@@ -1,14 +1,14 @@
-import RainbowKitAndWagmiProvider from "./RainbowKitAndWagmiProvider"
-import "./globals.css"
-import { Inter as FontSans } from "next/font/google"
-import Layout from "@/components/shared/Layout"
- 
-import { cn } from "@/lib/utils"
- 
+import RainbowKitAndWagmiProvider from "./RainbowKitAndWagmiProvider";
+import "./globals.css";
+import { Inter as FontSans } from "next/font/google";
+import Layout from "@/components/shared/Layout";
+import { cn } from "@/lib/utils";
+import { ClerkProvider } from "@clerk/nextjs";
+
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
-})
+});
 
 export const metadata = {
   title: "Create Next App",
@@ -25,11 +25,11 @@ export default function RootLayout({ children }) {
           fontSans.variable
         )}
       >
-        <RainbowKitAndWagmiProvider>
-          <Layout>
-            {children}
-          </Layout>
-        </RainbowKitAndWagmiProvider>
+        <ClerkProvider>
+          <RainbowKitAndWagmiProvider>
+            <Layout>{children}</Layout>
+          </RainbowKitAndWagmiProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
