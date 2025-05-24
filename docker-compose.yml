@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./backend:/app
+    command: npx hardhat node --hostname 0.0.0.0
+    networks:
+      - sysga
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+    command: yarn dev
+    networks:
+      - sysga
+
+networks:
+  sysga:
+    driver: bridge
