@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int     @id @default(autoincrement())
+  username        String  @unique
+  idKeycloak      String
+  institutionId   Int
+  roleId          Int
+  insuredPersons  InsuredPerson[] @relation("UserInsuredPersons")
+  role            Role    @relation(fields: [roleId], references: [id])
+}
+
+model Role {
+  id         Int     @id @default(autoincrement())
+  name       String
+  canRead    Boolean
+  canWrite   Boolean
+  permission String
+  users      User[]
+}
+
+model Person {
+  id           Int      @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime
+  email        String
+  phone        String
+  address      String
+  gender       String
+}
+
+model InsuredPerson {
+  id                 Int       @id @default(autoincrement())
+  cin                String
+  nif                String
+  numberOfDependent  Int
+  policyEffectiveDate DateTime
+  merkleRoot         String
+  blockchainTxHash   String
+  merkleGeneratedAt  DateTime
+  dependents         Dependent[]
+  insuranceCards     InsuranceCard[]
+  blockchainReference Blockchain_reference?
+  userId             Int?
+  user               User?     @relation("UserInsuredPersons", fields: [userId], references: [id])
+}
+
+model Dependent {
+  id              Int     @id @default(autoincrement())
+  relation        String
+  insuredPersonId Int
+  insuredPerson   InsuredPerson @relation(fields: [insuredPersonId], references: [id])
+}
+
+model InsuranceCard {
+  id                 Int     @id @default(autoincrement())
+  cardNumber         String  @unique
+  issuedOn           DateTime
+  status             String
+  insuranceCompanyId Int
+  insuredPersonId    Int
+  insuranceCompany   InsuranceCompany @relation(fields: [insuranceCompanyId], references: [id])
+  insuredPerson      InsuredPerson    @relation(fields: [insuredPersonId], references: [id])
+}
+
+model Policy {
+  id                 Int     @id @default(autoincrement())
+  policyNumber       Int     @unique
+  type               String
+  coverage           String
+  deductible         Float
+  premium            Int
+  description        String
+  insuranceCompanyId Int
+  insuranceCompany   InsuranceCompany @relation(fields: [insuranceCompanyId], references: [id])
+}
+
+model Blockchain_reference {
+  id               Int     @id @default(autoincrement())
+  insuredPersonId  Int     @unique
+  merkleRoot       String
+  blockchainTxHash String
+  createdAt        DateTime
+  insuredPerson    InsuredPerson @relation(fields: [insuredPersonId], references: [id])
+}
+
+model Organization {
+  id               Int    @id @default(autoincrement())
+  name             String
+  email            String
+  phone1           String
+  phone2           String
+  adresse          String
+  website          String
+  fiscalNumber     Int
+  numberOfEmployee Int
+}
+
+model InsuranceCompany {
+  id        Int       @id @default(autoincrement())
+  name      String
+  policies  Policy[]
+  cards     InsuranceCard[]
+}
+
+model MedicalInstitution {
+  id     Int    @id @default(autoincrement())
+  name   String
+}

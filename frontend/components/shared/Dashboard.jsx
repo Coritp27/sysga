@@ -1,8 +1,18 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { HomeIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
+import prisma from "@/lib/prismadb";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const { userId } = useAuth();
+  const insuredPersons = await prisma.insuredPerson.findMany({
+    where: {
+      userId: userId,
+    },
+  });
+  console.log(insuredPersons);
   return (
     <div className="home_inner_links">
       <Link href="add" className="mr-5">
