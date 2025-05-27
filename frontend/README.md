@@ -14,6 +14,25 @@ pnpm dev
 bun dev
 ```
 
+Manage your data
+View and edit your data locally by running this command:
+
+```bash
+# Open Prisma Studio to view and edit your database records
+yarn prisma studio
+
+# Apply pending migrations to your database
+yarn prisma migrate dev --name init
+
+# Generate the Prisma Client based on your schema
+yarn prisma generate
+
+# Push the current state of your Prisma schema to your database
+yarn prisma db push
+
+# Seed your database with initial data
+yarn prisma db seed
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
@@ -34,3 +53,4 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```
