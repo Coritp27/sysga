@@ -22,7 +22,7 @@ export default async function Dashboard() {
       </Link>
       <Link href="get" className="ml-5">
         <Button className="home_inner_links_button2">
-          <EyeOpenIcon className="mr-2" /> Voir une carte d'assurance
+          <EyeOpenIcon className="mr-2" /> Voir une carte d'assurance.
         </Button>
       </Link>
     </div>
