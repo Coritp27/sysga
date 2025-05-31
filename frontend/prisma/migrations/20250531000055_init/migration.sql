@@ -44,7 +44,7 @@ CREATE TABLE "InsuredPerson" (
     "merkleRoot" TEXT NOT NULL,
     "blockchainTxHash" TEXT NOT NULL,
     "merkleGeneratedAt" TIMESTAMP(3) NOT NULL,
-    "userId" INTEGER,
+    "userId" TEXT NOT NULL,
 
     CONSTRAINT "InsuredPerson_pkey" PRIMARY KEY ("id")
 );
@@ -140,9 +140,6 @@ CREATE UNIQUE INDEX "Blockchain_reference_insuredPersonId_key" ON "Blockchain_re
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "InsuredPerson" ADD CONSTRAINT "InsuredPerson_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Dependent" ADD CONSTRAINT "Dependent_insuredPersonId_fkey" FOREIGN KEY ("insuredPersonId") REFERENCES "InsuredPerson"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -2,17 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { HomeIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
-import prisma from "@/lib/prismadb";
 
-export default async function Dashboard() {
-  const { userId } = useAuth();
-  const insuredPersons = await prisma.insuredPerson.findMany({
-    where: {
-      userId: userId,
-    },
-  });
-  console.log(insuredPersons);
+export default function DashboardClient({ insuredPersons }) {
   return (
     <div className="home_inner_links">
       <Link href="add" className="mr-5">
@@ -25,6 +16,7 @@ export default async function Dashboard() {
           <EyeOpenIcon className="mr-2" /> Voir une carte d'assurance.
         </Button>
       </Link>
+      <pre>{JSON.stringify(insuredPersons, null, 2)}</pre>
     </div>
   );
 }
