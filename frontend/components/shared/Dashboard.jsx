@@ -1,4 +1,3 @@
-"use client";
 import { Button } from "@/components/ui/button";
 import { HomeIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
