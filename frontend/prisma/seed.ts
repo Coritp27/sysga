@@ -19,8 +19,14 @@ async function main() {
     },
   });
 
-  const user = await prisma.user.create({
-    data: {
+  const user = await prisma.user.upsert({
+    where: { username: "johndoe" },
+    update: {
+      idKeycloak: "keycloak-123",
+      institutionId: 1,
+      roleId: adminRole.id,
+    },
+    create: {
       username: "johndoe",
       idKeycloak: "keycloak-123",
       institutionId: 1,
@@ -37,7 +43,7 @@ async function main() {
       merkleRoot: "root123",
       blockchainTxHash: "txhash123",
       merkleGeneratedAt: new Date(),
-      userId: user.id,
+      userId: user.id.toString(),
     },
   });
 

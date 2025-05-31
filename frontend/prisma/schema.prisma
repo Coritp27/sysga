@@ -19,7 +19,7 @@ model User {
   idKeycloak      String
   institutionId   Int
   roleId          Int
-  insuredPersons  InsuredPerson[] @relation("UserInsuredPersons")
+  // insuredPersons  InsuredPerson[] @relation("UserInsuredPersons")
   role            Role    @relation(fields: [roleId], references: [id])
 }
 
@@ -55,8 +55,7 @@ model InsuredPerson {
   dependents         Dependent[]
   insuranceCards     InsuranceCard[]
   blockchainReference Blockchain_reference?
-  userId             Int?
-  user               User?     @relation("UserInsuredPersons", fields: [userId], references: [id])
+  userId             String
 }
 
 model Dependent {
