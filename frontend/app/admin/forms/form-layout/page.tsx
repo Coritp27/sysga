@@ -1,6 +1,6 @@
-import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
-
+import React from "react";
 import type { Metadata } from "next";
+import Breadcrumb from "../../components/Breadcrumbs/Breadcrumb";
 import { ContactForm } from "./_components/contact-form";
 import { SignInForm } from "./_components/sign-in-form";
 import { SignUpForm } from "./_components/sign-up-form";

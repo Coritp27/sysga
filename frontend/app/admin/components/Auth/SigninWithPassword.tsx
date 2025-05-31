@@ -1,7 +1,8 @@
 "use client";
-import { EmailIcon, PasswordIcon } from "../assets/icons";
+import React from "react";
+import { EmailIcon, PasswordIcon } from "../../assets/icons";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { Checkbox } from "../FormElements/checkbox";
 

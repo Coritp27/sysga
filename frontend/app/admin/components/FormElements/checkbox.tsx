@@ -1,5 +1,6 @@
-import { CheckIcon, XIcon } from "../assets/icons";
-import { cn } from "../lib/utils";
+import React from "react";
+import { CheckIcon, XIcon } from "../../assets/icons";
+import { cn } from "../../lib/utils";
 import { useId } from "react";
 
 type PropsType = {
@@ -29,7 +30,7 @@ export function Checkbox({
         htmlFor={id}
         className={cn(
           "flex cursor-pointer select-none items-center",
-          !minimal && "text-body-sm font-medium",
+          !minimal && "text-body-sm font-medium"
         )}
       >
         <div className="relative">
@@ -48,7 +49,7 @@ export function Checkbox({
                 ? "peer-checked:bg-primary [&>*]:text-white"
                 : "peer-checked:bg-gray-2 dark:peer-checked:bg-transparent",
               minimal && "mr-3 border-stroke dark:border-dark-3",
-              radius === "md" && "rounded-md",
+              radius === "md" && "rounded-md"
             )}
           >
             {!withIcon && (

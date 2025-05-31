@@ -1,4 +1,5 @@
-import { cn } from "../lib/utils";
+import React from "react";
+import { cn } from "../../../lib/utils";
 import { type HTMLInputTypeAttribute, useId } from "react";
 
 type InputGroupProps = {
@@ -48,7 +49,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
           "relative mt-3 [&_svg]:absolute [&_svg]:top-1/2 [&_svg]:-translate-y-1/2",
           props.iconPosition === "left"
             ? "[&_svg]:left-4.5"
-            : "[&_svg]:right-4.5",
+            : "[&_svg]:right-4.5"
         )}
       >
         <input
@@ -65,7 +66,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
               ? getFileStyles(props.fileStyleVariant!)
               : "px-5.5 py-3 text-dark placeholder:text-dark-6 dark:text-white",
             props.iconPosition === "left" && "pl-12.5",
-            props.height === "sm" && "py-2.5",
+            props.height === "sm" && "py-2.5"
           )}
           required={required}
           disabled={disabled}

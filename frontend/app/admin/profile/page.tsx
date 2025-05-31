@@ -1,9 +1,8 @@
 "use client";
 
+import React, { useState } from "react";
 import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
-
-import { useState } from "react";
 import { CameraIcon } from "./_components/icons";
 import { SocialAccounts } from "./_components/social-accounts";
 
@@ -15,7 +14,7 @@ export default function Page() {
   });
 
   const handleChange = (e: any) => {
-    if (e.target.name === "profilePhoto" ) {
+    if (e.target.name === "profilePhoto") {
       const file = e.target?.files[0];
 
       setData({

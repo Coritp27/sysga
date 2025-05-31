@@ -1,5 +1,6 @@
-import { CheckIcon, XIcon } from "../assets/icons";
-import { cn } from "../lib/utils";
+import React from "react";
+import { CheckIcon, XIcon } from "../../assets/icons";
+import { cn } from "../../lib/utils";
 import { useId } from "react";
 
 type PropsType = {
@@ -38,7 +39,7 @@ export function Switch({
               "-top-1 left-0 size-7 shadow-switch-2": backgroundSize === "sm",
               "peer-checked:bg-primary peer-checked:dark:bg-white":
                 background !== "dark",
-            },
+            }
           )}
         >
           {withIcon && (

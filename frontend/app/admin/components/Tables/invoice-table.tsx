@@ -1,4 +1,5 @@
-import { TrashIcon } from "../assets/icons";
+import React from "react";
+import { TrashIcon } from "../../assets/icons";
 import {
   Table,
   TableBody,
@@ -6,8 +7,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../components/ui/table";
-import { cn } from "../lib/utils";
+} from "../../components/ui/table";
+import { cn } from "../../lib/utils";
 import dayjs from "dayjs";
 import { getInvoiceTableData } from "./fetch";
 import { DownloadIcon, PreviewIcon } from "./icons";
@@ -54,7 +55,7 @@ export async function InvoiceTable() {
                         item.status === "Unpaid",
                       "bg-[#FFA70B]/[0.08] text-[#FFA70B]":
                         item.status === "Pending",
-                    },
+                    }
                   )}
                 >
                   {item.status}

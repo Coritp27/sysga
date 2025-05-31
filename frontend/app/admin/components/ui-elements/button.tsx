@@ -1,3 +1,4 @@
+import React from "react";
 import { cva, VariantProps } from "class-variance-authority";
 import type { HTMLAttributes } from "react";
 
@@ -30,7 +31,7 @@ const buttonVariants = cva(
       shape: "default",
       size: "default",
     },
-  },
+  }
 );
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement> &

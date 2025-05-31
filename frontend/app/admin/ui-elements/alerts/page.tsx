@@ -1,6 +1,7 @@
-import { Alert } from "../components/ui-elements/alert";
-import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
-import type { Metadata } from "next";
+import React from "react";
+import { Alert } from "../../components/ui-elements/alert";
+import Breadcrumb from "../../components/Breadcrumbs/Breadcrumb";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Alerts",

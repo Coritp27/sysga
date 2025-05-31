@@ -1,7 +1,8 @@
-import { TrendingUpIcon } from "../assets/icons";
-import { compactFormat } from "../lib/format-number";
-import { cn } from "../lib/utils";
-import { getCampaignVisitorsData } from "../services/charts.services";
+import React from "react";
+import { TrendingUpIcon } from "../../../assets/icons";
+import { compactFormat } from "../../../lib/format-number";
+import { cn } from "../../../lib/utils";
+import { getCampaignVisitorsData } from "../../../services/charts.services";
 import { CampaignVisitorsChart } from "./chart";
 
 export async function CampaignVisitors({ className }: { className?: string }) {
@@ -11,7 +12,7 @@ export async function CampaignVisitors({ className }: { className?: string }) {
     <div
       className={cn(
         "rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card",
-        className,
+        className
       )}
     >
       <div className="border-b border-stroke px-6 py-5.5 dark:border-dark-3">
@@ -31,7 +32,7 @@ export async function CampaignVisitors({ className }: { className?: string }) {
           <div
             className={cn(
               "flex items-center gap-1.5",
-              data.performance > 0 ? "text-green" : "text-red",
+              data.performance > 0 ? "text-green" : "text-red"
             )}
           >
             <TrendingUpIcon
