@@ -1,4 +1,5 @@
-import { IconProps } from "../types/icon-props";
+import React from "react";
+import { IconProps } from "../../types/icon-props";
 
 export function PreviewIcon(props: IconProps) {
   return (

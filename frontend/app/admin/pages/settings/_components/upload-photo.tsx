@@ -1,5 +1,6 @@
-import { UploadIcon } from "../assets/icons";
-import { ShowcaseSection } from "../components/Layouts/showcase-section";
+import React from "react";
+import { UploadIcon } from "../../../assets/icons";
+import { ShowcaseSection } from "../../../components/Layouts/showcase-section";
 import Image from "next/image";
 
 export function UploadPhotoForm() {

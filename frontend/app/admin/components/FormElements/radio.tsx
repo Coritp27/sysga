@@ -1,4 +1,5 @@
-import { cn } from "../lib/utils";
+import React from "react";
+import { cn } from "../../lib/utils";
 import { useId } from "react";
 
 type PropsType = {
@@ -40,13 +41,13 @@ export function RadioInput({
                 "border-dark-5 peer-checked:border-primary peer-checked:bg-gray-2 dark:border-dark-6 dark:peer-checked:bg-dark-2":
                   variant === "dot",
               },
-              minimal && "border-stroke dark:border-dark-3",
+              minimal && "border-stroke dark:border-dark-3"
             )}
           >
             <span
               className={cn(
                 "hidden size-2.5 rounded-full bg-primary",
-                variant === "circle" && "bg-transparent",
+                variant === "circle" && "bg-transparent"
               )}
             />
           </div>
