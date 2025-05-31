@@ -21,6 +21,9 @@ View and edit your data locally by running this command:
 # Open Prisma Studio to view and edit your database records
 yarn prisma studio
 
+# Reset your database
+yarn prisma migrate reset
+
 # Apply pending migrations to your database
 yarn prisma migrate dev --name init
 
