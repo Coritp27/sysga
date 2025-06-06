@@ -1,26 +1,18 @@
 import { auth } from "@clerk/nextjs/server";
 import Home from "@/components/shared/Home";
-import DashboardClient from "@/components/shared/Dashboard";
-import prisma from "@/lib/prismadb";
+import { redirect } from "next/navigation";
 
 export default async function Landing() {
   const { userId } = await auth();
 
-  let insuredPersons = [];
   if (userId) {
-    insuredPersons = await prisma.insuredPerson.findMany({
-      where: { userId: "1" },
-    });
+    redirect("/admin");
   }
 
   return (
     <div className="home">
       <div className="home_inner">
-        {userId ? (
-          <DashboardClient insuredPersons={insuredPersons} />
-        ) : (
-          <Home />
-        )}
+        <Home />
       </div>
     </div>
   );
