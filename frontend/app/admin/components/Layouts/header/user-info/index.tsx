@@ -11,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
+import { SignOutButton } from "@clerk/nextjs";
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
@@ -110,7 +111,9 @@ export function UserInfo() {
           >
             <LogOutIcon />
 
-            <span className="text-base font-medium">Log out</span>
+            <SignOutButton>
+              <span className="text-base font-medium">Log out</span>
+            </SignOutButton>
           </button>
         </div>
       </DropdownContent>
