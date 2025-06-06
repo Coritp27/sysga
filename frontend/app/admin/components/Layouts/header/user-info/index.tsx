@@ -11,10 +11,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
-import { SignOutButton } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@clerk/nextjs";
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
+  const { userId } = useAuth();
 
   const USER = {
     name: "John Smith",
@@ -110,10 +111,15 @@ export function UserInfo() {
             onClick={() => setIsOpen(false)}
           >
             <LogOutIcon />
-
-            <SignOutButton>
-              <span className="text-base font-medium">Log out</span>
-            </SignOutButton>
+            {userId ? (
+              <SignOutButton>
+                <span className="text-base font-medium">Log out</span>
+              </SignOutButton>
+            ) : (
+              <Link href="/sign-in">
+                <span className="text-base font-medium">Log in</span>
+              </Link>
+            )}
           </button>
         </div>
       </DropdownContent>
