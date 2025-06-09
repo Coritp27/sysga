@@ -26,6 +26,17 @@ services:
     networks:
       - sysga
 
+  backend-test:
+    build:
+      context: ./backend
+    depends_on:
+      - backend
+    volumes:
+      - ./backend:/app
+    command: sh -c "sleep 10 && npx hardhat ignition deploy ./ignition/modules/SysGa.js && npx hardhat test"
+    networks:
+      - sysga
+
 networks:
   sysga:
     driver: bridge
