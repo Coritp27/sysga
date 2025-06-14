@@ -9,8 +9,19 @@ export const NAV_DATA = [
         icon: Icons.HomeIcon,
         items: [
           {
-            title: "eCommerce",
+            title: "Dashboard",
             url: "/admin",
+          },
+        ],
+      },
+      {
+        title: "Insurance cards",
+        url: "/admin/insurance-cards",
+        icon: Icons.Table,
+        items: [
+          {
+            title: "Insurance cards",
+            url: "/admin/insurance-cards",
           },
         ],
       },
@@ -37,17 +48,6 @@ export const NAV_DATA = [
           {
             title: "Form Layout",
             url: "/admin/forms/form-layout",
-          },
-        ],
-      },
-      {
-        title: "Tables",
-        url: "/admin/tables",
-        icon: Icons.Table,
-        items: [
-          {
-            title: "Tables",
-            url: "/admin/tables",
           },
         ],
       },
