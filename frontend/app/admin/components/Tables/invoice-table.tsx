@@ -1,5 +1,5 @@
 import React from "react";
-import { TrashIcon } from "../../assets/icons";
+import { PencilSquareIcon, TrashIcon, TrendingUpIcon } from "../../assets/icons";
 import {
   Table,
   TableBody,
@@ -66,7 +66,7 @@ export async function InvoiceTable() {
                 <div className="flex items-center justify-end gap-x-3.5">
                   <button className="hover:text-primary">
                     <span className="sr-only">View Invoice</span>
-                    <PreviewIcon />
+                    <PencilSquareIcon />
                   </button>
 
                   <button className="hover:text-primary">
