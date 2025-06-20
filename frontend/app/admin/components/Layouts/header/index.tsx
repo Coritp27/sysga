@@ -9,7 +9,6 @@ import { MenuIcon } from "./icons";
 import { Notification } from "./notification";
 import { ThemeToggleSwitch } from "./theme-toggle";
 import { UserInfo } from "./user-info";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
@@ -37,13 +36,12 @@ export function Header() {
       )}
 
       <div className="max-xl:hidden">
-        <h1 className="mb-0.5 text-heading-5 font-bold text-dark dark:text-white">
+        {/* <h1 className="mb-0.5 text-heading-5 font-bold text-dark dark:text-white">
           Dashboard
-          </h1>
+          </h1> */}
         {/* <p className="font-medium">Next.js Admin Dashboard Solution</p> */}
-        
       </div>
-          
+
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
         <div className="relative w-full max-w-[300px]">
           <input
