@@ -1,22 +1,17 @@
 import React from "react";
 import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
-import { InvoiceTable } from "../components/Tables/invoice-table";
-import { TopChannels } from "../components/Tables/top-channels";
-import { TopChannelsSkeleton } from "../components/Tables/top-channels/skeleton";
-import { TopProducts } from "../components/Tables/top-products";
-import { TopProductsSkeleton } from "../components/Tables/top-products/skeleton";
+import { InsuranceCardTable } from "../components/Tables/insurance-card-table";
 
 import { Metadata } from "next";
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Tables",
+  title: "Insurance Cards",
 };
 
 const TablesPage = () => {
   return (
     <>
-      <Breadcrumb pageName="Tables" />
+      <Breadcrumb pageName="Insurance Cards" />
 
       <div className="space-y-10">
         {/* <Suspense fallback={<TopChannelsSkeleton />}>
@@ -27,7 +22,7 @@ const TablesPage = () => {
           <TopProducts />
         </Suspense> */}
 
-        <InvoiceTable />
+        <InsuranceCardTable />
       </div>
     </>
   );

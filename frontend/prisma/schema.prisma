@@ -13,14 +13,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserType {
+  INSURER
+  MEDICAL
+  ADMIN
+}
+
+enum InsuranceCardStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+enum PolicyType {
+  INDIVIDUAL
+  FAMILY
+}
+
 model User {
-  id              Int     @id @default(autoincrement())
-  username        String  @unique
+  id              Int      @id @default(autoincrement())
+  username        String   @unique
+  userType        UserType
   idKeycloak      String
-  institutionId   Int
+  institutionId   Int?
+  isActive        Boolean  @default(true)
   roleId          Int
-  // insuredPersons  InsuredPerson[] @relation("UserInsuredPersons")
-  role            Role    @relation(fields: [roleId], references: [id])
+  role            Role     @relation(fields: [roleId], references: [id])
+  insuredPerson   InsuredPerson? @relation(fields: [insuredPersonId], references: [id])
+  insuredPersonId Int?     @unique
+
+  // Audit fields from Audit abstract class
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String
+  lastModifiedBy  String
+  isDeleted       Boolean  @default(false)
 }
 
 model Role {
@@ -44,18 +71,26 @@ model Person {
 }
 
 model InsuredPerson {
-  id                 Int       @id @default(autoincrement())
-  cin                String
-  nif                String
-  numberOfDependent  Int
+  id                  Int      @id @default(autoincrement())
+  // Inherited from Person
+  firstName           String
+  lastName            String
+  dateOfBirth         DateTime
+  email               String   @unique
+  phone               String
+  address             String
+  gender              String
+  // InsuredPerson specific fields
+  cin                 String   @unique
+  nif                 String   @unique
+  hasDependent        Boolean
+  numberOfDependent   Int
   policyEffectiveDate DateTime
-  merkleRoot         String
-  blockchainTxHash   String
-  merkleGeneratedAt  DateTime
-  dependents         Dependent[]
-  insuranceCards     InsuranceCard[]
-  blockchainReference Blockchain_reference?
-  userId             String
+  dependents          Dependent[]
+  insuranceCards      InsuranceCard[]
+  user                User?
+  enterpriseId        Int?
+  enterprise          Enterprise? @relation(fields: [enterpriseId], references: [id])
 }
 
 model Dependent {
@@ -65,58 +100,93 @@ model Dependent {
   insuredPerson   InsuredPerson @relation(fields: [insuredPersonId], references: [id])
 }
 
+model Enterprise {
+  id Int @id @default(autoincrement())
+
+  // Inherited from Organization
+  name              String
+  email             String
+  phone1            String
+  phone2            String?
+  address           String
+  website           String?
+  fiscalNumber      String
+  numberOfEmployees Int
+
+  // Inherited from Audit
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  createdBy         String
+  lastModifiedBy    String
+  isDeleted         Boolean  @default(false)
+
+  insuredPersons InsuredPerson[]
+}
+
 model InsuranceCard {
-  id                 Int     @id @default(autoincrement())
-  cardNumber         String  @unique
-  issuedOn           DateTime
-  status             String
-  insuranceCompanyId Int
-  insuredPersonId    Int
-  insuranceCompany   InsuranceCompany @relation(fields: [insuranceCompanyId], references: [id])
-  insuredPerson      InsuredPerson    @relation(fields: [insuredPersonId], references: [id])
+  id                  Int                 @id @default(autoincrement())
+  insuredPersonName   String
+  policyNumber        BigInt
+  cardNumber          String              @unique
+  dateOfBirth         DateTime
+  policyEffectiveDate DateTime
+  hadDependent        Boolean
+  status              InsuranceCardStatus
+  validUntil          DateTime
+  insuranceCompanyId  Int
+  insuredPersonId     Int
+  insuranceCompany    InsuranceCompany    @relation(fields: [insuranceCompanyId], references: [id])
+  insuredPerson       InsuredPerson       @relation(fields: [insuredPersonId], references: [id])
+  blockchainReference BlockchainReference?
 }
 
 model Policy {
-  id                 Int     @id @default(autoincrement())
-  policyNumber       Int     @unique
-  type               String
-  coverage           String
-  deductible         Float
-  premium            Int
-  description        String
-  insuranceCompanyId Int
-  insuranceCompany   InsuranceCompany @relation(fields: [insuranceCompanyId], references: [id])
+  id                  Int        @id @default(autoincrement())
+  policyNumber        BigInt     @unique
+  type                PolicyType
+  coverage            String
+  deductible          Decimal
+  premiumAmount       Decimal
+  description         String
+  validUntil          DateTime
+  insuranceCompanyId  Int
+  insuranceCompany    InsuranceCompany @relation(fields: [insuranceCompanyId], references: [id])
 }
 
-model Blockchain_reference {
-  id               Int     @id @default(autoincrement())
-  insuredPersonId  Int     @unique
-  merkleRoot       String
+model BlockchainReference {
+  id               Int           @id @default(autoincrement())
+  reference        BigInt
+  cardNumber       String        @unique
+  card             InsuranceCard @relation(fields: [cardNumber], references: [cardNumber])
   blockchainTxHash String
-  createdAt        DateTime
-  insuredPerson    InsuredPerson @relation(fields: [insuredPersonId], references: [id])
-}
-
-model Organization {
-  id               Int    @id @default(autoincrement())
-  name             String
-  email            String
-  phone1           String
-  phone2           String
-  adresse          String
-  website          String
-  fiscalNumber     Int
-  numberOfEmployee Int
+  createdAt        DateTime      @default(now())
 }
 
 model InsuranceCompany {
   id        Int       @id @default(autoincrement())
-  name      String
-  policies  Policy[]
-  cards     InsuranceCard[]
+  // Inherited from Organization
+  name              String
+  email             String
+  phone1            String
+  phone2            String?
+  address           String
+  website           String?
+  fiscalNumber      String
+  numberOfEmployees Int
+
+  policies Policy[]
+  cards    InsuranceCard[]
 }
 
 model MedicalInstitution {
-  id     Int    @id @default(autoincrement())
-  name   String
+  id    Int    @id @default(autoincrement())
+  // Inherited from Organization
+  name              String
+  email             String
+  phone1            String
+  phone2            String?
+  address           String
+  website           String?
+  fiscalNumber      String
+  numberOfEmployees Int
 }
