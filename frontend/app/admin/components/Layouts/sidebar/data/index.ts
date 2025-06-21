@@ -2,7 +2,7 @@ import * as Icons from "../icons";
 
 export const NAV_DATA = [
   {
-    label: "MAIN MENU",
+    label: "GESTION D'ASSURANCE",
     items: [
       {
         title: "Dashboard",
@@ -10,95 +10,100 @@ export const NAV_DATA = [
         items: [
           {
             title: "Dashboard",
-            url: "/admin",
+            url: "/admin/dashboard",
           },
         ],
       },
       {
-        title: "Insurance cards",
+        title: "Cartes d'Assurance",
         url: "/admin/insurance-cards",
         icon: Icons.Table,
         items: [
           {
-            title: "Insurance cards",
+            title: "Liste des Cartes",
             url: "/admin/insurance-cards",
           },
+          {
+            title: "Nouvelle Carte",
+            url: "/admin/insurance-cards/new",
+          },
         ],
       },
       {
-        title: "Calendar",
-        url: "/admin/calendar",
-        icon: Icons.Calendar,
-        items: [],
-      },
-      {
-        title: "Profile",
-        url: "/admin/profile",
+        title: "Personnes Assurées",
+        url: "/admin/insured-persons",
         icon: Icons.User,
-        items: [],
-      },
-      {
-        title: "Forms",
-        icon: Icons.Alphabet,
         items: [
           {
-            title: "Form Elements",
-            url: "/admin/forms/form-elements",
+            title: "Liste des Personnes",
+            url: "/admin/insured-persons",
           },
           {
-            title: "Form Layout",
-            url: "/admin/forms/form-layout",
+            title: "Nouvelle Personne",
+            url: "/admin/insured-persons/new",
           },
         ],
       },
       {
-        title: "Pages",
+        title: "Compagnies",
+        url: "/admin/insurance-companies",
+        icon: Icons.FourCircle,
+        items: [
+          {
+            title: "Liste des Compagnies",
+            url: "/admin/insurance-companies",
+          },
+          {
+            title: "Nouvelle Compagnie",
+            url: "/admin/insurance-companies/new",
+          },
+        ],
+      },
+      {
+        title: "Polices",
+        url: "/admin/policies",
         icon: Icons.Alphabet,
         items: [
           {
-            title: "Settings",
-            url: "/admin/pages/settings",
+            title: "Liste des Polices",
+            url: "/admin/policies",
+          },
+          {
+            title: "Nouvelle Police",
+            url: "/admin/policies/new",
           },
         ],
       },
     ],
   },
   {
-    label: "OTHERS",
+    label: "SYSTÈME",
     items: [
       {
-        title: "Charts",
+        title: "Rapports",
         icon: Icons.PieChart,
         items: [
           {
-            title: "Basic Chart",
-            url: "/admin/charts/basic-chart",
+            title: "Rapports",
+            url: "/admin/reports",
           },
         ],
       },
       {
-        title: "UI Elements",
-        icon: Icons.FourCircle,
+        title: "Paramètres",
+        icon: Icons.Alphabet,
         items: [
           {
-            title: "Alerts",
-            url: "/admin/ui-elements/alerts",
-          },
-          {
-            title: "Buttons",
-            url: "/admin/ui-elements/buttons",
+            title: "Paramètres",
+            url: "/admin/settings",
           },
         ],
       },
       {
-        title: "Authentication",
-        icon: Icons.Authentication,
-        items: [
-          {
-            title: "Sign In",
-            url: "/admin/auth/sign-in",
-          },
-        ],
+        title: "Profil",
+        url: "/admin/profile",
+        icon: Icons.User,
+        items: [],
       },
     ],
   },

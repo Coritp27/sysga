@@ -19,7 +19,7 @@ export function UserInfo() {
 
   const USER = {
     name: "John Smith",
-    email: "johnson@nextadmin.com",
+    email: "john.smith@sysga.com",
     img: "/images/user/user-03.png",
   };
 
