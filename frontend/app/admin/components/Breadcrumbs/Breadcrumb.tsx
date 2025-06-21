@@ -1,7 +1,6 @@
 import React from "react";
-import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { AddIcon, XIcon } from "../../assets/icons";
+import { AddIcon } from "../../assets/icons";
 
 interface BreadcrumbProps {
   pageName: string;
@@ -22,7 +21,7 @@ const Breadcrumb = ({ pageName }: BreadcrumbProps) => {
             </Link>
           </li> */}
           <li className="font-medium text-primary flex items-center gap-2">
-            <AddIcon   /> <ConnectButton showBalance={false} />
+            <AddIcon /> <ConnectButton showBalance={false} />
           </li>
         </ol>
       </nav>

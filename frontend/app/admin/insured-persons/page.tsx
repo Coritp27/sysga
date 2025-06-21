@@ -1,38 +1,38 @@
 import React from "react";
 import { Metadata } from "next";
 import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
-import InsuranceCardTable from "../components/Tables/insurance-card-table";
+import InsuredPersonTable from "../components/Tables/InsuredPersonTable";
 
 export const metadata: Metadata = {
-  title: "Cartes d'Assurance - SYSGA Admin",
-  description: "Gestion des cartes d'assurance dans le système",
+  title: "Personnes Assurées - SYSGA Admin",
+  description: "Gestion des personnes assurées dans le système",
 };
 
-const InsuranceCardsPage = () => {
+const InsuredPersonsPage = () => {
   return (
     <>
-      <Breadcrumb pageName="Cartes d'Assurance" />
+      <Breadcrumb pageName="Personnes Assurées" />
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Cartes d'Assurance
+              Personnes Assurées
             </h1>
             <p className="text-muted-foreground">
-              Gérez toutes les cartes d'assurance dans le système
+              Gérez toutes les personnes assurées dans le système
             </p>
           </div>
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
             <span>+</span>
-            <span>Nouvelle Carte</span>
+            <span>Nouvelle Personne</span>
           </button>
         </div>
 
-        <InsuranceCardTable />
+        <InsuredPersonTable />
       </div>
     </>
   );
 };
 
-export default InsuranceCardsPage;
+export default InsuredPersonsPage;

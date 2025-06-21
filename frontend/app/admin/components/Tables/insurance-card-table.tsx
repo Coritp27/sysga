@@ -10,12 +10,33 @@ import {
 import { cn } from "../../lib/utils";
 import dayjs from "dayjs";
 import { PreviewIcon } from "./icons";
-import prisma from "@/lib/prismadb";
-import { InsuranceCardStatus } from "@prisma/client";
 import { TrashIcon } from "lucide-react";
 
-export async function InsuranceCardTable() {
-  const insuranceCards = await prisma.insuranceCard.findMany();
+const InsuranceCardTable = () => {
+  // TODO: Récupérer les vraies données depuis la base de données
+  const insuranceCards = [
+    {
+      id: 1,
+      insuredPersonName: "John Doe",
+      cardNumber: "CARD123456",
+      policyEffectiveDate: new Date("2024-01-01"),
+      status: "ACTIVE",
+    },
+    {
+      id: 2,
+      insuredPersonName: "Marie Dupont",
+      cardNumber: "CARD789012",
+      policyEffectiveDate: new Date("2024-02-15"),
+      status: "ACTIVE",
+    },
+    {
+      id: 3,
+      insuredPersonName: "Jean Martin",
+      cardNumber: "CARD345678",
+      policyEffectiveDate: new Date("2023-12-01"),
+      status: "INACTIVE",
+    },
+  ];
 
   return (
     <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
@@ -57,11 +78,11 @@ export async function InsuranceCardTable() {
                     "max-w-fit rounded-full px-3.5 py-1 text-sm font-medium",
                     {
                       "bg-[#219653]/[0.08] text-[#219653]":
-                        card.status === InsuranceCardStatus.ACTIVE,
+                        card.status === "ACTIVE",
                       "bg-[#D34053]/[0.08] text-[#D34053]":
-                        card.status === InsuranceCardStatus.REVOKED,
+                        card.status === "REVOKED",
                       "bg-[#FFA70B]/[0.08] text-[#FFA70B]":
-                        card.status === InsuranceCardStatus.INACTIVE,
+                        card.status === "INACTIVE",
                     }
                   )}
                 >
@@ -88,4 +109,6 @@ export async function InsuranceCardTable() {
       </Table>
     </div>
   );
-}
+};
+
+export default InsuranceCardTable;
