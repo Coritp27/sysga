@@ -8,38 +8,19 @@ import {
   TableRow,
 } from "../ui/table";
 import { Eye, Edit, Trash2, Building2, Phone, Mail, Globe } from "lucide-react";
+import { InsuranceCompany } from "../../types/insurance-company";
 
-const InsuranceCompanyTable = () => {
-  // TODO: Récupérer les vraies données depuis la base de données
-  const insuranceCompanies = [
-    {
-      id: 1,
-      name: "Assureur A",
-      email: "contact@assureur-a.com",
-      phone1: "0123456789",
-      phone2: "0987654321",
-      address: "123 rue de l'assurance",
-      website: "www.assureur-a.com",
-      fiscalNumber: "FR123456789",
-      numberOfEmployees: 150,
-      policies: [{ id: 1 }, { id: 2 }],
-      cards: [{ id: 1 }, { id: 2 }, { id: 3 }],
-    },
-    {
-      id: 2,
-      name: "Assureur B",
-      email: "contact@assureur-b.com",
-      phone1: "0123456790",
-      phone2: null,
-      address: "456 rue de la sécurité",
-      website: "www.assureur-b.com",
-      fiscalNumber: "FR987654321",
-      numberOfEmployees: 75,
-      policies: [{ id: 3 }],
-      cards: [{ id: 4 }, { id: 5 }],
-    },
-  ];
+interface InsuranceCompanyTableProps {
+  insuranceCompanies: InsuranceCompany[];
+  onEdit: (company: InsuranceCompany) => void;
+  onDelete: (id: number) => void;
+}
 
+const InsuranceCompanyTable = ({
+  insuranceCompanies,
+  onEdit,
+  onDelete,
+}: InsuranceCompanyTableProps) => {
   return (
     <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
       <Table>
@@ -48,8 +29,7 @@ const InsuranceCompanyTable = () => {
             <TableHead className="min-w-[200px] xl:pl-7.5">Compagnie</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead>Adresse</TableHead>
-            <TableHead>Polices</TableHead>
-            <TableHead>Cartes</TableHead>
+            <TableHead>Informations</TableHead>
             <TableHead>Employés</TableHead>
             <TableHead className="text-right xl:pr-7.5">Actions</TableHead>
           </TableRow>
@@ -64,7 +44,7 @@ const InsuranceCompanyTable = () => {
                     {company.name}
                   </h5>
                   <p className="text-sm text-muted-foreground">
-                    {company.fiscalNumber}
+                    {company.taxId}
                   </p>
                 </div>
               </TableCell>
@@ -108,20 +88,17 @@ const InsuranceCompanyTable = () => {
               </TableCell>
 
               <TableCell>
-                <div className="flex items-center space-x-2">
-                  <span className="text-dark dark:text-white font-medium">
-                    {company.policies.length}
-                  </span>
-                  <span className="text-xs text-muted-foreground">polices</span>
-                </div>
-              </TableCell>
-
-              <TableCell>
-                <div className="flex items-center space-x-2">
-                  <span className="text-dark dark:text-white font-medium">
-                    {company.cards.length}
-                  </span>
-                  <span className="text-xs text-muted-foreground">cartes</span>
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-dark dark:text-white font-medium">
+                      {company.industry}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-muted-foreground">
+                      {company.size}
+                    </span>
+                  </div>
                 </div>
               </TableCell>
 
@@ -143,11 +120,19 @@ const InsuranceCompanyTable = () => {
                     <Eye className="h-4 w-4" />
                   </button>
 
-                  <button className="hover:text-primary" title="Modifier">
+                  <button
+                    className="hover:text-primary"
+                    title="Modifier"
+                    onClick={() => onEdit(company)}
+                  >
                     <Edit className="h-4 w-4" />
                   </button>
 
-                  <button className="hover:text-red-500" title="Supprimer">
+                  <button
+                    className="hover:text-red-500"
+                    title="Supprimer"
+                    onClick={() => company.id && onDelete(company.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

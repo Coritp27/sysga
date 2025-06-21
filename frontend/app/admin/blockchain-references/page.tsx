@@ -2,89 +2,133 @@
 
 import { useState } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
-import { MedicalInstitutionTable } from "../components/Tables/medical-institution-table";
-import { MedicalInstitutionForm } from "../components/Forms/medical-institution-form";
+import { BlockchainReferenceTable } from "../components/Tables/blockchain-reference-table";
 import { ConfirmationModal } from "../components/ui/confirmation-modal";
+import { BlockchainReference } from "../types/blockchain-reference";
+import { BlockchainReferenceForm } from "../components/Forms/blockchain-reference-form";
 
-export default function MedicalInstitutionsPage() {
+const initialReferences: BlockchainReference[] = [
+  {
+    id: 1,
+    referenceId: "REF-2024-001",
+    type: "POLICY",
+    status: "CONFIRMED",
+    blockNumber: "0x1234567890abcdef",
+    transactionHash:
+      "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    relatedEntity: { type: "Police", id: "POL-2024-001", name: "Jean Dupont" },
+    createdAt: "2024-01-15",
+    confirmedAt: "2024-01-15",
+    notes: "Exemple de référence blockchain.",
+  },
+  {
+    id: 2,
+    referenceId: "REF-2024-002",
+    type: "CARD",
+    status: "CONFIRMED",
+    blockNumber: "0x1234567890abcdef",
+    transactionHash:
+      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    relatedEntity: { type: "Carte", id: "CARD-2024-001", name: "Marie Martin" },
+    createdAt: "2024-02-15",
+    confirmedAt: "2024-02-15",
+    notes: "Carte blockchain.",
+  },
+  {
+    id: 3,
+    referenceId: "REF-2024-003",
+    type: "CLAIM",
+    status: "PENDING",
+    blockNumber: "0xabcdef1234567890",
+    transactionHash:
+      "0x7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456",
+    relatedEntity: {
+      type: "Réclamation",
+      id: "CLAIM-2024-001",
+      name: "Pierre Durand",
+    },
+    createdAt: "2024-03-01",
+    notes: "Réclamation en attente.",
+  },
+];
+
+export default function BlockchainReferencesPage() {
+  const [references, setReferences] =
+    useState<BlockchainReference[]>(initialReferences);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedReference, setSelectedReference] =
+    useState<BlockchainReference | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [editingInstitution, setEditingInstitution] = useState<any>(null);
-  const [deletingInstitution, setDeletingInstitution] = useState<any>(null);
 
-  const handleCreateInstitution = (data: any) => {
-    console.log("Créer une nouvelle institution:", data);
-    // Ici on ajouterait l'appel API pour créer l'institution
-    // Pour l'instant, on affiche juste dans la console
-  };
-
-  const handleEditInstitution = (data: any) => {
-    console.log("Modifier l'institution:", data);
-    // Ici on ajouterait l'appel API pour modifier l'institution
-    // Pour l'instant, on affiche juste dans la console
-  };
-
-  const handleDeleteInstitution = (institution: any) => {
-    console.log("Supprimer l'institution:", institution);
-    // Ici on ajouterait l'appel API pour supprimer l'institution
-    // Pour l'instant, on affiche juste dans la console
-  };
-
-  const handleFormSubmit = (data: any) => {
-    if (formMode === "create") {
-      handleCreateInstitution(data);
-    } else {
-      handleEditInstitution(data);
-    }
-  };
-
-  const openCreateForm = () => {
+  const handleCreate = () => {
     setFormMode("create");
-    setEditingInstitution(null);
+    setSelectedReference(null);
     setIsFormOpen(true);
   };
 
-  const openEditForm = (institution: any) => {
+  const handleEdit = (reference: BlockchainReference) => {
     setFormMode("edit");
-    setEditingInstitution(institution);
+    setSelectedReference(reference);
     setIsFormOpen(true);
   };
 
-  const openDeleteModal = (institution: any) => {
-    setDeletingInstitution(institution);
+  const handleDelete = (reference: BlockchainReference) => {
+    setSelectedReference(reference);
     setIsDeleteModalOpen(true);
   };
 
-  const closeForm = () => {
+  const handleFormSubmit = (data: BlockchainReference) => {
+    if (formMode === "create") {
+      const newReference = {
+        ...data,
+        id: Math.max(0, ...references.map((r) => r.id)) + 1,
+      };
+      setReferences([...references, newReference]);
+    } else if (formMode === "edit" && selectedReference) {
+      setReferences(
+        references.map((r) =>
+          r.id === selectedReference.id ? { ...data, id: r.id } : r
+        )
+      );
+    }
     setIsFormOpen(false);
-    setEditingInstitution(null);
   };
 
-  const closeDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingInstitution(null);
-  };
-
-  const confirmDelete = () => {
-    if (deletingInstitution) {
-      handleDeleteInstitution(deletingInstitution);
+  const handleConfirmDelete = () => {
+    if (selectedReference) {
+      setReferences(references.filter((r) => r.id !== selectedReference.id));
+      setIsDeleteModalOpen(false);
+      setSelectedReference(null);
     }
   };
+
+  const filteredReferences = references.filter((reference) => {
+    return (
+      reference.referenceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reference.relatedEntity.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      reference.relatedEntity.id
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      reference.transactionHash.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-          Institutions Médicales
+          Références Blockchain
         </h2>
         <button
-          onClick={openCreateForm}
+          onClick={handleCreate}
           className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
         >
           <AddIcon className="mr-2 h-4 w-4" />
-          Nouvelle Institution
+          Nouvelle Référence
         </button>
       </div>
 
@@ -93,10 +137,10 @@ export default function MedicalInstitutionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Total Institutions
+                Total Références
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                89
+                {references.length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -110,7 +154,7 @@ export default function MedicalInstitutionsPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
               </svg>
             </div>
@@ -121,10 +165,10 @@ export default function MedicalInstitutionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Hôpitaux
+                Références Confirmées
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                45
+                {references.filter((r) => r.status === "CONFIRMED").length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -138,7 +182,7 @@ export default function MedicalInstitutionsPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </div>
@@ -149,10 +193,10 @@ export default function MedicalInstitutionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Cliniques
+                En Attente
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                32
+                {references.filter((r) => r.status === "PENDING").length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -166,7 +210,7 @@ export default function MedicalInstitutionsPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
             </div>
@@ -177,10 +221,10 @@ export default function MedicalInstitutionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Laboratoires
+                Échouées
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                12
+                {references.filter((r) => r.status === "FAILED").length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
@@ -194,7 +238,7 @@ export default function MedicalInstitutionsPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                 />
               </svg>
             </div>
@@ -205,14 +249,14 @@ export default function MedicalInstitutionsPage() {
       <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark mt-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-black dark:text-white">
-            Liste des Institutions Médicales
+            Liste des Références Blockchain
           </h3>
           <div className="flex items-center gap-2">
             <div className="relative">
               <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher une institution..."
+                placeholder="Rechercher une référence..."
                 value={searchTerm}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setSearchTerm(e.target.value)
@@ -222,32 +266,26 @@ export default function MedicalInstitutionsPage() {
             </div>
           </div>
         </div>
-        <MedicalInstitutionTable
-          searchTerm={searchTerm}
-          onEdit={openEditForm}
-          onDelete={openDeleteModal}
+        <BlockchainReferenceTable
+          references={filteredReferences}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       </div>
 
-      {/* Modal de formulaire */}
-      <MedicalInstitutionForm
+      <BlockchainReferenceForm
         isOpen={isFormOpen}
-        onClose={closeForm}
+        onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
-        initialData={editingInstitution}
+        initialData={selectedReference || undefined}
         mode={formMode}
       />
-
-      {/* Modal de confirmation de suppression */}
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
-        onClose={closeDeleteModal}
-        onConfirm={confirmDelete}
-        title="Confirmer la suppression"
-        message={`Êtes-vous sûr de vouloir supprimer l'institution "${deletingInstitution?.name}" ? Cette action est irréversible.`}
-        confirmText="Supprimer"
-        cancelText="Annuler"
-        type="danger"
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer la Référence Blockchain"
+        message="Êtes-vous sûr de vouloir supprimer cette référence blockchain ? Cette action est irréversible."
       />
     </div>
   );

@@ -11,9 +11,33 @@ import { cn } from "../../lib/utils";
 import dayjs from "dayjs";
 import { Eye, Edit, Trash2 } from "lucide-react";
 
-const InsuredPersonTable = () => {
+interface InsuredPerson {
+  id: number;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: Date;
+  email: string;
+  cin: string;
+  nif: string;
+  hasDependent: boolean;
+  numberOfDependent: number;
+  enterprise: { name: string } | null;
+  insuranceCards: { status: string }[];
+}
+
+interface InsuredPersonTableProps {
+  searchTerm?: string;
+  onEdit?: (person: InsuredPerson) => void;
+  onDelete?: (person: InsuredPerson) => void;
+}
+
+const InsuredPersonTable = ({
+  searchTerm = "",
+  onEdit,
+  onDelete,
+}: InsuredPersonTableProps) => {
   // TODO: Récupérer les vraies données depuis la base de données
-  const insuredPersons = [
+  const insuredPersons: InsuredPerson[] = [
     {
       id: 1,
       firstName: "John",
@@ -42,6 +66,20 @@ const InsuredPersonTable = () => {
     },
   ];
 
+  // Filtrer les personnes selon le terme de recherche
+  const filteredPersons = insuredPersons.filter((person) => {
+    const fullName = `${person.firstName} ${person.lastName}`.toLowerCase();
+    const email = person.email.toLowerCase();
+    const cin = person.cin.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+
+    return (
+      fullName.includes(searchLower) ||
+      email.includes(searchLower) ||
+      cin.includes(searchLower)
+    );
+  });
+
   return (
     <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
       <Table>
@@ -60,7 +98,7 @@ const InsuredPersonTable = () => {
         </TableHeader>
 
         <TableBody>
-          {insuredPersons.map((person, index) => (
+          {filteredPersons.map((person, index) => (
             <TableRow key={index} className="border-[#eee] dark:border-dark-3">
               <TableCell className="min-w-[200px] xl:pl-7.5">
                 <div>
@@ -138,11 +176,19 @@ const InsuredPersonTable = () => {
                     <Eye className="h-4 w-4" />
                   </button>
 
-                  <button className="hover:text-primary" title="Modifier">
+                  <button
+                    className="hover:text-primary"
+                    title="Modifier"
+                    onClick={() => onEdit?.(person)}
+                  >
                     <Edit className="h-4 w-4" />
                   </button>
 
-                  <button className="hover:text-red-500" title="Supprimer">
+                  <button
+                    className="hover:text-red-500"
+                    title="Supprimer"
+                    onClick={() => onDelete?.(person)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

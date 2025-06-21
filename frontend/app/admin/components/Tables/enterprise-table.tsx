@@ -19,6 +19,8 @@ interface Enterprise {
 
 interface EnterpriseTableProps {
   searchTerm: string;
+  onEdit?: (enterprise: Enterprise) => void;
+  onDelete?: (enterprise: Enterprise) => void;
 }
 
 // Données statiques pour les entreprises
@@ -87,7 +89,11 @@ const mockEnterprises: Enterprise[] = [
   },
 ];
 
-export function EnterpriseTable({ searchTerm }: EnterpriseTableProps) {
+export function EnterpriseTable({
+  searchTerm,
+  onEdit,
+  onDelete,
+}: EnterpriseTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -136,7 +142,11 @@ export function EnterpriseTable({ searchTerm }: EnterpriseTableProps) {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR");
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   return (
@@ -246,12 +256,22 @@ export function EnterpriseTable({ searchTerm }: EnterpriseTableProps) {
                         />
                       </svg>
                     </button>
-                    <button className="hover:text-primary">
-                      <PencilSquareIcon className="h-5 w-5" />
-                    </button>
-                    <button className="hover:text-danger">
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
+                    {onEdit && (
+                      <button
+                        className="hover:text-primary"
+                        onClick={() => onEdit(enterprise)}
+                      >
+                        <PencilSquareIcon className="h-5 w-5" />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        className="hover:text-danger"
+                        onClick={() => onDelete(enterprise)}
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
