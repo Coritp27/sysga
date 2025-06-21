@@ -2,161 +2,136 @@
 
 import { useState } from "react";
 import { PencilSquareIcon, TrashIcon } from "../../assets/icons";
+import dayjs from "dayjs";
 
-interface Policy {
+interface Dependent {
   id: number;
-  policyNumber: string;
-  type: "INDIVIDUAL" | "FAMILY" | "GROUP";
-  status: "ACTIVE" | "INACTIVE" | "EXPIRED" | "PENDING";
-  startDate: string;
-  endDate: string;
-  premium: number;
-  coverage: number;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  relationship: "CHILD" | "SPOUSE" | "PARENT" | "OTHER";
+  status: "ACTIVE" | "INACTIVE" | "EXPIRED";
   insuredPerson: {
     firstName: string;
     lastName: string;
     email: string;
   };
-  insuranceCompany: {
-    name: string;
-  };
-  enterprise?: {
-    name: string;
-  };
+  policyNumber: string;
+  insuranceCardNumber?: string;
   createdAt: string;
 }
 
-interface PolicyTableProps {
+interface DependentTableProps {
   searchTerm: string;
 }
 
-// Données statiques pour les polices
-const mockPolicies: Policy[] = [
+// Données statiques pour les dépendants
+const mockDependents: Dependent[] = [
   {
     id: 1,
-    policyNumber: "POL-2024-001",
-    type: "INDIVIDUAL",
+    firstName: "Emma",
+    lastName: "Dupont",
+    dateOfBirth: "2015-03-15",
+    relationship: "CHILD",
     status: "ACTIVE",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    premium: 1200,
-    coverage: 50000,
     insuredPerson: {
       firstName: "Jean",
       lastName: "Dupont",
       email: "jean.dupont@email.com",
     },
-    insuranceCompany: {
-      name: "Assurance Plus",
-    },
-    createdAt: "2023-12-15",
+    policyNumber: "POL-2024-001",
+    insuranceCardNumber: "CARD-2024-001-01",
+    createdAt: "2024-01-15",
   },
   {
     id: 2,
-    policyNumber: "POL-2024-002",
-    type: "FAMILY",
+    firstName: "Sophie",
+    lastName: "Martin",
+    dateOfBirth: "1988-07-22",
+    relationship: "SPOUSE",
     status: "ACTIVE",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    premium: 2400,
-    coverage: 100000,
     insuredPerson: {
       firstName: "Marie",
       lastName: "Martin",
       email: "marie.martin@email.com",
     },
-    insuranceCompany: {
-      name: "Santé Pro",
-    },
-    createdAt: "2023-12-20",
+    policyNumber: "POL-2024-002",
+    insuranceCardNumber: "CARD-2024-002-01",
+    createdAt: "2024-02-15",
   },
   {
     id: 3,
-    policyNumber: "POL-2024-003",
-    type: "GROUP",
+    firstName: "Lucas",
+    lastName: "Durand",
+    dateOfBirth: "2018-11-08",
+    relationship: "CHILD",
     status: "ACTIVE",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    premium: 15000,
-    coverage: 500000,
     insuredPerson: {
       firstName: "Pierre",
       lastName: "Durand",
-      email: "pierre.durand@entreprise.com",
+      email: "pierre.durand@email.com",
     },
-    insuranceCompany: {
-      name: "Groupe Assur",
-    },
-    enterprise: {
-      name: "Tech Solutions",
-    },
-    createdAt: "2023-11-30",
+    policyNumber: "POL-2024-003",
+    insuranceCardNumber: "CARD-2024-003-01",
+    createdAt: "2024-01-20",
   },
   {
     id: 4,
-    policyNumber: "POL-2024-004",
-    type: "INDIVIDUAL",
-    status: "EXPIRED",
-    startDate: "2023-01-01",
-    endDate: "2023-12-31",
-    premium: 1100,
-    coverage: 40000,
+    firstName: "Claire",
+    lastName: "Leroy",
+    dateOfBirth: "1992-04-12",
+    relationship: "SPOUSE",
+    status: "INACTIVE",
     insuredPerson: {
       firstName: "Sophie",
       lastName: "Leroy",
       email: "sophie.leroy@email.com",
     },
-    insuranceCompany: {
-      name: "Assurance Plus",
-    },
-    createdAt: "2022-12-10",
+    policyNumber: "POL-2024-004",
+    createdAt: "2023-12-10",
   },
   {
     id: 5,
-    policyNumber: "POL-2024-005",
-    type: "FAMILY",
-    status: "PENDING",
-    startDate: "2024-02-01",
-    endDate: "2025-01-31",
-    premium: 2800,
-    coverage: 120000,
+    firstName: "Antoine",
+    lastName: "Moreau",
+    dateOfBirth: "2010-09-30",
+    relationship: "CHILD",
+    status: "ACTIVE",
     insuredPerson: {
       firstName: "Lucas",
       lastName: "Moreau",
       email: "lucas.moreau@email.com",
     },
-    insuranceCompany: {
-      name: "Santé Pro",
-    },
-    createdAt: "2024-01-15",
+    policyNumber: "POL-2024-005",
+    insuranceCardNumber: "CARD-2024-005-01",
+    createdAt: "2024-01-25",
   },
 ];
 
-export function PolicyTable({ searchTerm }: PolicyTableProps) {
+export function DependentTable({ searchTerm }: DependentTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Filtrer les polices
-  const filteredPolicies = mockPolicies.filter((policy) => {
+  // Filtrer les dépendants
+  const filteredDependents = mockDependents.filter((dependent) => {
     return (
-      policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.insuredPerson.firstName
+      dependent.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dependent.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dependent.insuredPerson.firstName
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      policy.insuredPerson.lastName
+      dependent.insuredPerson.lastName
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      policy.insuranceCompany.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      dependent.policyNumber.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   // Pagination
-  const totalPages = Math.ceil(filteredPolicies.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredDependents.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentPolicies = filteredPolicies.slice(startIndex, endIndex);
+  const currentDependents = filteredDependents.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -168,20 +143,14 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
         );
       case "INACTIVE":
         return (
-          <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">
+          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
             Inactif
           </span>
         );
       case "EXPIRED":
         return (
-          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
+          <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">
             Expiré
-          </span>
-        );
-      case "PENDING":
-        return (
-          <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
-            En attente
           </span>
         );
       default:
@@ -193,44 +162,47 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
     }
   };
 
-  const getTypeBadge = (type: string) => {
-    switch (type) {
-      case "INDIVIDUAL":
+  const getRelationshipBadge = (relationship: string) => {
+    switch (relationship) {
+      case "CHILD":
         return (
           <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-600">
-            Individuel
+            Enfant
           </span>
         );
-      case "FAMILY":
+      case "SPOUSE":
         return (
           <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
-            Familial
+            Conjoint
           </span>
         );
-      case "GROUP":
+      case "PARENT":
         return (
           <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-600">
-            Groupe
+            Parent
+          </span>
+        );
+      case "OTHER":
+        return (
+          <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
+            Autre
           </span>
         );
       default:
         return (
           <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
-            {type}
+            {relationship}
           </span>
         );
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR");
+    return dayjs(dateString).format("DD/MM/YYYY");
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount);
+  const calculateAge = (dateOfBirth: string) => {
+    return dayjs().diff(dayjs(dateOfBirth), "year");
   };
 
   return (
@@ -240,25 +212,22 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[180px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Police
+                Dépendant
               </th>
               <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                Assuré
+                Assuré Principal
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Type
+                Relation
+              </th>
+              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+                Âge
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Statut
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Prime
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Couverture
-              </th>
               <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                Compagnie
+                Police
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Actions
@@ -266,54 +235,48 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
             </tr>
           </thead>
           <tbody>
-            {currentPolicies.map((policy) => (
+            {currentDependents.map((dependent) => (
               <tr
-                key={policy.id}
+                key={dependent.id}
                 className="border-b border-[#eee] dark:border-strokedark"
               >
                 <td className="py-5 px-4 pl-9 dark:bg-meta-4 xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {policy.policyNumber}
+                    {dependent.firstName} {dependent.lastName}
                   </h5>
                   <p className="text-sm text-muted-foreground">
-                    {formatDate(policy.startDate)} -{" "}
-                    {formatDate(policy.endDate)}
+                    Né(e) le {formatDate(dependent.dateOfBirth)}
                   </p>
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
                   <h5 className="font-medium text-black dark:text-white">
-                    {policy.insuredPerson.firstName}{" "}
-                    {policy.insuredPerson.lastName}
+                    {dependent.insuredPerson.firstName}{" "}
+                    {dependent.insuredPerson.lastName}
                   </h5>
                   <p className="text-sm text-muted-foreground">
-                    {policy.insuredPerson.email}
-                  </p>
-                  {policy.enterprise && (
-                    <p className="text-xs text-muted-foreground">
-                      {policy.enterprise.name}
-                    </p>
-                  )}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getTypeBadge(policy.type)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getStatusBadge(policy.status)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="font-medium text-black dark:text-white">
-                    {formatCurrency(policy.premium)}
+                    {dependent.insuredPerson.email}
                   </p>
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="font-medium text-black dark:text-white">
-                    {formatCurrency(policy.coverage)}
-                  </p>
+                  {getRelationshipBadge(dependent.relationship)}
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
                   <p className="text-black dark:text-white">
-                    {policy.insuranceCompany.name}
+                    {calculateAge(dependent.dateOfBirth)} ans
                   </p>
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
+                  {getStatusBadge(dependent.status)}
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
+                  <p className="text-black dark:text-white">
+                    {dependent.policyNumber}
+                  </p>
+                  {dependent.insuranceCardNumber && (
+                    <p className="text-sm text-muted-foreground">
+                      {dependent.insuranceCardNumber}
+                    </p>
+                  )}
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
                   <div className="flex items-center space-x-3.5">
@@ -357,8 +320,8 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
         <div className="flex items-center justify-between border-t border-stroke py-4 px-4 dark:border-strokedark">
           <div className="text-sm text-muted-foreground">
             Affichage de {startIndex + 1} à{" "}
-            {Math.min(endIndex, filteredPolicies.length)} sur{" "}
-            {filteredPolicies.length} résultats
+            {Math.min(endIndex, filteredDependents.length)} sur{" "}
+            {filteredDependents.length} résultats
           </div>
           <div className="flex items-center space-x-2">
             <button

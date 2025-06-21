@@ -30,7 +30,7 @@ export const NAV_DATA = [
         ],
       },
       {
-        title: "Personnes Assurées",
+        title: "Assurés",
         url: "/admin/insured-persons",
         icon: Icons.User,
         items: [
@@ -41,6 +41,21 @@ export const NAV_DATA = [
           {
             title: "Nouvelle Personne",
             url: "/admin/insured-persons/new",
+          },
+        ],
+      },
+      {
+        title: "Dépendants",
+        url: "/admin/dependents",
+        icon: Icons.User,
+        items: [
+          {
+            title: "Liste des Dépendants",
+            url: "/admin/dependents",
+          },
+          {
+            title: "Nouveau Dépendant",
+            url: "/admin/dependents/new",
           },
         ],
       },
@@ -90,7 +105,7 @@ export const NAV_DATA = [
         ],
       },
       {
-        title: "Institutions Médicales",
+        title: "Institutions",
         url: "/admin/medical-institutions",
         icon: Icons.FourCircle,
         items: [
@@ -101,6 +116,26 @@ export const NAV_DATA = [
           {
             title: "Nouvelle Institution",
             url: "/admin/medical-institutions/new",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: "BLOCKCHAIN",
+    items: [
+      {
+        title: "Références",
+        url: "/admin/blockchain-references",
+        icon: Icons.FourCircle,
+        items: [
+          {
+            title: "Liste des Références",
+            url: "/admin/blockchain-references",
+          },
+          {
+            title: "Nouvelle Référence",
+            url: "/admin/blockchain-references/new",
           },
         ],
       },

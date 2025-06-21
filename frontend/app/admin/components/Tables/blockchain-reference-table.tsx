@@ -2,186 +2,154 @@
 
 import { useState } from "react";
 import { PencilSquareIcon, TrashIcon } from "../../assets/icons";
+import dayjs from "dayjs";
 
-interface Policy {
+interface BlockchainReference {
   id: number;
-  policyNumber: string;
-  type: "INDIVIDUAL" | "FAMILY" | "GROUP";
-  status: "ACTIVE" | "INACTIVE" | "EXPIRED" | "PENDING";
-  startDate: string;
-  endDate: string;
-  premium: number;
-  coverage: number;
-  insuredPerson: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  insuranceCompany: {
-    name: string;
-  };
-  enterprise?: {
+  referenceId: string;
+  type: "POLICY" | "CARD" | "CLAIM" | "PAYMENT";
+  status: "CONFIRMED" | "PENDING" | "FAILED";
+  blockNumber: string;
+  transactionHash: string;
+  relatedEntity: {
+    type: string;
+    id: string;
     name: string;
   };
   createdAt: string;
+  confirmedAt?: string;
 }
 
-interface PolicyTableProps {
+interface BlockchainReferenceTableProps {
   searchTerm: string;
 }
 
-// Données statiques pour les polices
-const mockPolicies: Policy[] = [
+// Données statiques pour les références blockchain
+const mockBlockchainReferences: BlockchainReference[] = [
   {
     id: 1,
-    policyNumber: "POL-2024-001",
-    type: "INDIVIDUAL",
-    status: "ACTIVE",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    premium: 1200,
-    coverage: 50000,
-    insuredPerson: {
-      firstName: "Jean",
-      lastName: "Dupont",
-      email: "jean.dupont@email.com",
+    referenceId: "REF-2024-001",
+    type: "POLICY",
+    status: "CONFIRMED",
+    blockNumber: "0x1234567890abcdef",
+    transactionHash:
+      "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    relatedEntity: {
+      type: "Police",
+      id: "POL-2024-001",
+      name: "Jean Dupont",
     },
-    insuranceCompany: {
-      name: "Assurance Plus",
-    },
-    createdAt: "2023-12-15",
+    createdAt: "2024-01-15",
+    confirmedAt: "2024-01-15",
   },
   {
     id: 2,
-    policyNumber: "POL-2024-002",
-    type: "FAMILY",
-    status: "ACTIVE",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    premium: 2400,
-    coverage: 100000,
-    insuredPerson: {
-      firstName: "Marie",
-      lastName: "Martin",
-      email: "marie.martin@email.com",
+    referenceId: "REF-2024-002",
+    type: "CARD",
+    status: "CONFIRMED",
+    blockNumber: "0x1234567890abcdef",
+    transactionHash:
+      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    relatedEntity: {
+      type: "Carte",
+      id: "CARD-2024-001",
+      name: "Marie Martin",
     },
-    insuranceCompany: {
-      name: "Santé Pro",
-    },
-    createdAt: "2023-12-20",
+    createdAt: "2024-02-15",
+    confirmedAt: "2024-02-15",
   },
   {
     id: 3,
-    policyNumber: "POL-2024-003",
-    type: "GROUP",
-    status: "ACTIVE",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    premium: 15000,
-    coverage: 500000,
-    insuredPerson: {
-      firstName: "Pierre",
-      lastName: "Durand",
-      email: "pierre.durand@entreprise.com",
+    referenceId: "REF-2024-003",
+    type: "CLAIM",
+    status: "PENDING",
+    blockNumber: "0xabcdef1234567890",
+    transactionHash:
+      "0x7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456",
+    relatedEntity: {
+      type: "Réclamation",
+      id: "CLAIM-2024-001",
+      name: "Pierre Durand",
     },
-    insuranceCompany: {
-      name: "Groupe Assur",
-    },
-    enterprise: {
-      name: "Tech Solutions",
-    },
-    createdAt: "2023-11-30",
+    createdAt: "2024-03-01",
   },
   {
     id: 4,
-    policyNumber: "POL-2024-004",
-    type: "INDIVIDUAL",
-    status: "EXPIRED",
-    startDate: "2023-01-01",
-    endDate: "2023-12-31",
-    premium: 1100,
-    coverage: 40000,
-    insuredPerson: {
-      firstName: "Sophie",
-      lastName: "Leroy",
-      email: "sophie.leroy@email.com",
+    referenceId: "REF-2024-004",
+    type: "PAYMENT",
+    status: "CONFIRMED",
+    blockNumber: "0x4567890abcdef123",
+    transactionHash:
+      "0xdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abc",
+    relatedEntity: {
+      type: "Paiement",
+      id: "PAY-2024-001",
+      name: "Sophie Leroy",
     },
-    insuranceCompany: {
-      name: "Assurance Plus",
-    },
-    createdAt: "2022-12-10",
+    createdAt: "2024-02-28",
+    confirmedAt: "2024-02-28",
   },
   {
     id: 5,
-    policyNumber: "POL-2024-005",
-    type: "FAMILY",
-    status: "PENDING",
-    startDate: "2024-02-01",
-    endDate: "2025-01-31",
-    premium: 2800,
-    coverage: 120000,
-    insuredPerson: {
-      firstName: "Lucas",
-      lastName: "Moreau",
-      email: "lucas.moreau@email.com",
+    referenceId: "REF-2024-005",
+    type: "POLICY",
+    status: "FAILED",
+    blockNumber: "0x7890abcdef123456",
+    transactionHash:
+      "0xabc1234567890defabc1234567890defabc1234567890defabc1234567890def",
+    relatedEntity: {
+      type: "Police",
+      id: "POL-2024-005",
+      name: "Lucas Moreau",
     },
-    insuranceCompany: {
-      name: "Santé Pro",
-    },
-    createdAt: "2024-01-15",
+    createdAt: "2024-03-10",
   },
 ];
 
-export function PolicyTable({ searchTerm }: PolicyTableProps) {
+export function BlockchainReferenceTable({
+  searchTerm,
+}: BlockchainReferenceTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Filtrer les polices
-  const filteredPolicies = mockPolicies.filter((policy) => {
+  // Filtrer les références blockchain
+  const filteredReferences = mockBlockchainReferences.filter((reference) => {
     return (
-      policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.insuredPerson.firstName
+      reference.referenceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reference.relatedEntity.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      policy.insuredPerson.lastName
+      reference.relatedEntity.id
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      policy.insuranceCompany.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      reference.transactionHash.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   // Pagination
-  const totalPages = Math.ceil(filteredPolicies.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredReferences.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentPolicies = filteredPolicies.slice(startIndex, endIndex);
+  const currentReferences = filteredReferences.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "ACTIVE":
+      case "CONFIRMED":
         return (
           <span className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">
-            Actif
-          </span>
-        );
-      case "INACTIVE":
-        return (
-          <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">
-            Inactif
-          </span>
-        );
-      case "EXPIRED":
-        return (
-          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
-            Expiré
+            Confirmé
           </span>
         );
       case "PENDING":
         return (
-          <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
+          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
             En attente
+          </span>
+        );
+      case "FAILED":
+        return (
+          <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">
+            Échoué
           </span>
         );
       default:
@@ -195,22 +163,28 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
 
   const getTypeBadge = (type: string) => {
     switch (type) {
-      case "INDIVIDUAL":
-        return (
-          <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-600">
-            Individuel
-          </span>
-        );
-      case "FAMILY":
+      case "POLICY":
         return (
           <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
-            Familial
+            Police
           </span>
         );
-      case "GROUP":
+      case "CARD":
+        return (
+          <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-600">
+            Carte
+          </span>
+        );
+      case "CLAIM":
+        return (
+          <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-600">
+            Réclamation
+          </span>
+        );
+      case "PAYMENT":
         return (
           <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-600">
-            Groupe
+            Paiement
           </span>
         );
       default:
@@ -223,14 +197,11 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR");
+    return dayjs(dateString).format("DD/MM/YYYY");
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount);
+  const truncateHash = (hash: string) => {
+    return `${hash.substring(0, 10)}...${hash.substring(hash.length - 8)}`;
   };
 
   return (
@@ -239,26 +210,26 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[180px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Police
-              </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                Assuré
+              <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+                Référence
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Type
               </th>
+              <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
+                Entité Liée
+              </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Statut
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Prime
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Couverture
-              </th>
               <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                Compagnie
+                Bloc
+              </th>
+              <th className="min-w-[180px] py-4 px-4 font-medium text-black dark:text-white">
+                Transaction
+              </th>
+              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+                Créée le
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Actions
@@ -266,54 +237,49 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
             </tr>
           </thead>
           <tbody>
-            {currentPolicies.map((policy) => (
+            {currentReferences.map((reference) => (
               <tr
-                key={policy.id}
+                key={reference.id}
                 className="border-b border-[#eee] dark:border-strokedark"
               >
                 <td className="py-5 px-4 pl-9 dark:bg-meta-4 xl:pl-11">
                   <h5 className="font-medium text-black dark:text-white">
-                    {policy.policyNumber}
+                    {reference.referenceId}
                   </h5>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(policy.startDate)} -{" "}
-                    {formatDate(policy.endDate)}
-                  </p>
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
+                  {getTypeBadge(reference.type)}
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
                   <h5 className="font-medium text-black dark:text-white">
-                    {policy.insuredPerson.firstName}{" "}
-                    {policy.insuredPerson.lastName}
+                    {reference.relatedEntity.name}
                   </h5>
                   <p className="text-sm text-muted-foreground">
-                    {policy.insuredPerson.email}
+                    {reference.relatedEntity.id}
                   </p>
-                  {policy.enterprise && (
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
+                  {getStatusBadge(reference.status)}
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
+                  <p className="text-black dark:text-white font-mono text-sm">
+                    {truncateHash(reference.blockNumber)}
+                  </p>
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
+                  <p className="text-black dark:text-white font-mono text-sm">
+                    {truncateHash(reference.transactionHash)}
+                  </p>
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
+                  <p className="text-sm text-black dark:text-white">
+                    {formatDate(reference.createdAt)}
+                  </p>
+                  {reference.confirmedAt && (
                     <p className="text-xs text-muted-foreground">
-                      {policy.enterprise.name}
+                      Confirmé: {formatDate(reference.confirmedAt)}
                     </p>
                   )}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getTypeBadge(policy.type)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getStatusBadge(policy.status)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="font-medium text-black dark:text-white">
-                    {formatCurrency(policy.premium)}
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="font-medium text-black dark:text-white">
-                    {formatCurrency(policy.coverage)}
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="text-black dark:text-white">
-                    {policy.insuranceCompany.name}
-                  </p>
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
                   <div className="flex items-center space-x-3.5">
@@ -357,8 +323,8 @@ export function PolicyTable({ searchTerm }: PolicyTableProps) {
         <div className="flex items-center justify-between border-t border-stroke py-4 px-4 dark:border-strokedark">
           <div className="text-sm text-muted-foreground">
             Affichage de {startIndex + 1} à{" "}
-            {Math.min(endIndex, filteredPolicies.length)} sur{" "}
-            {filteredPolicies.length} résultats
+            {Math.min(endIndex, filteredReferences.length)} sur{" "}
+            {filteredReferences.length} résultats
           </div>
           <div className="flex items-center space-x-2">
             <button
