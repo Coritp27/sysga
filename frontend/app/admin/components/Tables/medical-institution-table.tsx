@@ -21,6 +21,8 @@ interface MedicalInstitution {
 
 interface MedicalInstitutionTableProps {
   searchTerm: string;
+  onEdit?: (institution: MedicalInstitution) => void;
+  onDelete?: (institution: MedicalInstitution) => void;
 }
 
 // Données statiques pour les institutions médicales
@@ -95,6 +97,8 @@ const mockMedicalInstitutions: MedicalInstitution[] = [
 
 export function MedicalInstitutionTable({
   searchTerm,
+  onEdit,
+  onDelete,
 }: MedicalInstitutionTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -296,10 +300,16 @@ export function MedicalInstitutionTable({
                         />
                       </svg>
                     </button>
-                    <button className="hover:text-primary">
+                    <button
+                      onClick={() => onEdit?.(institution)}
+                      className="hover:text-primary"
+                    >
                       <PencilSquareIcon className="h-5 w-5" />
                     </button>
-                    <button className="hover:text-danger">
+                    <button
+                      onClick={() => onDelete?.(institution)}
+                      className="hover:text-danger"
+                    >
                       <TrashIcon className="h-5 w-5" />
                     </button>
                   </div>
