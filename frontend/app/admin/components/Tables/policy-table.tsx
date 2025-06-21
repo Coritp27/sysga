@@ -2,103 +2,38 @@
 
 import { useState } from "react";
 import { PencilSquareIcon, TrashIcon } from "../../assets/icons";
-
-interface Policy {
-  id: number;
-  policyNumber: string;
-  type: "INDIVIDUAL" | "FAMILY";
-  coverage: string;
-  deductible: number;
-  premiumAmount: number;
-  description: string;
-  validUntil: string;
-  insuranceCompany: string;
-  status: "ACTIVE" | "EXPIRED" | "PENDING";
-}
+import { Policy } from "../../types/policy";
 
 interface PolicyTableProps {
+  policies: Policy[];
+  onEdit: (policy: Policy) => void;
+  onDelete: (id: number) => void;
   searchTerm: string;
-  selectedType: string;
 }
 
-// Données statiques pour les politiques
-const mockPolicies: Policy[] = [
-  {
-    id: 1,
-    policyNumber: "POL-2024-001",
-    type: "INDIVIDUAL",
-    coverage: "Complète",
-    deductible: 500,
-    premiumAmount: 1200,
-    description: "Assurance santé individuelle complète",
-    validUntil: "2025-12-31",
-    insuranceCompany: "AXA Assurance",
-    status: "ACTIVE",
-  },
-  {
-    id: 2,
-    policyNumber: "POL-2024-002",
-    type: "FAMILY",
-    coverage: "Basique",
-    deductible: 1000,
-    premiumAmount: 2400,
-    description: "Assurance santé familiale basique",
-    validUntil: "2025-06-30",
-    insuranceCompany: "Allianz",
-    status: "ACTIVE",
-  },
-  {
-    id: 3,
-    policyNumber: "POL-2024-003",
-    type: "INDIVIDUAL",
-    coverage: "Premium",
-    deductible: 200,
-    premiumAmount: 1800,
-    description: "Assurance santé individuelle premium",
-    validUntil: "2024-12-31",
-    insuranceCompany: "CNP Assurances",
-    status: "EXPIRED",
-  },
-  {
-    id: 4,
-    policyNumber: "POL-2024-004",
-    type: "FAMILY",
-    coverage: "Complète",
-    deductible: 300,
-    premiumAmount: 3600,
-    description: "Assurance santé familiale complète",
-    validUntil: "2025-12-31",
-    insuranceCompany: "Groupama",
-    status: "ACTIVE",
-  },
-  {
-    id: 5,
-    policyNumber: "POL-2024-005",
-    type: "INDIVIDUAL",
-    coverage: "Basique",
-    deductible: 800,
-    premiumAmount: 900,
-    description: "Assurance santé individuelle basique",
-    validUntil: "2025-03-15",
-    insuranceCompany: "MAIF",
-    status: "PENDING",
-  },
-];
-
-export function PolicyTable({ searchTerm, selectedType }: PolicyTableProps) {
+export function PolicyTable({
+  policies,
+  onEdit,
+  onDelete,
+  searchTerm,
+}: PolicyTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Filtrer les politiques
-  const filteredPolicies = mockPolicies.filter((policy) => {
-    const matchesSearch =
+  // Filtrer les polices
+  const filteredPolicies = policies.filter((policy) => {
+    return (
       policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.insuranceCompany.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesType = selectedType === "all" || policy.type === selectedType;
-
-    return matchesSearch && matchesType;
+      policy.insuredPerson.firstName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      policy.insuredPerson.lastName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      policy.insuranceCompany.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
   });
 
   // Pagination
@@ -115,16 +50,28 @@ export function PolicyTable({ searchTerm, selectedType }: PolicyTableProps) {
             Actif
           </span>
         );
-      case "EXPIRED":
+      case "INACTIVE":
         return (
           <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">
+            Inactif
+          </span>
+        );
+      case "EXPIRED":
+        return (
+          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
             Expiré
           </span>
         );
       case "PENDING":
         return (
-          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
+          <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
             En attente
+          </span>
+        );
+      case "CANCELLED":
+        return (
+          <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
+            Annulée
           </span>
         );
       default:
@@ -140,14 +87,26 @@ export function PolicyTable({ searchTerm, selectedType }: PolicyTableProps) {
     switch (type) {
       case "INDIVIDUAL":
         return (
-          <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
-            Individuel
+          <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-600">
+            Individuelle
           </span>
         );
       case "FAMILY":
         return (
+          <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
+            Famille
+          </span>
+        );
+      case "GROUP":
+        return (
           <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-600">
-            Familial
+            Groupe
+          </span>
+        );
+      case "ENTERPRISE":
+        return (
+          <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-600">
+            Entreprise
           </span>
         );
       default:
@@ -159,140 +118,153 @@ export function PolicyTable({ searchTerm, selectedType }: PolicyTableProps) {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
+
   return (
-    <div className="w-full">
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Numéro de Police
-              </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                Type
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Couverture
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Franchise
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Prime
-              </th>
-              <th className="min-w-[180px] py-4 px-4 font-medium text-black dark:text-white">
-                Compagnie
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Statut
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentPolicies.map((policy) => (
-              <tr
-                key={policy.id}
-                className="border-b border-[#eee] dark:border-strokedark"
-              >
-                <td className="py-5 px-4 pl-9 dark:bg-meta-4 xl:pl-11">
-                  <h5 className="font-medium text-black dark:text-white">
+    <div className="overflow-x-auto">
+      <table className="w-full table-auto">
+        <thead>
+          <tr className="bg-gray-50 dark:bg-gray-800">
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Police
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Assuré
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Compagnie
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Type
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Statut
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Prime
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Couverture
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Période
+            </th>
+            <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+          {currentPolicies.map((policy) => (
+            <tr
+              key={policy.id}
+              className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <td className="px-4 py-4">
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">
                     {policy.policyNumber}
-                  </h5>
-                  <p className="text-sm text-muted-foreground">
-                    {policy.description}
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getTypeBadge(policy.type)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="text-black dark:text-white">
-                    {policy.coverage}
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="text-black dark:text-white">
-                    {policy.deductible}€
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="text-black dark:text-white">
-                    {policy.premiumAmount}€
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="text-black dark:text-white">
-                    {policy.insuranceCompany}
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getStatusBadge(policy.status)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
-                    <button className="hover:text-primary">
-                      <PencilSquareIcon className="h-5 w-5" />
-                    </button>
-                    <button className="hover:text-danger">
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Créée le {formatDate(policy.createdAt)}
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-4">
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    {policy.insuredPerson.firstName}{" "}
+                    {policy.insuredPerson.lastName}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {policy.insuredPerson.email}
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-4">
+                <div className="text-gray-900 dark:text-white">
+                  {policy.insuranceCompany.name}
+                </div>
+              </td>
+              <td className="px-4 py-4">{getTypeBadge(policy.type)}</td>
+              <td className="px-4 py-4">{getStatusBadge(policy.status)}</td>
+              <td className="px-4 py-4">
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {formatCurrency(policy.premium)}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  par an
+                </div>
+              </td>
+              <td className="px-4 py-4">
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {formatCurrency(policy.coverage)}
+                </div>
+              </td>
+              <td className="px-4 py-4">
+                <div className="text-sm text-gray-900 dark:text-white">
+                  {formatDate(policy.startDate)} - {formatDate(policy.endDate)}
+                </div>
+              </td>
+              <td className="px-4 py-4">
+                <div className="flex items-center justify-center space-x-2">
+                  <button
+                    onClick={() => onEdit(policy)}
+                    className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                    title="Modifier"
+                  >
+                    <PencilSquareIcon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => policy.id && onDelete(policy.id)}
+                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
+                    title="Supprimer"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-stroke py-4 px-4 dark:border-strokedark">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-700 dark:text-gray-300">
             Affichage de {startIndex + 1} à{" "}
             {Math.min(endIndex, filteredPolicies.length)} sur{" "}
             {filteredPolicies.length} résultats
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex space-x-2">
             <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="rounded-md border border-stroke px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Précédent
             </button>
-            <span className="text-sm text-muted-foreground">
+            <span className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
               Page {currentPage} sur {totalPages}
             </span>
             <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
+              onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="rounded-md border border-stroke px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Suivant
             </button>

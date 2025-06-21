@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PencilSquareIcon, TrashIcon } from "../../assets/icons";
+import dayjs from "dayjs";
 
 interface MedicalInstitution {
   id: number;
@@ -20,6 +21,8 @@ interface MedicalInstitution {
 
 interface MedicalInstitutionTableProps {
   searchTerm: string;
+  onEdit?: (institution: MedicalInstitution) => void;
+  onDelete?: (institution: MedicalInstitution) => void;
 }
 
 // Données statiques pour les institutions médicales
@@ -94,6 +97,8 @@ const mockMedicalInstitutions: MedicalInstitution[] = [
 
 export function MedicalInstitutionTable({
   searchTerm,
+  onEdit,
+  onDelete,
 }: MedicalInstitutionTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -177,8 +182,9 @@ export function MedicalInstitutionTable({
     }
   };
 
+  // Correction : formatage de la date à partir de la chaîne
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR");
+    return dayjs(dateString).format("DD/MM/YYYY");
   };
 
   return (
@@ -204,6 +210,9 @@ export function MedicalInstitutionTable({
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Statut
+              </th>
+              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+                Créée le
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Actions
@@ -264,6 +273,11 @@ export function MedicalInstitutionTable({
                   {getStatusBadge(institution.status)}
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
+                  <p className="text-black dark:text-white">
+                    {formatDate(institution.createdAt)}
+                  </p>
+                </td>
+                <td className="py-5 px-4 dark:bg-meta-4">
                   <div className="flex items-center space-x-3.5">
                     <button className="hover:text-primary">
                       <svg
@@ -286,10 +300,16 @@ export function MedicalInstitutionTable({
                         />
                       </svg>
                     </button>
-                    <button className="hover:text-primary">
+                    <button
+                      onClick={() => onEdit?.(institution)}
+                      className="hover:text-primary"
+                    >
                       <PencilSquareIcon className="h-5 w-5" />
                     </button>
-                    <button className="hover:text-danger">
+                    <button
+                      onClick={() => onDelete?.(institution)}
+                      className="hover:text-danger"
+                    >
                       <TrashIcon className="h-5 w-5" />
                     </button>
                   </div>
