@@ -1,25 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
-import { cn } from "../../lib/utils";
 import dayjs from "dayjs";
-import { PreviewIcon } from "./icons";
 import { TrashIcon } from "lucide-react";
 import { PencilSquareIcon } from "../../assets/icons";
 
 interface InsuranceCardTableProps {
   searchTerm: string;
+  onEdit?: (card: any) => void;
+  onDelete?: (card: any) => void;
 }
 
-const InsuranceCardTable = ({ searchTerm }: InsuranceCardTableProps) => {
+const InsuranceCardTable = ({
+  searchTerm,
+  onEdit,
+  onDelete,
+}: InsuranceCardTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -229,12 +225,22 @@ const InsuranceCardTable = ({ searchTerm }: InsuranceCardTableProps) => {
                         />
                       </svg>
                     </button>
-                    <button className="hover:text-primary">
-                      <PencilSquareIcon className="h-5 w-5" />
-                    </button>
-                    <button className="hover:text-danger">
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
+                    {onEdit && (
+                      <button
+                        className="hover:text-primary"
+                        onClick={() => onEdit(card)}
+                      >
+                        <PencilSquareIcon className="h-5 w-5" />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        className="hover:text-danger"
+                        onClick={() => onDelete(card)}
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

@@ -2,9 +2,75 @@
 import { useState } from "react";
 import InsuranceCardTable from "../components/Tables/insurance-card-table";
 import { AddIcon, SearchIcon } from "../assets/icons";
+import { InsuranceCardForm } from "../components/Forms/insurance-card-form";
+import { ConfirmationModal } from "../components/ui/confirmation-modal";
 
 export default function InsuranceCardsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [editingCard, setEditingCard] = useState<any>(null);
+  const [deletingCard, setDeletingCard] = useState<any>(null);
+
+  const handleCreateCard = (data: any) => {
+    console.log("Créer une nouvelle carte d'assurance:", data);
+    // Ici on ajouterait l'appel API pour créer la carte
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleEditCard = (data: any) => {
+    console.log("Modifier la carte d'assurance:", data);
+    // Ici on ajouterait l'appel API pour modifier la carte
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleDeleteCard = (card: any) => {
+    console.log("Supprimer la carte d'assurance:", card);
+    // Ici on ajouterait l'appel API pour supprimer la carte
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleFormSubmit = (data: any) => {
+    if (formMode === "create") {
+      handleCreateCard(data);
+    } else {
+      handleEditCard(data);
+    }
+  };
+
+  const openCreateForm = () => {
+    setFormMode("create");
+    setEditingCard(null);
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (card: any) => {
+    setFormMode("edit");
+    setEditingCard(card);
+    setIsFormOpen(true);
+  };
+
+  const openDeleteModal = (card: any) => {
+    setDeletingCard(card);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingCard(null);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingCard(null);
+  };
+
+  const confirmDelete = () => {
+    if (deletingCard) {
+      handleDeleteCard(deletingCard);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
@@ -12,7 +78,10 @@ export default function InsuranceCardsPage() {
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Cartes d'Assurance
         </h2>
-        <button className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
+        <button
+          onClick={openCreateForm}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+        >
           <AddIcon className="mr-2 h-4 w-4" />
           Nouvelle Carte
         </button>
@@ -152,8 +221,33 @@ export default function InsuranceCardsPage() {
             </div>
           </div>
         </div>
-        <InsuranceCardTable searchTerm={searchTerm} />
+        <InsuranceCardTable
+          searchTerm={searchTerm}
+          onEdit={openEditForm}
+          onDelete={openDeleteModal}
+        />
       </div>
+
+      {/* Modal de formulaire */}
+      <InsuranceCardForm
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        onSubmit={handleFormSubmit}
+        initialData={editingCard}
+        mode={formMode}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer la carte "${deletingCard?.cardNumber}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
     </div>
   );
 }

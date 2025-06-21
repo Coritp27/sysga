@@ -1,136 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { PencilSquareIcon, TrashIcon } from "../../assets/icons";
 import dayjs from "dayjs";
-
-interface BlockchainReference {
-  id: number;
-  referenceId: string;
-  type: "POLICY" | "CARD" | "CLAIM" | "PAYMENT";
-  status: "CONFIRMED" | "PENDING" | "FAILED";
-  blockNumber: string;
-  transactionHash: string;
-  relatedEntity: {
-    type: string;
-    id: string;
-    name: string;
-  };
-  createdAt: string;
-  confirmedAt?: string;
-}
+import { BlockchainReference } from "../../types/blockchain-reference";
 
 interface BlockchainReferenceTableProps {
-  searchTerm: string;
+  references: BlockchainReference[];
+  onEdit: (reference: BlockchainReference) => void;
+  onDelete: (reference: BlockchainReference) => void;
 }
 
-// Données statiques pour les références blockchain
-const mockBlockchainReferences: BlockchainReference[] = [
-  {
-    id: 1,
-    referenceId: "REF-2024-001",
-    type: "POLICY",
-    status: "CONFIRMED",
-    blockNumber: "0x1234567890abcdef",
-    transactionHash:
-      "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    relatedEntity: {
-      type: "Police",
-      id: "POL-2024-001",
-      name: "Jean Dupont",
-    },
-    createdAt: "2024-01-15",
-    confirmedAt: "2024-01-15",
-  },
-  {
-    id: 2,
-    referenceId: "REF-2024-002",
-    type: "CARD",
-    status: "CONFIRMED",
-    blockNumber: "0x1234567890abcdef",
-    transactionHash:
-      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    relatedEntity: {
-      type: "Carte",
-      id: "CARD-2024-001",
-      name: "Marie Martin",
-    },
-    createdAt: "2024-02-15",
-    confirmedAt: "2024-02-15",
-  },
-  {
-    id: 3,
-    referenceId: "REF-2024-003",
-    type: "CLAIM",
-    status: "PENDING",
-    blockNumber: "0xabcdef1234567890",
-    transactionHash:
-      "0x7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456",
-    relatedEntity: {
-      type: "Réclamation",
-      id: "CLAIM-2024-001",
-      name: "Pierre Durand",
-    },
-    createdAt: "2024-03-01",
-  },
-  {
-    id: 4,
-    referenceId: "REF-2024-004",
-    type: "PAYMENT",
-    status: "CONFIRMED",
-    blockNumber: "0x4567890abcdef123",
-    transactionHash:
-      "0xdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abc",
-    relatedEntity: {
-      type: "Paiement",
-      id: "PAY-2024-001",
-      name: "Sophie Leroy",
-    },
-    createdAt: "2024-02-28",
-    confirmedAt: "2024-02-28",
-  },
-  {
-    id: 5,
-    referenceId: "REF-2024-005",
-    type: "POLICY",
-    status: "FAILED",
-    blockNumber: "0x7890abcdef123456",
-    transactionHash:
-      "0xabc1234567890defabc1234567890defabc1234567890defabc1234567890def",
-    relatedEntity: {
-      type: "Police",
-      id: "POL-2024-005",
-      name: "Lucas Moreau",
-    },
-    createdAt: "2024-03-10",
-  },
-];
-
 export function BlockchainReferenceTable({
-  searchTerm,
+  references,
+  onEdit,
+  onDelete,
 }: BlockchainReferenceTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Filtrer les références blockchain
-  const filteredReferences = mockBlockchainReferences.filter((reference) => {
-    return (
-      reference.referenceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reference.relatedEntity.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      reference.relatedEntity.id
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      reference.transactionHash.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredReferences.length / itemsPerPage);
+  const totalPages = Math.ceil(references.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentReferences = filteredReferences.slice(startIndex, endIndex);
+  const currentReferences = references.slice(startIndex, endIndex);
+
+  const formatDate = (dateString: string) => {
+    return dayjs(dateString).format("DD/MM/YYYY");
+  };
+
+  const truncateHash = (hash: string) => {
+    return `${hash.substring(0, 10)}...${hash.substring(hash.length - 8)}`;
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -194,14 +92,6 @@ export function BlockchainReferenceTable({
           </span>
         );
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return dayjs(dateString).format("DD/MM/YYYY");
-  };
-
-  const truncateHash = (hash: string) => {
-    return `${hash.substring(0, 10)}...${hash.substring(hash.length - 8)}`;
   };
 
   return (
@@ -283,7 +173,10 @@ export function BlockchainReferenceTable({
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
                   <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary">
+                    <button
+                      className="hover:text-primary"
+                      onClick={() => onEdit(reference)}
+                    >
                       <svg
                         className="h-5 w-5"
                         fill="none"
@@ -294,21 +187,27 @@ export function BlockchainReferenceTable({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                         />
+                      </svg>
+                    </button>
+                    <button
+                      className="hover:text-danger"
+                      onClick={() => onDelete(reference)}
+                    >
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                       </svg>
-                    </button>
-                    <button className="hover:text-primary">
-                      <PencilSquareIcon className="h-5 w-5" />
-                    </button>
-                    <button className="hover:text-danger">
-                      <TrashIcon className="h-5 w-5" />
                     </button>
                   </div>
                 </td>
@@ -323,8 +222,8 @@ export function BlockchainReferenceTable({
         <div className="flex items-center justify-between border-t border-stroke py-4 px-4 dark:border-strokedark">
           <div className="text-sm text-muted-foreground">
             Affichage de {startIndex + 1} à{" "}
-            {Math.min(endIndex, filteredReferences.length)} sur{" "}
-            {filteredReferences.length} résultats
+            {Math.min(endIndex, references.length)} sur {references.length}{" "}
+            résultats
           </div>
           <div className="flex items-center space-x-2">
             <button

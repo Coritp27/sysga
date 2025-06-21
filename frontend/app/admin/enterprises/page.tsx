@@ -3,9 +3,75 @@
 import { useState } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
 import { EnterpriseTable } from "../components/Tables/enterprise-table";
+import { EnterpriseForm } from "../components/Forms/enterprise-form";
+import { ConfirmationModal } from "../components/ui/confirmation-modal";
 
 export default function EnterprisesPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [editingEnterprise, setEditingEnterprise] = useState<any>(null);
+  const [deletingEnterprise, setDeletingEnterprise] = useState<any>(null);
+
+  const handleCreateEnterprise = (data: any) => {
+    console.log("Créer une nouvelle entreprise:", data);
+    // Ici on ajouterait l'appel API pour créer l'entreprise
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleEditEnterprise = (data: any) => {
+    console.log("Modifier l'entreprise:", data);
+    // Ici on ajouterait l'appel API pour modifier l'entreprise
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleDeleteEnterprise = (enterprise: any) => {
+    console.log("Supprimer l'entreprise:", enterprise);
+    // Ici on ajouterait l'appel API pour supprimer l'entreprise
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleFormSubmit = (data: any) => {
+    if (formMode === "create") {
+      handleCreateEnterprise(data);
+    } else {
+      handleEditEnterprise(data);
+    }
+  };
+
+  const openCreateForm = () => {
+    setFormMode("create");
+    setEditingEnterprise(null);
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (enterprise: any) => {
+    setFormMode("edit");
+    setEditingEnterprise(enterprise);
+    setIsFormOpen(true);
+  };
+
+  const openDeleteModal = (enterprise: any) => {
+    setDeletingEnterprise(enterprise);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingEnterprise(null);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingEnterprise(null);
+  };
+
+  const confirmDelete = () => {
+    if (deletingEnterprise) {
+      handleDeleteEnterprise(deletingEnterprise);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
@@ -13,7 +79,10 @@ export default function EnterprisesPage() {
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Entreprises
         </h2>
-        <button className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
+        <button
+          onClick={openCreateForm}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+        >
           <AddIcon className="mr-2 h-4 w-4" />
           Nouvelle Entreprise
         </button>
@@ -153,8 +222,33 @@ export default function EnterprisesPage() {
             </div>
           </div>
         </div>
-        <EnterpriseTable searchTerm={searchTerm} />
+        <EnterpriseTable
+          searchTerm={searchTerm}
+          onEdit={openEditForm}
+          onDelete={openDeleteModal}
+        />
       </div>
+
+      {/* Modal de formulaire */}
+      <EnterpriseForm
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        onSubmit={handleFormSubmit}
+        initialData={editingEnterprise}
+        mode={formMode}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer l'entreprise "${deletingEnterprise?.name}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
     </div>
   );
 }
