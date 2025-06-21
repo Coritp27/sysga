@@ -90,6 +90,21 @@ export const NAV_DATA = [
         ],
       },
       {
+        title: "Réclamations",
+        url: "/admin/claims",
+        icon: Icons.Alphabet,
+        items: [
+          {
+            title: "Liste des Réclamations",
+            url: "/admin/claims",
+          },
+          {
+            title: "Nouvelle Réclamation",
+            url: "/admin/claims/new",
+          },
+        ],
+      },
+      {
         title: "Entreprises",
         url: "/admin/enterprises",
         icon: Icons.FourCircle,

@@ -3,117 +3,26 @@
 import { useState } from "react";
 import { PencilSquareIcon, TrashIcon } from "../../assets/icons";
 import dayjs from "dayjs";
-
-interface Dependent {
-  id: number;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  relationship: "CHILD" | "SPOUSE" | "PARENT" | "OTHER";
-  status: "ACTIVE" | "INACTIVE" | "EXPIRED";
-  insuredPerson: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  policyNumber: string;
-  insuranceCardNumber?: string;
-  createdAt: string;
-}
+import { Dependent } from "../../types/dependent";
 
 interface DependentTableProps {
   searchTerm: string;
+  dependents: Dependent[];
+  onEdit?: (dependent: Dependent) => void;
+  onDelete?: (dependent: Dependent) => void;
 }
 
-// Données statiques pour les dépendants
-const mockDependents: Dependent[] = [
-  {
-    id: 1,
-    firstName: "Emma",
-    lastName: "Dupont",
-    dateOfBirth: "2015-03-15",
-    relationship: "CHILD",
-    status: "ACTIVE",
-    insuredPerson: {
-      firstName: "Jean",
-      lastName: "Dupont",
-      email: "jean.dupont@email.com",
-    },
-    policyNumber: "POL-2024-001",
-    insuranceCardNumber: "CARD-2024-001-01",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: 2,
-    firstName: "Sophie",
-    lastName: "Martin",
-    dateOfBirth: "1988-07-22",
-    relationship: "SPOUSE",
-    status: "ACTIVE",
-    insuredPerson: {
-      firstName: "Marie",
-      lastName: "Martin",
-      email: "marie.martin@email.com",
-    },
-    policyNumber: "POL-2024-002",
-    insuranceCardNumber: "CARD-2024-002-01",
-    createdAt: "2024-02-15",
-  },
-  {
-    id: 3,
-    firstName: "Lucas",
-    lastName: "Durand",
-    dateOfBirth: "2018-11-08",
-    relationship: "CHILD",
-    status: "ACTIVE",
-    insuredPerson: {
-      firstName: "Pierre",
-      lastName: "Durand",
-      email: "pierre.durand@email.com",
-    },
-    policyNumber: "POL-2024-003",
-    insuranceCardNumber: "CARD-2024-003-01",
-    createdAt: "2024-01-20",
-  },
-  {
-    id: 4,
-    firstName: "Claire",
-    lastName: "Leroy",
-    dateOfBirth: "1992-04-12",
-    relationship: "SPOUSE",
-    status: "INACTIVE",
-    insuredPerson: {
-      firstName: "Sophie",
-      lastName: "Leroy",
-      email: "sophie.leroy@email.com",
-    },
-    policyNumber: "POL-2024-004",
-    createdAt: "2023-12-10",
-  },
-  {
-    id: 5,
-    firstName: "Antoine",
-    lastName: "Moreau",
-    dateOfBirth: "2010-09-30",
-    relationship: "CHILD",
-    status: "ACTIVE",
-    insuredPerson: {
-      firstName: "Lucas",
-      lastName: "Moreau",
-      email: "lucas.moreau@email.com",
-    },
-    policyNumber: "POL-2024-005",
-    insuranceCardNumber: "CARD-2024-005-01",
-    createdAt: "2024-01-25",
-  },
-];
-
-export function DependentTable({ searchTerm }: DependentTableProps) {
+export function DependentTable({
+  searchTerm,
+  dependents,
+  onEdit,
+  onDelete,
+}: DependentTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // Filtrer les dépendants
-  const filteredDependents = mockDependents.filter((dependent) => {
+  const filteredDependents = dependents.filter((dependent) => {
     return (
       dependent.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dependent.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -206,49 +115,59 @@ export function DependentTable({ searchTerm }: DependentTableProps) {
   };
 
   return (
-    <div className="w-full">
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[180px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Dépendant
-              </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                Assuré Principal
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Relation
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Âge
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Statut
-              </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                Police
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentDependents.map((dependent) => (
-              <tr
-                key={dependent.id}
-                className="border-b border-[#eee] dark:border-strokedark"
-              >
-                <td className="py-5 px-4 pl-9 dark:bg-meta-4 xl:pl-11">
+    <div className="overflow-x-auto">
+      <table className="w-full table-auto">
+        <thead>
+          <tr className="bg-gray-2 text-left dark:bg-meta-4">
+            <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+              Dépendant
+            </th>
+            <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
+              Relation
+            </th>
+            <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+              Âge
+            </th>
+            <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+              Statut
+            </th>
+            <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white">
+              Personne Assurée
+            </th>
+            <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
+              Police
+            </th>
+            <th className="min-w-[100px] py-4 px-4 font-medium text-black dark:text-white">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentDependents.map((dependent) => (
+            <tr key={dependent.id}>
+              <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
+                <div className="flex flex-col">
                   <h5 className="font-medium text-black dark:text-white">
                     {dependent.firstName} {dependent.lastName}
                   </h5>
                   <p className="text-sm text-muted-foreground">
                     Né(e) le {formatDate(dependent.dateOfBirth)}
                   </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
+                </div>
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                {getRelationshipBadge(dependent.relationship)}
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <p className="text-black dark:text-white">
+                  {calculateAge(dependent.dateOfBirth)} ans
+                </p>
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                {getStatusBadge(dependent.status)}
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <div className="flex flex-col">
                   <h5 className="font-medium text-black dark:text-white">
                     {dependent.insuredPerson.firstName}{" "}
                     {dependent.insuredPerson.lastName}
@@ -256,20 +175,11 @@ export function DependentTable({ searchTerm }: DependentTableProps) {
                   <p className="text-sm text-muted-foreground">
                     {dependent.insuredPerson.email}
                   </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getRelationshipBadge(dependent.relationship)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="text-black dark:text-white">
-                    {calculateAge(dependent.dateOfBirth)} ans
-                  </p>
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  {getStatusBadge(dependent.status)}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <p className="text-black dark:text-white">
+                </div>
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <div className="flex flex-col">
+                  <p className="text-black dark:text-white font-medium">
                     {dependent.policyNumber}
                   </p>
                   {dependent.insuranceCardNumber && (
@@ -277,72 +187,125 @@ export function DependentTable({ searchTerm }: DependentTableProps) {
                       {dependent.insuranceCardNumber}
                     </p>
                   )}
-                </td>
-                <td className="py-5 px-4 dark:bg-meta-4">
-                  <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
-                    <button className="hover:text-primary">
+                </div>
+              </td>
+              <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <div className="flex items-center space-x-3.5">
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(dependent)}
+                      className="hover:text-primary"
+                    >
                       <PencilSquareIcon className="h-5 w-5" />
                     </button>
-                    <button className="hover:text-danger">
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => onDelete(dependent)}
+                      className="hover:text-danger"
+                    >
                       <TrashIcon className="h-5 w-5" />
                     </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-stroke py-4 px-4 dark:border-strokedark">
-          <div className="text-sm text-muted-foreground">
-            Affichage de {startIndex + 1} à{" "}
-            {Math.min(endIndex, filteredDependents.length)} sur{" "}
-            {filteredDependents.length} résultats
-          </div>
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between border-t border-stroke bg-white px-4 py-3 dark:border-strokedark dark:bg-boxdark sm:px-6">
+          <div className="flex flex-1 justify-between sm:hidden">
             <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="rounded-md border border-stroke px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Précédent
             </button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} sur {totalPages}
-            </span>
             <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
+              onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="rounded-md border border-stroke px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Suivant
             </button>
+          </div>
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Affichage de{" "}
+                <span className="font-medium">{startIndex + 1}</span> à{" "}
+                <span className="font-medium">
+                  {Math.min(endIndex, filteredDependents.length)}
+                </span>{" "}
+                sur{" "}
+                <span className="font-medium">{filteredDependents.length}</span>{" "}
+                résultats
+              </p>
+            </div>
+            <div>
+              <nav
+                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                >
+                  <span className="sr-only">Précédent</span>
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                        page === currentPage
+                          ? "z-10 bg-primary text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                >
+                  <span className="sr-only">Suivant</span>
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </nav>
+            </div>
           </div>
         </div>
       )}

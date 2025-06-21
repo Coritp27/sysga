@@ -3,9 +3,119 @@
 import { useState } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
 import { BlockchainReferenceTable } from "../components/Tables/blockchain-reference-table";
+import { ConfirmationModal } from "../components/ui/confirmation-modal";
+import { BlockchainReference } from "../types/blockchain-reference";
+import { BlockchainReferenceForm } from "../components/Forms/blockchain-reference-form";
+
+const initialReferences: BlockchainReference[] = [
+  {
+    id: 1,
+    referenceId: "REF-2024-001",
+    type: "POLICY",
+    status: "CONFIRMED",
+    blockNumber: "0x1234567890abcdef",
+    transactionHash:
+      "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    relatedEntity: { type: "Police", id: "POL-2024-001", name: "Jean Dupont" },
+    createdAt: "2024-01-15",
+    confirmedAt: "2024-01-15",
+    notes: "Exemple de référence blockchain.",
+  },
+  {
+    id: 2,
+    referenceId: "REF-2024-002",
+    type: "CARD",
+    status: "CONFIRMED",
+    blockNumber: "0x1234567890abcdef",
+    transactionHash:
+      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    relatedEntity: { type: "Carte", id: "CARD-2024-001", name: "Marie Martin" },
+    createdAt: "2024-02-15",
+    confirmedAt: "2024-02-15",
+    notes: "Carte blockchain.",
+  },
+  {
+    id: 3,
+    referenceId: "REF-2024-003",
+    type: "CLAIM",
+    status: "PENDING",
+    blockNumber: "0xabcdef1234567890",
+    transactionHash:
+      "0x7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456",
+    relatedEntity: {
+      type: "Réclamation",
+      id: "CLAIM-2024-001",
+      name: "Pierre Durand",
+    },
+    createdAt: "2024-03-01",
+    notes: "Réclamation en attente.",
+  },
+];
 
 export default function BlockchainReferencesPage() {
+  const [references, setReferences] =
+    useState<BlockchainReference[]>(initialReferences);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedReference, setSelectedReference] =
+    useState<BlockchainReference | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+
+  const handleCreate = () => {
+    setFormMode("create");
+    setSelectedReference(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = (reference: BlockchainReference) => {
+    setFormMode("edit");
+    setSelectedReference(reference);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (reference: BlockchainReference) => {
+    setSelectedReference(reference);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleFormSubmit = (data: BlockchainReference) => {
+    if (formMode === "create") {
+      const newReference = {
+        ...data,
+        id: Math.max(0, ...references.map((r) => r.id)) + 1,
+      };
+      setReferences([...references, newReference]);
+    } else if (formMode === "edit" && selectedReference) {
+      setReferences(
+        references.map((r) =>
+          r.id === selectedReference.id ? { ...data, id: r.id } : r
+        )
+      );
+    }
+    setIsFormOpen(false);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedReference) {
+      setReferences(references.filter((r) => r.id !== selectedReference.id));
+      setIsDeleteModalOpen(false);
+      setSelectedReference(null);
+    }
+  };
+
+  const filteredReferences = references.filter((reference) => {
+    return (
+      reference.referenceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reference.relatedEntity.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      reference.relatedEntity.id
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      reference.transactionHash.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
@@ -13,7 +123,10 @@ export default function BlockchainReferencesPage() {
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Références Blockchain
         </h2>
-        <button className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
+        <button
+          onClick={handleCreate}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+        >
           <AddIcon className="mr-2 h-4 w-4" />
           Nouvelle Référence
         </button>
@@ -27,7 +140,7 @@ export default function BlockchainReferencesPage() {
                 Total Références
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                3,247
+                {references.length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -52,10 +165,10 @@ export default function BlockchainReferencesPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Références Actives
+                Références Confirmées
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                3,189
+                {references.filter((r) => r.status === "CONFIRMED").length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -80,10 +193,10 @@ export default function BlockchainReferencesPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Nouvelles Ce Mois
+                En Attente
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                89
+                {references.filter((r) => r.status === "PENDING").length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -108,10 +221,10 @@ export default function BlockchainReferencesPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Blocs Utilisés
+                Échouées
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                1,847
+                {references.filter((r) => r.status === "FAILED").length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
@@ -153,8 +266,27 @@ export default function BlockchainReferencesPage() {
             </div>
           </div>
         </div>
-        <BlockchainReferenceTable searchTerm={searchTerm} />
+        <BlockchainReferenceTable
+          references={filteredReferences}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
+
+      <BlockchainReferenceForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleFormSubmit}
+        initialData={selectedReference || undefined}
+        mode={formMode}
+      />
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer la Référence Blockchain"
+        message="Êtes-vous sûr de vouloir supprimer cette référence blockchain ? Cette action est irréversible."
+      />
     </div>
   );
 }

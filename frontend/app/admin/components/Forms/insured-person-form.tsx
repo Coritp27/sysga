@@ -26,6 +26,29 @@ interface InsuredPerson {
   isActive: boolean;
 }
 
+interface InsuredPersonErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  nationalId?: string;
+  passportNumber?: string;
+  occupation?: string;
+  employer?: string;
+  emergencyContact?: {
+    name?: string;
+    phone?: string;
+    relationship?: string;
+  };
+  isActive?: string;
+}
+
 interface InsuredPersonFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -64,7 +87,7 @@ export function InsuredPersonForm({
     isActive: true,
   });
 
-  const [errors, setErrors] = useState<Partial<InsuredPerson>>({});
+  const [errors, setErrors] = useState<InsuredPersonErrors>({});
 
   useEffect(() => {
     if (initialData) {
@@ -96,6 +119,14 @@ export function InsuredPersonForm({
           [field]: value,
         },
       }));
+      if (
+        errors.emergencyContact?.[field as keyof typeof errors.emergencyContact]
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          emergencyContact: { ...prev.emergencyContact, [field]: undefined },
+        }));
+      }
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -104,7 +135,17 @@ export function InsuredPersonForm({
     }
 
     // Clear error when user starts typing
-    if (errors[name as keyof InsuredPerson]) {
+    if (name.startsWith("emergencyContact.")) {
+      const field = name.split(".")[1];
+      if (
+        errors.emergencyContact?.[field as keyof typeof errors.emergencyContact]
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          emergencyContact: { ...prev.emergencyContact, [field]: undefined },
+        }));
+      }
+    } else if (errors[name as keyof InsuredPersonErrors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: undefined,
@@ -113,7 +154,7 @@ export function InsuredPersonForm({
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<InsuredPerson> = {};
+    const newErrors: InsuredPersonErrors = {};
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = "Le prénom est requis";

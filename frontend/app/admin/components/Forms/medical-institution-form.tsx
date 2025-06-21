@@ -16,6 +16,19 @@ interface MedicalInstitution {
   isActive: boolean;
 }
 
+interface MedicalInstitutionErrors {
+  name?: string;
+  type?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  phone?: string;
+  email?: string;
+  licenseNumber?: string;
+  contactPerson?: string;
+  isActive?: string;
+}
+
 interface MedicalInstitutionFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,7 +57,7 @@ export function MedicalInstitutionForm({
     isActive: true,
   });
 
-  const [errors, setErrors] = useState<Partial<MedicalInstitution>>({});
+  const [errors, setErrors] = useState<MedicalInstitutionErrors>({});
 
   useEffect(() => {
     if (initialData) {
@@ -66,7 +79,7 @@ export function MedicalInstitutionForm({
     }));
 
     // Clear error when user starts typing
-    if (errors[name as keyof MedicalInstitution]) {
+    if (errors[name as keyof MedicalInstitutionErrors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: undefined,
@@ -75,7 +88,7 @@ export function MedicalInstitutionForm({
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<MedicalInstitution> = {};
+    const newErrors: MedicalInstitutionErrors = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "Le nom est requis";

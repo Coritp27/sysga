@@ -3,9 +3,208 @@
 import { useState } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
 import { PolicyTable } from "../components/Tables/policy-table";
+import { PolicyForm } from "../components/Forms/policy-form";
+import { ConfirmationModal } from "../components/ui/confirmation-modal";
+import { Policy } from "../types/policy";
 
 export default function PoliciesPage() {
+  const [policies, setPolicies] = useState<Policy[]>([
+    {
+      id: 1,
+      policyNumber: "POL-2024-001",
+      type: "INDIVIDUAL",
+      status: "ACTIVE",
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      premium: 1200,
+      coverage: 50000,
+      deductible: 500,
+      coPay: 20,
+      insuredPerson: {
+        id: 1,
+        firstName: "Jean",
+        lastName: "Dupont",
+        email: "jean.dupont@email.com",
+        phone: "01 23 45 67 89",
+      },
+      insuranceCompany: {
+        id: 1,
+        name: "AXA Assurance",
+      },
+      coverageDetails: {
+        type: "Couverture complète santé",
+        description:
+          "Couverture médicale complète incluant consultations, hospitalisation et médicaments",
+        limits: "50,000 € par an",
+        exclusions: ["Maladies préexistantes", "Traitements cosmétiques"],
+      },
+      paymentInfo: {
+        frequency: "MONTHLY",
+        method: "BANK_TRANSFER",
+        nextPaymentDate: "2024-02-01",
+        lastPaymentDate: "2024-01-01",
+      },
+      documents: {
+        policyDocument: "POL-2024-001.pdf",
+        termsConditions: "terms-2024.pdf",
+        additionalDocuments: [],
+      },
+      notes: "Police standard pour un employé",
+      createdAt: "2023-12-15",
+    },
+    {
+      id: 2,
+      policyNumber: "POL-2024-002",
+      type: "FAMILY",
+      status: "ACTIVE",
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      premium: 2400,
+      coverage: 100000,
+      deductible: 1000,
+      coPay: 15,
+      insuredPerson: {
+        id: 2,
+        firstName: "Marie",
+        lastName: "Martin",
+        email: "marie.martin@email.com",
+        phone: "01 98 76 54 32",
+      },
+      insuranceCompany: {
+        id: 2,
+        name: "Allianz France",
+      },
+      coverageDetails: {
+        type: "Couverture familiale santé",
+        description:
+          "Couverture pour toute la famille avec soins dentaires et optiques",
+        limits: "100,000 € par an",
+        exclusions: ["Médecine alternative", "Soins dentaires"],
+      },
+      paymentInfo: {
+        frequency: "QUARTERLY",
+        method: "CREDIT_CARD",
+        nextPaymentDate: "2024-04-01",
+        lastPaymentDate: "2024-01-01",
+      },
+      documents: {
+        policyDocument: "POL-2024-002.pdf",
+        termsConditions: "terms-family-2024.pdf",
+        additionalDocuments: [],
+      },
+      notes: "Police familiale premium",
+      createdAt: "2023-12-20",
+    },
+    {
+      id: 3,
+      policyNumber: "POL-2024-003",
+      type: "ENTERPRISE",
+      status: "ACTIVE",
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      premium: 15000,
+      coverage: 500000,
+      deductible: 5000,
+      coPay: 10,
+      insuredPerson: {
+        id: 3,
+        firstName: "Pierre",
+        lastName: "Durand",
+        email: "pierre.durand@entreprise.com",
+        phone: "01 45 67 89 12",
+      },
+      insuranceCompany: {
+        id: 3,
+        name: "Groupama",
+      },
+      enterprise: {
+        id: 1,
+        name: "TechCorp Solutions",
+      },
+      coverageDetails: {
+        type: "Couverture entreprise complète",
+        description: "Couverture pour tous les employés de l'entreprise",
+        limits: "500,000 € par an",
+        exclusions: ["Accidents de travail", "Maladies professionnelles"],
+      },
+      paymentInfo: {
+        frequency: "ANNUAL",
+        method: "BANK_TRANSFER",
+        nextPaymentDate: "2025-01-01",
+        lastPaymentDate: "2024-01-01",
+      },
+      documents: {
+        policyDocument: "POL-2024-003.pdf",
+        termsConditions: "terms-enterprise-2024.pdf",
+        additionalDocuments: [],
+      },
+      notes: "Police d'entreprise pour TechCorp",
+      createdAt: "2023-11-30",
+    },
+  ]);
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+
+  const handleCreate = () => {
+    setFormMode("create");
+    setSelectedPolicy(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = (policy: Policy) => {
+    setFormMode("edit");
+    setSelectedPolicy(policy);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: number) => {
+    const policy = policies.find((p) => p.id === id);
+    if (policy) {
+      setSelectedPolicy(policy);
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const handleSubmit = (data: Policy) => {
+    if (formMode === "create") {
+      const newPolicy = {
+        ...data,
+        id: Math.max(...policies.map((p) => p.id || 0)) + 1,
+      };
+      setPolicies([...policies, newPolicy]);
+    } else {
+      setPolicies(
+        policies.map((policy) =>
+          policy.id === selectedPolicy?.id ? { ...data, id: policy.id } : policy
+        )
+      );
+    }
+  };
+
+  const confirmDelete = () => {
+    if (selectedPolicy?.id) {
+      setPolicies(policies.filter((policy) => policy.id !== selectedPolicy.id));
+      setIsDeleteModalOpen(false);
+      setSelectedPolicy(null);
+    }
+  };
+
+  // Calculs pour les statistiques
+  const totalPolicies = policies.length;
+  const activePolicies = policies.filter((p) => p.status === "ACTIVE").length;
+  const totalPremium = policies.reduce((sum, p) => sum + p.premium, 0);
+  const expiringThisMonth = policies.filter((p) => {
+    const endDate = new Date(p.endDate);
+    const now = new Date();
+    return (
+      endDate.getMonth() === now.getMonth() &&
+      endDate.getFullYear() === now.getFullYear()
+    );
+  }).length;
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
@@ -13,7 +212,10 @@ export default function PoliciesPage() {
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Polices d'Assurance
         </h2>
-        <button className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
+        <button
+          onClick={handleCreate}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+        >
           <AddIcon className="mr-2 h-4 w-4" />
           Nouvelle Police
         </button>
@@ -27,7 +229,7 @@ export default function PoliciesPage() {
                 Total Polices
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                1,247
+                {totalPolicies}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -55,7 +257,7 @@ export default function PoliciesPage() {
                 Polices Actives
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                1,189
+                {activePolicies}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -83,7 +285,11 @@ export default function PoliciesPage() {
                 Montant Total
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                8.7M€
+                {new Intl.NumberFormat("fr-FR", {
+                  style: "currency",
+                  currency: "EUR",
+                  notation: "compact",
+                }).format(totalPremium)}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -111,7 +317,7 @@ export default function PoliciesPage() {
                 Expirant Ce Mois
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                23
+                {expiringThisMonth}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
@@ -153,8 +359,33 @@ export default function PoliciesPage() {
             </div>
           </div>
         </div>
-        <PolicyTable searchTerm={searchTerm} />
+        <PolicyTable
+          policies={policies}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchTerm={searchTerm}
+        />
       </div>
+
+      {/* Formulaire modal */}
+      <PolicyForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleSubmit}
+        initialData={selectedPolicy || undefined}
+        mode={formMode}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Supprimer la police"
+        message={`Êtes-vous sûr de vouloir supprimer "${selectedPolicy?.policyNumber}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+      />
     </div>
   );
 }

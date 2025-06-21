@@ -3,9 +3,174 @@
 import { useState } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
 import { DependentTable } from "../components/Tables/dependent-table";
+import { DependentForm } from "../components/Forms/dependent-form";
+import { ConfirmationModal } from "../components/ui/confirmation-modal";
+import { Dependent } from "../types/dependent";
 
 export default function DependentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [selectedDependent, setSelectedDependent] = useState<Dependent | null>(
+    null
+  );
+  const [dependents, setDependents] = useState<Dependent[]>([
+    {
+      id: 1,
+      firstName: "Emma",
+      lastName: "Dupont",
+      dateOfBirth: "2015-03-15",
+      relationship: "CHILD",
+      status: "ACTIVE",
+      insuredPerson: {
+        id: 1,
+        firstName: "Jean",
+        lastName: "Dupont",
+        email: "jean.dupont@email.com",
+      },
+      policyNumber: "POL-2024-001",
+      insuranceCardNumber: "CARD-2024-001-01",
+      createdAt: "2024-01-15",
+      isActive: true,
+    },
+    {
+      id: 2,
+      firstName: "Sophie",
+      lastName: "Martin",
+      dateOfBirth: "1988-07-22",
+      relationship: "SPOUSE",
+      status: "ACTIVE",
+      insuredPerson: {
+        id: 2,
+        firstName: "Marie",
+        lastName: "Martin",
+        email: "marie.martin@email.com",
+      },
+      policyNumber: "POL-2024-002",
+      insuranceCardNumber: "CARD-2024-002-01",
+      createdAt: "2024-02-15",
+      isActive: true,
+    },
+    {
+      id: 3,
+      firstName: "Lucas",
+      lastName: "Durand",
+      dateOfBirth: "2018-11-08",
+      relationship: "CHILD",
+      status: "ACTIVE",
+      insuredPerson: {
+        id: 3,
+        firstName: "Pierre",
+        lastName: "Durand",
+        email: "pierre.durand@email.com",
+      },
+      policyNumber: "POL-2024-003",
+      insuranceCardNumber: "CARD-2024-003-01",
+      createdAt: "2024-01-20",
+      isActive: true,
+    },
+    {
+      id: 4,
+      firstName: "Claire",
+      lastName: "Leroy",
+      dateOfBirth: "1992-04-12",
+      relationship: "SPOUSE",
+      status: "INACTIVE",
+      insuredPerson: {
+        id: 4,
+        firstName: "Sophie",
+        lastName: "Leroy",
+        email: "sophie.leroy@email.com",
+      },
+      policyNumber: "POL-2024-004",
+      createdAt: "2023-12-10",
+      isActive: false,
+    },
+    {
+      id: 5,
+      firstName: "Antoine",
+      lastName: "Moreau",
+      dateOfBirth: "2010-09-30",
+      relationship: "CHILD",
+      status: "ACTIVE",
+      insuredPerson: {
+        id: 5,
+        firstName: "Lucas",
+        lastName: "Moreau",
+        email: "lucas.moreau@email.com",
+      },
+      policyNumber: "POL-2024-005",
+      insuranceCardNumber: "CARD-2024-005-01",
+      createdAt: "2024-01-25",
+      isActive: true,
+    },
+  ]);
+
+  const handleCreate = () => {
+    setFormMode("create");
+    setSelectedDependent(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = (dependent: Dependent) => {
+    setFormMode("edit");
+    setSelectedDependent(dependent);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (dependent: Dependent) => {
+    setSelectedDependent(dependent);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleFormSubmit = (data: Dependent) => {
+    if (formMode === "create") {
+      const newDependent = {
+        ...data,
+        id: Math.max(...dependents.map((d) => d.id || 0)) + 1,
+        createdAt: "2024-01-15",
+      };
+      setDependents([...dependents, newDependent]);
+    } else {
+      setDependents(
+        dependents.map((d) =>
+          d.id === selectedDependent?.id ? { ...data, id: d.id } : d
+        )
+      );
+    }
+    setIsFormOpen(false);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedDependent?.id) {
+      setDependents(dependents.filter((d) => d.id !== selectedDependent.id));
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedDependent(null);
+  };
+
+  const filteredDependents = dependents.filter((dependent) => {
+    return (
+      dependent.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dependent.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dependent.insuredPerson.firstName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      dependent.insuredPerson.lastName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      dependent.policyNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const childDependents = dependents.filter((d) => d.relationship === "CHILD");
+  const spouseDependents = dependents.filter(
+    (d) => d.relationship === "SPOUSE"
+  );
+  const otherDependents = dependents.filter(
+    (d) => d.relationship === "OTHER" || d.relationship === "PARENT"
+  );
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
@@ -13,7 +178,10 @@ export default function DependentsPage() {
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Dépendants
         </h2>
-        <button className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
+        <button
+          onClick={handleCreate}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+        >
           <AddIcon className="mr-2 h-4 w-4" />
           Nouveau Dépendant
         </button>
@@ -27,7 +195,7 @@ export default function DependentsPage() {
                 Total Dépendants
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                1,847
+                {dependents.length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -55,7 +223,7 @@ export default function DependentsPage() {
                 Enfants
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                1,234
+                {childDependents.length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -83,7 +251,7 @@ export default function DependentsPage() {
                 Conjoints
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                456
+                {spouseDependents.length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -111,7 +279,7 @@ export default function DependentsPage() {
                 Autres
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                157
+                {otherDependents.length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
@@ -153,8 +321,34 @@ export default function DependentsPage() {
             </div>
           </div>
         </div>
-        <DependentTable searchTerm={searchTerm} />
+        <DependentTable
+          searchTerm={searchTerm}
+          dependents={filteredDependents}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
+
+      {/* Formulaire CRUD */}
+      <DependentForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleFormSubmit}
+        initialData={selectedDependent || undefined}
+        mode={formMode}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer le dépendant"
+        message={`Êtes-vous sûr de vouloir supprimer le dépendant "${selectedDependent?.firstName} ${selectedDependent?.lastName}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
     </div>
   );
 }
