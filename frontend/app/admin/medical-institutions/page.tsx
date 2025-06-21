@@ -3,9 +3,75 @@
 import { useState } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
 import { MedicalInstitutionTable } from "../components/Tables/medical-institution-table";
+import { MedicalInstitutionForm } from "../components/Forms/medical-institution-form";
+import { ConfirmationModal } from "../components/ui/confirmation-modal";
 
 export default function MedicalInstitutionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [editingInstitution, setEditingInstitution] = useState<any>(null);
+  const [deletingInstitution, setDeletingInstitution] = useState<any>(null);
+
+  const handleCreateInstitution = (data: any) => {
+    console.log("Créer une nouvelle institution:", data);
+    // Ici on ajouterait l'appel API pour créer l'institution
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleEditInstitution = (data: any) => {
+    console.log("Modifier l'institution:", data);
+    // Ici on ajouterait l'appel API pour modifier l'institution
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleDeleteInstitution = (institution: any) => {
+    console.log("Supprimer l'institution:", institution);
+    // Ici on ajouterait l'appel API pour supprimer l'institution
+    // Pour l'instant, on affiche juste dans la console
+  };
+
+  const handleFormSubmit = (data: any) => {
+    if (formMode === "create") {
+      handleCreateInstitution(data);
+    } else {
+      handleEditInstitution(data);
+    }
+  };
+
+  const openCreateForm = () => {
+    setFormMode("create");
+    setEditingInstitution(null);
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (institution: any) => {
+    setFormMode("edit");
+    setEditingInstitution(institution);
+    setIsFormOpen(true);
+  };
+
+  const openDeleteModal = (institution: any) => {
+    setDeletingInstitution(institution);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingInstitution(null);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingInstitution(null);
+  };
+
+  const confirmDelete = () => {
+    if (deletingInstitution) {
+      handleDeleteInstitution(deletingInstitution);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
@@ -13,7 +79,10 @@ export default function MedicalInstitutionsPage() {
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Institutions Médicales
         </h2>
-        <button className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
+        <button
+          onClick={openCreateForm}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+        >
           <AddIcon className="mr-2 h-4 w-4" />
           Nouvelle Institution
         </button>
@@ -153,8 +222,33 @@ export default function MedicalInstitutionsPage() {
             </div>
           </div>
         </div>
-        <MedicalInstitutionTable searchTerm={searchTerm} />
+        <MedicalInstitutionTable
+          searchTerm={searchTerm}
+          onEdit={openEditForm}
+          onDelete={openDeleteModal}
+        />
       </div>
+
+      {/* Modal de formulaire */}
+      <MedicalInstitutionForm
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        onSubmit={handleFormSubmit}
+        initialData={editingInstitution}
+        mode={formMode}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer l'institution "${deletingInstitution?.name}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
     </div>
   );
 }
