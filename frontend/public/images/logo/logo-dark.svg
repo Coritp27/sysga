@@ -1,14 +1,13 @@
 <svg width="174" height="30" viewBox="0 0 174 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle with opacity -->
-  <circle cx="15" cy="15" r="15" fill="#8B5CF6" opacity="0.1"/>
+  <!-- Background circle -->
+  <circle cx="15" cy="15" r="15" fill="#66bb6a" opacity="0.1"/>
   
-  <!-- Modern Stylized S for SYSGA -->
-  <path d="M7 7C7 5.89543 7.89543 5 9 5H21C22.1046 5 23 5.89543 23 7C23 8.10457 22.1046 9 21 9H11C9.89543 9 9 9.89543 9 11C9 12.1046 9.89543 13 11 13H21C22.1046 13 23 13.8954 23 15C23 16.1046 22.1046 17 21 17H9C7.89543 17 7 16.1046 7 15V7Z" fill="#8B5CF6"/>
+  <!-- Simple shape representing an insurance card -->
+  <rect x="5" y="10" width="20" height="10" fill="#66bb6a" rx="2" ry="2"/>
+  <line x1="7" y1="12" x2="23" y2="12" stroke="#FFFFFF" stroke-width="1"/>
+  <line x1="7" y1="14" x2="23" y2="14" stroke="#FFFFFF" stroke-width="1"/>
+  <line x1="7" y1="16" x2="15" y2="16" stroke="#FFFFFF" stroke-width="1"/>
   
-  <!-- Inner accent for depth -->
-  <path d="M9 7C9 6.44772 9.44772 6 10 6H20C20.5523 6 21 6.44772 21 7C21 7.55228 20.5523 8 20 8H10C9.44772 8 9 7.55228 9 7Z" fill="#8B5CF6" opacity="0.3"/>
-  <path d="M9 15C9 14.4477 9.44772 14 10 14H20C20.5523 14 21 14.4477 21 15C21 15.5523 20.5523 16 20 16H10C9.44772 16 9 15.5523 9 15Z" fill="#8B5CF6" opacity="0.3"/>
-  
-  <!-- Modern SYSGA Text -->
-  <text x="35" y="20" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="600" fill="#E5E7EB">SYSGA</text>
+  <!-- SYSGA Text -->
+  <text x="40" y="20" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="600" fill="#E5E7EB">SYSGA</text>
 </svg>
