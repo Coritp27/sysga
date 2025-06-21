@@ -1,8 +1,6 @@
 "use client";
 import React from "react";
-import { Logo } from "../../logo";
 import { cn } from "../../../lib/utils";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NAV_DATA } from "./data";
@@ -61,18 +59,10 @@ export function Sidebar() {
         )}
         aria-label="Main navigation"
         aria-hidden={!isOpen}
-        inert={!isOpen ||undefined}
+        inert={!isOpen || undefined}
       >
         <div className="flex h-full flex-col py-10 pl-[25px] pr-[7px]">
           <div className="relative pr-4.5">
-            <Link
-              href={"/admin"}
-              onClick={() => isMobile && toggleSidebar()}
-              className="px-0 py-2.5 min-[850px]:py-0"
-            >
-              <Logo />
-            </Link>
-
             {isMobile && (
               <button
                 onClick={toggleSidebar}

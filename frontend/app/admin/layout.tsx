@@ -17,11 +17,11 @@ import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | NextAdmin - Next.js Dashboard Kit",
-    default: "NextAdmin - Next.js Dashboard Kit",
+    template: "%s | SYSGA - Système de Gestion d'Assurance",
+    default: "SYSGA - Système de Gestion d'Assurance",
   },
   description:
-    "Next.js admin dashboard toolkit with 200+ templates, UI components, and integrations for fast dashboard development.",
+    "Système de gestion d'assurance moderne avec interface d'administration complète pour la gestion des polices, assurés et compagnies.",
 };
 
 export default function AdminLayout({ children }: PropsWithChildren) {

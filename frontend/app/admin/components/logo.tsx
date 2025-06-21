@@ -1,19 +1,39 @@
 import React from "react";
-import darkLogo from "../../../public/logo.png";
-import logo from "../../../public/logo.png";
 import Image from "next/image";
 
 export function Logo() {
   return (
-    <div>
+    <div className="flex items-center">
       <Image
-        src={logo}
-        width={170}
-        height={30}
-        className="dark:hidden"
-        alt="SysGa Admin logo"
-        role="presentation"
-        quality={100}
+        src="/images/logo/logo.svg"
+        width={120}
+        height={32}
+        className="h-8 w-auto dark:hidden"
+        alt="SYSGA"
+        priority
+      />
+      <Image
+        src="/images/logo/logo-dark.svg"
+        width={120}
+        height={32}
+        className="h-8 w-auto hidden dark:block"
+        alt="SYSGA"
+        priority
+      />
+    </div>
+  );
+}
+
+export function LogoIcon() {
+  return (
+    <div className="flex items-center">
+      <Image
+        src="/images/logo/logo-icon.svg"
+        width={32}
+        height={32}
+        className="h-8 w-8"
+        alt="SYSGA"
+        priority
       />
     </div>
   );
