@@ -4,94 +4,32 @@ import React, { useState } from "react";
 import dayjs from "dayjs";
 import { TrashIcon } from "lucide-react";
 import { PencilSquareIcon } from "../../assets/icons";
+import { FormattedCard } from "@/services/blockchain-card.service";
 
 interface InsuranceCardTableProps {
   searchTerm: string;
   onEdit?: (card: any) => void;
   onDelete?: (card: any) => void;
+  cards: FormattedCard[];
 }
 
 const InsuranceCardTable = ({
   searchTerm,
   onEdit,
   onDelete,
+  cards,
 }: InsuranceCardTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Données mockées avec dates sous forme de chaînes ISO
-  const insuranceCards = [
-    {
-      id: 1,
-      cardNumber: "CARD-2024-001",
-      insuredPersonName: "Jean Dupont",
-      insuredPersonEmail: "jean.dupont@email.com",
-      policyNumber: "POL-2024-001",
-      policyEffectiveDate: "2024-01-01",
-      expiryDate: "2024-12-31",
-      status: "ACTIVE",
-      insuranceCompany: "Assurance Plus",
-      enterprise: "Tech Solutions",
-    },
-    {
-      id: 2,
-      cardNumber: "CARD-2024-002",
-      insuredPersonName: "Marie Martin",
-      insuredPersonEmail: "marie.martin@email.com",
-      policyNumber: "POL-2024-002",
-      policyEffectiveDate: "2024-02-15",
-      expiryDate: "2025-02-14",
-      status: "ACTIVE",
-      insuranceCompany: "Santé Pro",
-      enterprise: null,
-    },
-    {
-      id: 3,
-      cardNumber: "CARD-2023-001",
-      insuredPersonName: "Pierre Durand",
-      insuredPersonEmail: "pierre.durand@email.com",
-      policyNumber: "POL-2023-001",
-      policyEffectiveDate: "2023-12-01",
-      expiryDate: "2023-12-31",
-      status: "EXPIRED",
-      insuranceCompany: "Groupe Assur",
-      enterprise: "Innovation Corp",
-    },
-    {
-      id: 4,
-      cardNumber: "CARD-2024-003",
-      insuredPersonName: "Sophie Leroy",
-      insuredPersonEmail: "sophie.leroy@email.com",
-      policyNumber: "POL-2024-003",
-      policyEffectiveDate: "2024-03-01",
-      expiryDate: "2025-02-28",
-      status: "ACTIVE",
-      insuranceCompany: "Assurance Plus",
-      enterprise: null,
-    },
-    {
-      id: 5,
-      cardNumber: "CARD-2024-004",
-      insuredPersonName: "Lucas Moreau",
-      insuredPersonEmail: "lucas.moreau@email.com",
-      policyNumber: "POL-2024-004",
-      policyEffectiveDate: "2024-01-15",
-      expiryDate: "2024-12-31",
-      status: "INACTIVE",
-      insuranceCompany: "Santé Pro",
-      enterprise: "Digital Solutions",
-    },
-  ];
-
-  // Filtrer les cartes
-  const filteredCards = insuranceCards.filter((card) => {
-    return (
+  // Filtrer les cartes selon le terme de recherche
+  const filteredCards = cards.filter(
+    (card) =>
       card.cardNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.insuredPersonName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.insuranceCompany.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  );
 
   // Pagination
   const totalPages = Math.ceil(filteredCards.length / itemsPerPage);
@@ -100,42 +38,50 @@ const InsuranceCardTable = ({
   const currentCards = filteredCards.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return (
-          <span className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">
-            Actif
-          </span>
-        );
-      case "INACTIVE":
-        return (
-          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
-            Inactif
-          </span>
-        );
-      case "EXPIRED":
-        return (
-          <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">
-            Expiré
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
-            {status}
-          </span>
-        );
-    }
+    const statusConfig = {
+      ACTIVE: {
+        className:
+          "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+        text: "Active",
+      },
+      INACTIVE: {
+        className:
+          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+        text: "Inactive",
+      },
+      EXPIRED: {
+        className:
+          "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+        text: "Expirée",
+      },
+      SUSPENDED: {
+        className:
+          "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
+        text: "Suspendue",
+      },
+    };
+
+    const config =
+      statusConfig[status as keyof typeof statusConfig] ||
+      statusConfig.INACTIVE;
+
+    return (
+      <span
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.className}`}
+      >
+        {config.text}
+      </span>
+    );
   };
 
   return (
-    <div className="w-full">
+    <div>
       <div className="overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[180px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Carte
+              <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+                Numéro de Carte
               </th>
               <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
                 Assuré
@@ -149,10 +95,10 @@ const InsuranceCardTable = ({
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Validité
               </th>
-              <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
+              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Compagnie
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+              <th className="py-4 px-4 font-medium text-black dark:text-white">
                 Actions
               </th>
             </tr>
@@ -204,33 +150,12 @@ const InsuranceCardTable = ({
                 </td>
                 <td className="py-5 px-4 dark:bg-meta-4">
                   <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
                     {onEdit && (
                       <button
                         className="hover:text-primary"
                         onClick={() => onEdit(card)}
                       >
-                        <PencilSquareIcon className="h-5 w-5" />
+                        <PencilSquareIcon className="h-4 w-4" />
                       </button>
                     )}
                     {onDelete && (
@@ -238,7 +163,7 @@ const InsuranceCardTable = ({
                         className="hover:text-danger"
                         onClick={() => onDelete(card)}
                       >
-                        <TrashIcon className="h-5 w-5" />
+                        <TrashIcon className="h-4 w-4" />
                       </button>
                     )}
                   </div>
@@ -251,33 +176,107 @@ const InsuranceCardTable = ({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-stroke py-4 px-4 dark:border-strokedark">
-          <div className="text-sm text-muted-foreground">
-            Affichage de {startIndex + 1} à{" "}
-            {Math.min(endIndex, filteredCards.length)} sur{" "}
-            {filteredCards.length} résultats
-          </div>
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between border-t border-stroke px-4 py-3 dark:border-strokedark sm:px-6">
+          <div className="flex flex-1 justify-between sm:hidden">
             <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="rounded-md border border-stroke px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Précédent
             </button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} sur {totalPages}
-            </span>
             <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
+              onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="rounded-md border border-stroke px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Suivant
             </button>
           </div>
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Affichage de{" "}
+                <span className="font-medium">{startIndex + 1}</span> à{" "}
+                <span className="font-medium">
+                  {Math.min(endIndex, filteredCards.length)}
+                </span>{" "}
+                sur <span className="font-medium">{filteredCards.length}</span>{" "}
+                résultats
+              </p>
+            </div>
+            <div>
+              <nav
+                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                >
+                  <span className="sr-only">Précédent</span>
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                        page === currentPage
+                          ? "z-10 bg-primary text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                >
+                  <span className="sr-only">Suivant</span>
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message si aucune carte */}
+      {filteredCards.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            {searchTerm
+              ? "Aucune carte trouvée pour cette recherche."
+              : "Aucune carte d'assurance disponible."}
+          </p>
         </div>
       )}
     </div>
