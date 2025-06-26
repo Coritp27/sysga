@@ -105,21 +105,6 @@ export const NAV_DATA = [
         ],
       },
       {
-        title: "Entreprises",
-        url: "/admin/enterprises",
-        icon: Icons.FourCircle,
-        items: [
-          {
-            title: "Liste des Entreprises",
-            url: "/admin/enterprises",
-          },
-          {
-            title: "Nouvelle Entreprise",
-            url: "/admin/enterprises/new",
-          },
-        ],
-      },
-      {
         title: "Institutions",
         url: "/admin/medical-institutions",
         icon: Icons.FourCircle,

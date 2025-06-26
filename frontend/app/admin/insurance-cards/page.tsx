@@ -6,9 +6,12 @@ import { InsuranceCardForm } from "../components/Forms/insurance-card-form";
 import { ConfirmationModal } from "../components/ui/confirmation-modal";
 import { useBlockchainCards } from "@/hooks/useBlockchainCards";
 import { transformBlockchainCards } from "@/services/blockchain-card.service";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
+import { AuthenticationInfo } from "../components/ui/authentication-info";
 
 export default function InsuranceCardsPage() {
+  const { user, isLoading: workspaceLoading } = useWorkspace();
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -120,10 +123,52 @@ export default function InsuranceCardsPage() {
     refetch();
   };
 
+  if (workspaceLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
       {/* Breadcrumb avec ConnectButton */}
       <Breadcrumb pageName="Cartes d'Assurance (Blockchain)" />
+
+      {/* Information sur le système d'authentification hybride */}
+      <AuthenticationInfo user={user} />
+
+      {/* Informations de la compagnie connectée */}
+      {user?.insuranceCompany && (
+        <div className="mb-6 rounded-sm border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg
+                className="h-4 w-4 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Compagnie connectée : {user.insuranceCompany.name}
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-300">
+                Vous visualisez uniquement les données de votre compagnie
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
@@ -142,10 +187,15 @@ export default function InsuranceCardsPage() {
           </button>
           <button
             onClick={openCreateForm}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+            disabled={!isConnected}
+            className={`inline-flex items-center justify-center rounded-md px-10 py-2 text-center font-medium lg:px-8 xl:px-10 ${
+              isConnected
+                ? "bg-primary text-white hover:bg-opacity-90"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             <AddIcon className="mr-2 h-4 w-4" />
-            Nouvelle Carte
+            {isConnected ? "Nouvelle Carte" : "Connectez votre wallet"}
           </button>
         </div>
       </div>
@@ -174,8 +224,40 @@ export default function InsuranceCardsPage() {
                 Wallet non connecté
               </p>
               <p className="text-xs text-yellow-600 dark:text-yellow-300">
-                Connectez votre wallet via le bouton en haut à droite pour voir
-                vos cartes d'assurance sur la blockchain
+                Connectez votre wallet via le bouton en haut à droite pour créer
+                ou modifier des cartes d'assurance sur la blockchain
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Statut de connexion blockchain - Connecté */}
+      {isConnected && (
+        <div className="mb-6 rounded-sm border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+              <svg
+                className="h-4 w-4 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                Wallet connecté
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-300">
+                Vous pouvez maintenant créer et modifier des cartes d'assurance
+                sur la blockchain
               </p>
             </div>
           </div>
@@ -203,25 +285,26 @@ export default function InsuranceCardsPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Erreur de lecture blockchain
+                Erreur blockchain
               </p>
               <p className="text-xs text-red-600 dark:text-red-300">
-                {error.message}
+                {error.toString()}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      {/* Statistiques */}
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Cartes
+              <p className="text-sm font-medium text-black dark:text-white">
+                Total des Cartes
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                {isLoading ? "..." : totalCards}
+                {totalCards}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -235,7 +318,7 @@ export default function InsuranceCardsPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
             </div>
@@ -245,11 +328,11 @@ export default function InsuranceCardsPage() {
         <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-sm font-medium text-black dark:text-white">
                 Cartes Actives
               </p>
-              <p className="text-2xl font-bold text-black dark:text-white">
-                {isLoading ? "..." : activeCards}
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {activeCards}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -273,11 +356,11 @@ export default function InsuranceCardsPage() {
         <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-sm font-medium text-black dark:text-white">
                 Cartes Expirées
               </p>
-              <p className="text-2xl font-bold text-black dark:text-white">
-                {isLoading ? "..." : expiredCards}
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                {expiredCards}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -301,11 +384,11 @@ export default function InsuranceCardsPage() {
         <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Nouvelles Ce Mois
+              <p className="text-sm font-medium text-black dark:text-white">
+                Nouvelles ce Mois
               </p>
-              <p className="text-2xl font-bold text-black dark:text-white">
-                {isLoading ? "..." : newThisMonth}
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {newThisMonth}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -319,7 +402,7 @@ export default function InsuranceCardsPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                 />
               </svg>
             </div>
@@ -327,47 +410,34 @@ export default function InsuranceCardsPage() {
         </div>
       </div>
 
-      <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark mt-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-black dark:text-white">
-            Liste des Cartes d'Assurance (Blockchain)
-          </h3>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher une carte..."
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setSearchTerm(e.target.value)
-                }
-                className="pl-10 w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
+      {/* Barre de recherche */}
+      <div className="mb-6 flex items-center gap-4">
+        <div className="flex-1 max-w-sm">
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher une carte..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
+            />
           </div>
         </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center gap-3">
-              <RefreshCwIcon className="h-6 w-6 animate-spin text-primary" />
-              <span className="text-muted-foreground">
-                Chargement des cartes blockchain...
-              </span>
-            </div>
-          </div>
-        ) : (
-          <InsuranceCardTable
-            searchTerm={searchTerm}
-            onEdit={openEditForm}
-            onDelete={openDeleteModal}
-            cards={filteredCards}
-          />
-        )}
+        <div className="text-sm text-muted-foreground">
+          {filteredCards.length} carte(s) trouvée(s)
+        </div>
       </div>
 
-      {/* Modal de formulaire */}
+      {/* Table des cartes */}
+      <InsuranceCardTable
+        insuranceCards={filteredCards}
+        onEdit={openEditForm}
+        onDelete={openDeleteModal}
+        isLoading={isLoading}
+      />
+
+      {/* Formulaire modal */}
       <InsuranceCardForm
         isOpen={isFormOpen}
         onClose={closeForm}
@@ -381,11 +451,8 @@ export default function InsuranceCardsPage() {
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        title="Confirmer la suppression"
-        message={`Êtes-vous sûr de vouloir supprimer la carte "${deletingCard?.cardNumber}" ? Cette action est irréversible.`}
-        confirmText="Supprimer"
-        cancelText="Annuler"
-        type="danger"
+        title="Supprimer la carte d'assurance"
+        message={`Êtes-vous sûr de vouloir supprimer la carte ${deletingCard?.cardNumber} ? Cette action ne peut pas être annulée.`}
       />
     </div>
   );
