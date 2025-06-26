@@ -10,6 +10,16 @@ import {
 const prisma = new PrismaClient();
 
 async function main() {
+  // Nettoyer la base de données d'abord
+  await prisma.blockchainReference.deleteMany();
+  await prisma.insuranceCard.deleteMany();
+  await prisma.policy.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.insuredPerson.deleteMany();
+  await prisma.enterprise.deleteMany();
+  await prisma.insuranceCompany.deleteMany();
+  await prisma.role.deleteMany();
+
   const adminRole = await prisma.role.create({
     data: {
       name: "Admin",
@@ -67,39 +77,28 @@ async function main() {
     },
   });
 
-  await prisma.insuranceCard.create({
+  // Créer un utilisateur avec une compagnie d'assurance
+  const user = await prisma.user.create({
     data: {
-      insuredPersonName: "John Doe",
-      policyNumber: BigInt("1001"),
-      cardNumber: "CARD123456",
-      dateOfBirth: new Date("1990-01-01"),
-      policyEffectiveDate: new Date(),
-      hadDependent: true,
-      status: InsuranceCardStatus.ACTIVE,
-      validUntil: new Date("2025-12-31"),
+      username: "user_test",
+      userType: UserType.INSURER,
+      idKeycloak: "test_user_id",
+      walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
       insuranceCompanyId: insuranceCompany.id,
-      insuredPersonId: insuredPerson.id,
+      roleId: adminRole.id,
+      createdBy: "system",
+      lastModifiedBy: "system",
     },
   });
 
-  await prisma.policy.create({
-    data: {
-      policyNumber: BigInt("1001"),
-      type: PolicyType.INDIVIDUAL,
-      coverage: "Standard",
-      deductible: 100.0,
-      premiumAmount: 500.0,
-      description: "Police santé standard",
-      validUntil: new Date("2025-12-31"),
-      insuranceCompanyId: insuranceCompany.id,
-    },
-  });
+  // Recréer la police et la carte d'assurance pour la référence blockchain
 
   await prisma.blockchainReference.create({
     data: {
       reference: BigInt("123456789"),
-      cardNumber: "CARD123456",
-      blockchainTxHash: "txhash123456",
+      cardNumber: "CARD001",
+      blockchainTxHash:
+        "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     },
   });
 
@@ -116,7 +115,10 @@ async function main() {
     },
   });
 
-  console.log("Seed terminé !");
+  console.log("Seed terminé avec succès!");
+  console.log("Compagnie d'assurance créée:", insuranceCompany.name);
+  console.log("Utilisateur créé:", user.username);
+  console.log("Utilisateur lié à la compagnie:", insuranceCompany.name);
 }
 
 main()

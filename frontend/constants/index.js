@@ -32,7 +32,7 @@ export const contractAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "_of",
+        name: "_insuranceCompany",
         type: "address",
       },
     ],
