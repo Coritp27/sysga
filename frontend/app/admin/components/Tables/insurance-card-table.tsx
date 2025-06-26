@@ -7,35 +7,26 @@ import { PencilSquareIcon } from "../../assets/icons";
 import { FormattedCard } from "@/services/blockchain-card.service";
 
 interface InsuranceCardTableProps {
-  searchTerm: string;
+  insuranceCards: FormattedCard[];
   onEdit?: (card: any) => void;
   onDelete?: (card: any) => void;
-  cards: FormattedCard[];
+  isLoading?: boolean;
 }
 
 const InsuranceCardTable = ({
-  searchTerm,
+  insuranceCards,
   onEdit,
   onDelete,
-  cards,
+  isLoading = false,
 }: InsuranceCardTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Filtrer les cartes selon le terme de recherche
-  const filteredCards = cards.filter(
-    (card) =>
-      card.cardNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.insuredPersonName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.insuranceCompany.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   // Pagination
-  const totalPages = Math.ceil(filteredCards.length / itemsPerPage);
+  const totalPages = Math.ceil(insuranceCards.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentCards = filteredCards.slice(startIndex, endIndex);
+  const currentCards = insuranceCards.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -73,6 +64,19 @@ const InsuranceCardTable = ({
       </span>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+          <span className="text-muted-foreground">
+            Chargement des cartes blockchain...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -199,9 +203,9 @@ const InsuranceCardTable = ({
                 Affichage de{" "}
                 <span className="font-medium">{startIndex + 1}</span> à{" "}
                 <span className="font-medium">
-                  {Math.min(endIndex, filteredCards.length)}
+                  {Math.min(endIndex, insuranceCards.length)}
                 </span>{" "}
-                sur <span className="font-medium">{filteredCards.length}</span>{" "}
+                sur <span className="font-medium">{insuranceCards.length}</span>{" "}
                 résultats
               </p>
             </div>
@@ -266,17 +270,6 @@ const InsuranceCardTable = ({
               </nav>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Message si aucune carte */}
-      {filteredCards.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">
-            {searchTerm
-              ? "Aucune carte trouvée pour cette recherche."
-              : "Aucune carte d'assurance disponible."}
-          </p>
         </div>
       )}
     </div>

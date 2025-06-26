@@ -35,12 +35,15 @@ model User {
   username        String   @unique
   userType        UserType
   idKeycloak      String
+  walletAddress   String?  @unique // Adresse du wallet blockchain
   institutionId   Int?
+  insuranceCompanyId Int?  // Lien vers la compagnie d'assurance
   isActive        Boolean  @default(true)
   roleId          Int
   role            Role     @relation(fields: [roleId], references: [id])
   insuredPerson   InsuredPerson? @relation(fields: [insuredPersonId], references: [id])
   insuredPersonId Int?     @unique
+  insuranceCompany InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
 
   // Audit fields from Audit abstract class
   createdAt       DateTime @default(now())
@@ -174,8 +177,20 @@ model InsuranceCompany {
   fiscalNumber      String
   numberOfEmployees Int
 
+  // Adresse blockchain de la compagnie
+  blockchainAddress String?   @unique
+
+  // Audit fields (avec valeurs par défaut temporaires)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now())
+  createdBy         String    @default("system")
+  lastModifiedBy    String    @default("system")
+  isDeleted         Boolean   @default(false)
+
+  // Relations
   policies Policy[]
   cards    InsuranceCard[]
+  users    User[]  // Utilisateurs de cette compagnie
 }
 
 model MedicalInstitution {
