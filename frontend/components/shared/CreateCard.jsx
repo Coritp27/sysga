@@ -7,6 +7,7 @@ import {
 } from "wagmi";
 
 import { contractAddress, contractAbi } from "@/constants";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -20,22 +21,32 @@ const CreateCard = () => {
   const [cardNumber, setCardNumber] = useState("");
   const [issuedOn, setIssuedOn] = useState("");
   const [status, setStatus] = useState("active");
-  const [insuranceCompany, setInsuranceCompany] = useState(
-    "0x1234567890123456789012345678901234567890"
-  );
 
   const { address } = useAccount();
+  const { user, isLoading: userLoading } = useWorkspace();
 
   const { data: hash, isPending, error, writeContract } = useWriteContract();
+
+  // Récupérer l'adresse de la compagnie d'assurance
+  const insuranceCompanyAddress = user?.insuranceCompany?.blockchainAddress;
 
   const handleCreateCard = async () => {
     console.log("🚀 Tentative de création de carte:");
     console.log("- cardNumber:", cardNumber);
     console.log("- issuedOn:", issuedOn);
     console.log("- status:", status);
-    console.log("- insuranceCompany:", insuranceCompany);
+    console.log("- user:", user);
+    console.log("- insuranceCompanyAddress:", insuranceCompanyAddress);
     console.log("- address:", address);
     console.log("- contractAddress:", contractAddress);
+
+    if (!insuranceCompanyAddress) {
+      console.error("❌ Aucune adresse de compagnie d'assurance trouvée");
+      alert(
+        "Erreur: Aucune adresse de compagnie d'assurance configurée. Veuillez contacter l'administrateur."
+      );
+      return;
+    }
 
     // Convertir la date en timestamp si elle est fournie
     let issuedOnTimestamp = 0;
@@ -49,7 +60,7 @@ const CreateCard = () => {
         address: contractAddress,
         abi: contractAbi,
         functionName: "addInsuranceCard",
-        args: [cardNumber, issuedOnTimestamp, status, insuranceCompany],
+        args: [cardNumber, issuedOnTimestamp, status, insuranceCompanyAddress],
         account: address,
       });
     } catch (err) {
@@ -65,14 +76,56 @@ const CreateCard = () => {
     console.error("❌ Erreur writeContract:", error);
   }
 
+  // Afficher un message si l'utilisateur n'a pas de compagnie d'assurance
+  if (userLoading) {
+    return (
+      <div className="add">
+        <div className="add_inner">
+          <h1 className="add_inner_title">
+            <span className="add_inner_title_colored">Chargement...</span>
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user?.insuranceCompany?.blockchainAddress) {
+    return (
+      <div className="add">
+        <div className="add_inner">
+          <h1 className="add_inner_title">
+            <span className="add_inner_title_colored">
+              Configuration requise
+            </span>
+          </h1>
+          <Card>
+            <CardContent className="pt-5">
+              <p className="text-red-600 mb-4">
+                Votre compte n'est pas associé à une compagnie d'assurance avec
+                une adresse blockchain configurée.
+              </p>
+              <p className="text-gray-600">
+                Veuillez contacter l'administrateur pour configurer l'adresse
+                blockchain de votre compagnie d'assurance.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="add">
       <div className="add_inner">
         <h1 className="add_inner_title">
           <span className="add_inner_title_colored">
-            Créer une carte d'assurance (Test)
+            Créer une carte d'assurance
           </span>
         </h1>
+        <p className="text-sm text-gray-600 mb-4">
+          Compagnie: {user.insuranceCompany.name} ({insuranceCompanyAddress})
+        </p>
         <Informations
           hash={hash}
           isConfirming={isConfirming}
@@ -113,18 +166,6 @@ const CreateCard = () => {
                 <option value="expired">Expirée</option>
                 <option value="suspended">Suspendue</option>
               </select>
-            </div>
-            <div className="add_inner_form_item mt-5">
-              <Label htmlFor="insuranceCompany">
-                Compagnie d'assurance (Adresse)
-              </Label>
-              <Input
-                type="text"
-                id="insuranceCompany"
-                placeholder="Ex: 0x1234...abcd"
-                value={insuranceCompany}
-                onChange={(e) => setInsuranceCompany(e.target.value)}
-              />
             </div>
             <Button
               variant="outline"

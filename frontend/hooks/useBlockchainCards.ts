@@ -16,18 +16,18 @@ export interface UseBlockchainCardsReturn {
   error: Error | null;
   refetch: () => void;
   isConnected: boolean;
+  walletAddress: string | null;
 }
 
 export const useBlockchainCards = (): UseBlockchainCardsReturn => {
   const { address, isConnected } = useAccount();
   const [enabled, setEnabled] = useState(false);
 
-  // Logs de débogage
+  // Debug logs
   useEffect(() => {
     console.log("🔍 Debug useBlockchainCards:");
     console.log("- isConnected:", isConnected);
-    console.log("- address:", address);
-    console.log("- contractAddress:", contractAddress);
+    console.log("- walletAddress:", address);
     console.log("- enabled:", enabled);
   }, [isConnected, address, enabled]);
 
@@ -46,30 +46,11 @@ export const useBlockchainCards = (): UseBlockchainCardsReturn => {
     },
   });
 
-  // Logs pour les données retournées
-  useEffect(() => {
-    if (userCards !== undefined) {
-      console.log("📦 Données retournées par getInsuranceCards:", userCards);
-      console.log("📦 Type de données:", typeof userCards);
-      console.log(
-        "📦 Longueur:",
-        Array.isArray(userCards) ? userCards.length : "Non-array"
-      );
-    }
-  }, [userCards]);
-
-  // Logs pour les erreurs
-  useEffect(() => {
-    if (error) {
-      console.error("❌ Erreur useReadContract:", error);
-    }
-  }, [error]);
-
   useEffect(() => {
     setEnabled(isConnected && !!address);
   }, [isConnected, address]);
 
-  // Transformer les données en format attendu
+  // Transform data
   const cards: BlockchainCard[] = Array.isArray(userCards)
     ? userCards.map((card: any) => ({
         id: card.id,
@@ -86,5 +67,6 @@ export const useBlockchainCards = (): UseBlockchainCardsReturn => {
     error,
     refetch,
     isConnected,
+    walletAddress: address || null,
   };
 };

@@ -1,6 +1,5 @@
 import React from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { AddIcon } from "../../assets/icons";
 
 interface BreadcrumbProps {
   pageName: string;
@@ -21,7 +20,12 @@ const Breadcrumb = ({ pageName }: BreadcrumbProps) => {
             </Link>
           </li> */}
           <li className="font-medium text-primary flex items-center gap-2">
-            <AddIcon /> <ConnectButton showBalance={false} />
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:inline">
+                Wallet pour blockchain:
+              </span>
+              <ConnectButton showBalance={false} />
+            </div>
           </li>
         </ol>
       </nav>
