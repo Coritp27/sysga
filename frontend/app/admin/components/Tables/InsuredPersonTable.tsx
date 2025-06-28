@@ -9,63 +9,24 @@ import {
 } from "../ui/table";
 import { cn } from "../../lib/utils";
 import dayjs from "dayjs";
-import { Eye, Edit, Trash2 } from "lucide-react";
-
-interface InsuredPerson {
-  id: number;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: Date;
-  email: string;
-  cin: string;
-  nif: string;
-  hasDependent: boolean;
-  numberOfDependent: number;
-  enterprise: { name: string } | null;
-  insuranceCards: { status: string }[];
-}
+import { Eye, Edit, Trash2, Users, User } from "lucide-react";
+import { InsuredPerson } from "../../../../hooks/useInsuredPersons";
 
 interface InsuredPersonTableProps {
+  insuredPersons: InsuredPerson[];
+  loading?: boolean;
   searchTerm?: string;
   onEdit?: (person: InsuredPerson) => void;
   onDelete?: (person: InsuredPerson) => void;
 }
 
 const InsuredPersonTable = ({
+  insuredPersons,
+  loading = false,
   searchTerm = "",
   onEdit,
   onDelete,
 }: InsuredPersonTableProps) => {
-  // TODO: Récupérer les vraies données depuis la base de données
-  const insuredPersons: InsuredPerson[] = [
-    {
-      id: 1,
-      firstName: "John",
-      lastName: "Doe",
-      dateOfBirth: new Date("1990-01-01"),
-      email: "john.doe@email.com",
-      cin: "CIN123456",
-      nif: "NIF654321",
-      hasDependent: true,
-      numberOfDependent: 2,
-      enterprise: { name: "Entreprise Test" },
-      insuranceCards: [{ status: "ACTIVE" }, { status: "ACTIVE" }],
-    },
-    {
-      id: 2,
-      firstName: "Marie",
-      lastName: "Dupont",
-      dateOfBirth: new Date("1985-05-15"),
-      email: "marie.dupont@email.com",
-      cin: "CIN789012",
-      nif: "NIF210987",
-      hasDependent: false,
-      numberOfDependent: 0,
-      enterprise: null,
-      insuranceCards: [{ status: "ACTIVE" }],
-    },
-  ];
-
   // Filtrer les personnes selon le terme de recherche
   const filteredPersons = insuredPersons.filter((person) => {
     const fullName = `${person.firstName} ${person.lastName}`.toLowerCase();
@@ -79,6 +40,33 @@ const InsuredPersonTable = ({
       cin.includes(searchLower)
     );
   });
+
+  if (loading) {
+    return (
+      <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2 text-muted-foreground">Chargement...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (filteredPersons.length === 0) {
+    return (
+      <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <p className="text-muted-foreground">
+              {searchTerm
+                ? "Aucun assuré trouvé pour cette recherche"
+                : "Aucun assuré trouvé"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
@@ -98,8 +86,11 @@ const InsuredPersonTable = ({
         </TableHeader>
 
         <TableBody>
-          {filteredPersons.map((person, index) => (
-            <TableRow key={index} className="border-[#eee] dark:border-dark-3">
+          {filteredPersons.map((person) => (
+            <TableRow
+              key={person.id}
+              className="border-[#eee] dark:border-dark-3"
+            >
               <TableCell className="min-w-[200px] xl:pl-7.5">
                 <div>
                   <h5 className="text-dark dark:text-white font-medium">
@@ -128,14 +119,46 @@ const InsuredPersonTable = ({
               </TableCell>
 
               <TableCell>
-                <div className="flex items-center space-x-2">
-                  <span className="text-dark dark:text-white">
-                    {person.numberOfDependent}
-                  </span>
-                  {person.hasDependent && (
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                      Oui
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-dark dark:text-white font-medium">
+                      {person.numberOfDependent || 0} dépendant(s)
                     </span>
+                  </div>
+
+                  {person.hasDependent &&
+                    person.dependents &&
+                    person.dependents.length > 0 && (
+                      <div className="space-y-1">
+                        {person.dependents
+                          .slice(0, 2)
+                          .map((dependent, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-2 text-xs"
+                            >
+                              <User className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-dark dark:text-white">
+                                Dépendant #{dependent.id}
+                              </span>
+                              <span className="text-muted-foreground">
+                                ({dependent.relation})
+                              </span>
+                            </div>
+                          ))}
+                        {person.dependents.length > 2 && (
+                          <div className="text-xs text-muted-foreground">
+                            +{person.dependents.length - 2} autre(s)
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  {!person.hasDependent && (
+                    <div className="text-xs text-muted-foreground">
+                      Aucun dépendant
+                    </div>
                   )}
                 </div>
               </TableCell>
