@@ -116,6 +116,10 @@ model Enterprise {
   fiscalNumber      String
   numberOfEmployees Int
 
+  // Lien vers la compagnie d'assurance
+  insuranceCompanyId Int?
+  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
+
   // Inherited from Audit
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -191,6 +195,7 @@ model InsuranceCompany {
   policies Policy[]
   cards    InsuranceCard[]
   users    User[]  // Utilisateurs de cette compagnie
+  enterprises Enterprise[] // Entreprises clientes de cette compagnie
 }
 
 model MedicalInstitution {

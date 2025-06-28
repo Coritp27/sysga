@@ -10,7 +10,8 @@ import { useSidebarContext } from "./sidebar-context";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
+  const { setIsOpen, isOpen, isMobile, toggleSidebar, isMounted } =
+    useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const toggleExpanded = (title: string) => {
@@ -23,6 +24,8 @@ export function Sidebar() {
   };
 
   useEffect(() => {
+    if (!isMounted) return;
+
     // Keep collapsible open, when it's subpage is active
     NAV_DATA.some((section) => {
       return section.items.some((item) => {
@@ -38,7 +41,55 @@ export function Sidebar() {
         });
       });
     });
-  }, [pathname]);
+  }, [pathname, isMounted]);
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <aside
+        className={cn(
+          "max-w-[290px] overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark",
+          isMobile ? "fixed bottom-0 top-0 z-50" : "sticky top-0 h-screen",
+          isOpen ? "w-full" : "w-0"
+        )}
+        aria-label="Main navigation"
+        aria-hidden={!isOpen}
+        inert={!isOpen || undefined}
+      >
+        <div className="flex h-full flex-col py-10 pl-[25px] pr-[7px]">
+          <div className="relative pr-4.5">
+            {isMobile && (
+              <button
+                onClick={toggleSidebar}
+                className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
+              >
+                <span className="sr-only">Close Menu</span>
+                <ArrowLeftIcon className="ml-auto size-7" />
+              </button>
+            )}
+          </div>
+          <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
+            {/* Loading skeleton */}
+            <div className="animate-pulse">
+              {NAV_DATA.map((section) => (
+                <div key={section.label} className="mb-6">
+                  <div className="mb-5 h-4 w-20 bg-gray-200 rounded dark:bg-gray-700"></div>
+                  <div className="space-y-2">
+                    {section.items.map((item) => (
+                      <div
+                        key={item.title}
+                        className="h-10 bg-gray-200 rounded dark:bg-gray-700"
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <>
