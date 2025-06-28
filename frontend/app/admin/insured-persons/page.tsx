@@ -6,38 +6,163 @@ import InsuredPersonTable from "../components/Tables/InsuredPersonTable";
 import { ConfirmationModal } from "../components/ui/confirmation-modal";
 import { AddIcon, SearchIcon } from "../assets/icons";
 import { InsuredPersonForm } from "../components/Forms/insured-person-form";
+import { useInsuredPersons } from "../../../hooks/useInsuredPersons";
+import {
+  InsuredPerson,
+  CreateInsuredPersonData,
+  UpdateInsuredPersonData,
+} from "../../../hooks/useInsuredPersons";
+import { AuthenticationInfo } from "../components/ui/authentication-info";
+import { useEnterprises } from "../../../hooks/useEnterprises";
+
+// Interface pour le formulaire (différente de celle du hook)
+interface FormInsuredPerson {
+  id?: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: "MALE" | "FEMALE" | "OTHER";
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  nationalId: string;
+  passportNumber?: string;
+  occupation: string;
+  employer?: string;
+  emergencyContact: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  isActive: boolean;
+}
 
 const InsuredPersonsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [editingPerson, setEditingPerson] = useState<any>(null);
-  const [deletingPerson, setDeletingPerson] = useState<any>(null);
+  const [editingPerson, setEditingPerson] = useState<InsuredPerson | null>(
+    null
+  );
+  const [deletingPerson, setDeletingPerson] = useState<InsuredPerson | null>(
+    null
+  );
 
-  const handleCreatePerson = (data: any) => {
-    console.log("Créer une nouvelle personne assurée:", data);
-    // Ici on ajouterait l'appel API pour créer la personne
-    // Pour l'instant, on affiche juste dans la console
+  const {
+    insuredPersons,
+    loading,
+    error,
+    createInsuredPerson,
+    updateInsuredPerson,
+    deleteInsuredPerson,
+    user,
+  } = useInsuredPersons();
+  const { enterprises } = useEnterprises(user?.insuranceCompany?.id);
+
+  // Fonction de transformation des données pour le formulaire
+  const transformToFormData = (person: InsuredPerson): FormInsuredPerson => {
+    return {
+      id: person.id,
+      firstName: person.firstName,
+      lastName: person.lastName,
+      email: person.email,
+      phone: person.phone,
+      dateOfBirth: person.dateOfBirth,
+      gender: person.gender as "MALE" | "FEMALE" | "OTHER",
+      address: person.address,
+      city: "", // À ajouter dans le schéma si nécessaire
+      postalCode: "", // À ajouter dans le schéma si nécessaire
+      country: "France", // Valeur par défaut
+      nationalId: person.cin, // Utiliser CIN comme nationalId
+      passportNumber: "",
+      occupation: "", // À ajouter dans le schéma si nécessaire
+      employer: person.enterprise?.name || "",
+      emergencyContact: {
+        name: "",
+        phone: "",
+        relationship: "",
+      },
+      isActive: true,
+    };
   };
 
-  const handleEditPerson = (data: any) => {
-    console.log("Modifier la personne assurée:", data);
-    // Ici on ajouterait l'appel API pour modifier la personne
-    // Pour l'instant, on affiche juste dans la console
+  // Fonction de transformation des données du formulaire vers l'API
+  const transformFromFormData = (
+    formData: FormInsuredPerson
+  ): CreateInsuredPersonData => {
+    // Convertir employer en enterpriseId
+    let enterpriseId: number | undefined;
+    if (formData.employer && formData.employer.trim() !== "") {
+      enterpriseId = Number(formData.employer);
+    }
+
+    return {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      dateOfBirth: formData.dateOfBirth,
+      email: formData.email,
+      phone: formData.phone,
+      address: formData.address,
+      gender: formData.gender,
+      cin: formData.nationalId, // Utiliser nationalId comme CIN
+      nif: formData.nationalId, // Utiliser nationalId comme NIF temporairement
+      hasDependent: false, // À ajouter dans le formulaire si nécessaire
+      numberOfDependent: 0, // À ajouter dans le formulaire si nécessaire
+      policyEffectiveDate: formData.dateOfBirth, // Utiliser dateOfBirth comme approximation
+      enterpriseId: enterpriseId,
+    };
   };
 
-  const handleDeletePerson = (person: any) => {
-    console.log("Supprimer la personne assurée:", person);
-    // Ici on ajouterait l'appel API pour supprimer la personne
-    // Pour l'instant, on affiche juste dans la console
+  const handleCreatePerson = async (formData: FormInsuredPerson) => {
+    try {
+      const apiData = transformFromFormData(formData);
+      await createInsuredPerson(apiData);
+      closeForm();
+      // Optionnel: Afficher un message de succès
+    } catch (error) {
+      console.error("Erreur lors de la création:", error);
+      // Optionnel: Afficher un message d'erreur
+    }
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleEditPerson = async (formData: FormInsuredPerson) => {
+    try {
+      if (!formData.id) return;
+
+      const apiData = {
+        ...transformFromFormData(formData),
+        id: formData.id,
+      } as UpdateInsuredPersonData;
+
+      await updateInsuredPerson(apiData);
+      closeForm();
+      // Optionnel: Afficher un message de succès
+    } catch (error) {
+      console.error("Erreur lors de la modification:", error);
+      // Optionnel: Afficher un message d'erreur
+    }
+  };
+
+  const handleDeletePerson = async (person: InsuredPerson) => {
+    try {
+      await deleteInsuredPerson(person.id);
+      closeDeleteModal();
+      // Optionnel: Afficher un message de succès
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      // Optionnel: Afficher un message d'erreur
+    }
+  };
+
+  const handleFormSubmit = (formData: FormInsuredPerson) => {
     if (formMode === "create") {
-      handleCreatePerson(data);
+      handleCreatePerson(formData);
     } else {
-      handleEditPerson(data);
+      handleEditPerson(formData);
     }
   };
 
@@ -47,13 +172,13 @@ const InsuredPersonsPage = () => {
     setIsFormOpen(true);
   };
 
-  const openEditForm = (person: any) => {
+  const openEditForm = (person: InsuredPerson) => {
     setFormMode("edit");
     setEditingPerson(person);
     setIsFormOpen(true);
   };
 
-  const openDeleteModal = (person: any) => {
+  const openDeleteModal = (person: InsuredPerson) => {
     setDeletingPerson(person);
     setIsDeleteModalOpen(true);
   };
@@ -74,9 +199,65 @@ const InsuredPersonsPage = () => {
     }
   };
 
+  // Calculer les statistiques
+  const totalPersons = insuredPersons.length;
+  const activePersons = insuredPersons.filter((person) =>
+    person.insuranceCards.some((card) => card.status === "ACTIVE")
+  ).length;
+  const newThisMonth = insuredPersons.filter((person) => {
+    const createdDate = new Date(person.dateOfBirth); // Utiliser dateOfBirth comme approximation
+    const now = new Date();
+    return (
+      createdDate.getMonth() === now.getMonth() &&
+      createdDate.getFullYear() === now.getFullYear()
+    );
+  }).length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Breadcrumb pageName="Personnes Assurées" />
+
+      {/* Information sur le système d'authentification hybride */}
+      <AuthenticationInfo user={user} />
+
+      {/* Informations de la compagnie connectée */}
+      {user?.insuranceCompany && (
+        <div className="mb-6 rounded-sm border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg
+                className="h-4 w-4 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Compagnie connectée : {user.insuranceCompany.name}
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-300">
+                Vous visualisez uniquement les assurés de votre compagnie
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -105,7 +286,7 @@ const InsuredPersonsPage = () => {
                   Total Personnes
                 </p>
                 <p className="text-2xl font-bold text-black dark:text-white">
-                  2,847
+                  {loading ? "..." : totalPersons.toLocaleString()}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -133,7 +314,7 @@ const InsuredPersonsPage = () => {
                   Actives
                 </p>
                 <p className="text-2xl font-bold text-black dark:text-white">
-                  2,654
+                  {loading ? "..." : activePersons.toLocaleString()}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -161,7 +342,7 @@ const InsuredPersonsPage = () => {
                   Nouvelles Ce Mois
                 </p>
                 <p className="text-2xl font-bold text-black dark:text-white">
-                  89
+                  {loading ? "..." : newThisMonth.toLocaleString()}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -189,7 +370,9 @@ const InsuredPersonsPage = () => {
                   En Attente
                 </p>
                 <p className="text-2xl font-bold text-black dark:text-white">
-                  104
+                  {loading
+                    ? "..."
+                    : (totalPersons - activePersons).toLocaleString()}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -210,6 +393,12 @@ const InsuredPersonsPage = () => {
             </div>
           </div>
         </div>
+
+        {error && (
+          <div className="rounded-sm border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <p className="text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
 
         <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark mt-6">
           <div className="flex items-center justify-between mb-6">
@@ -232,6 +421,8 @@ const InsuredPersonsPage = () => {
             </div>
           </div>
           <InsuredPersonTable
+            insuredPersons={insuredPersons}
+            loading={loading}
             searchTerm={searchTerm}
             onEdit={openEditForm}
             onDelete={openDeleteModal}
@@ -243,8 +434,11 @@ const InsuredPersonsPage = () => {
           isOpen={isFormOpen}
           onClose={closeForm}
           onSubmit={handleFormSubmit}
-          initialData={editingPerson}
+          initialData={
+            editingPerson ? transformToFormData(editingPerson) : undefined
+          }
           mode={formMode}
+          enterprises={enterprises}
         />
 
         {/* Modal de confirmation de suppression */}

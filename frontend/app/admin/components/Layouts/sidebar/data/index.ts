@@ -15,6 +15,25 @@ export const NAV_DATA = [
         ],
       },
       {
+        title: "Gestion des Assurés",
+        url: "/admin/insured-persons",
+        icon: Icons.User,
+        items: [
+          {
+            title: "Entreprises",
+            url: "/admin/enterprises",
+          },
+          {
+            title: "Polices",
+            url: "/admin/policies",
+          },
+          {
+            title: "Assurés",
+            url: "/admin/insured-persons",
+          },
+        ],
+      },
+      {
         title: "Cartes d'Assurance",
         url: "/admin/insurance-cards",
         icon: Icons.Table,
@@ -22,70 +41,6 @@ export const NAV_DATA = [
           {
             title: "Liste des Cartes",
             url: "/admin/insurance-cards",
-          },
-          {
-            title: "Nouvelle Carte",
-            url: "/admin/insurance-cards/new",
-          },
-        ],
-      },
-      {
-        title: "Assurés",
-        url: "/admin/insured-persons",
-        icon: Icons.User,
-        items: [
-          {
-            title: "Liste des Personnes",
-            url: "/admin/insured-persons",
-          },
-          {
-            title: "Nouvelle Personne",
-            url: "/admin/insured-persons/new",
-          },
-        ],
-      },
-      {
-        title: "Dépendants",
-        url: "/admin/dependents",
-        icon: Icons.User,
-        items: [
-          {
-            title: "Liste des Dépendants",
-            url: "/admin/dependents",
-          },
-          {
-            title: "Nouveau Dépendant",
-            url: "/admin/dependents/new",
-          },
-        ],
-      },
-      {
-        title: "Compagnies",
-        url: "/admin/insurance-companies",
-        icon: Icons.FourCircle,
-        items: [
-          {
-            title: "Liste des Compagnies",
-            url: "/admin/insurance-companies",
-          },
-          {
-            title: "Nouvelle Compagnie",
-            url: "/admin/insurance-companies/new",
-          },
-        ],
-      },
-      {
-        title: "Polices",
-        url: "/admin/policies",
-        icon: Icons.Alphabet,
-        items: [
-          {
-            title: "Liste des Polices",
-            url: "/admin/policies",
-          },
-          {
-            title: "Nouvelle Police",
-            url: "/admin/policies/new",
           },
         ],
       },
@@ -97,25 +52,6 @@ export const NAV_DATA = [
           {
             title: "Liste des Réclamations",
             url: "/admin/claims",
-          },
-          {
-            title: "Nouvelle Réclamation",
-            url: "/admin/claims/new",
-          },
-        ],
-      },
-      {
-        title: "Institutions",
-        url: "/admin/medical-institutions",
-        icon: Icons.FourCircle,
-        items: [
-          {
-            title: "Liste des Institutions",
-            url: "/admin/medical-institutions",
-          },
-          {
-            title: "Nouvelle Institution",
-            url: "/admin/medical-institutions/new",
           },
         ],
       },
@@ -133,10 +69,6 @@ export const NAV_DATA = [
             title: "Liste des Références",
             url: "/admin/blockchain-references",
           },
-          {
-            title: "Nouvelle Référence",
-            url: "/admin/blockchain-references/new",
-          },
         ],
       },
     ],
@@ -145,14 +77,10 @@ export const NAV_DATA = [
     label: "SYSTÈME",
     items: [
       {
-        title: "Rapports",
-        icon: Icons.PieChart,
-        items: [
-          {
-            title: "Rapports",
-            url: "/admin/reports",
-          },
-        ],
+        title: "Profil",
+        url: "/admin/profile",
+        icon: Icons.User,
+        items: [],
       },
       {
         title: "Paramètres",
@@ -165,10 +93,14 @@ export const NAV_DATA = [
         ],
       },
       {
-        title: "Profil",
-        url: "/admin/profile",
-        icon: Icons.User,
-        items: [],
+        title: "Rapports",
+        icon: Icons.PieChart,
+        items: [
+          {
+            title: "Rapports",
+            url: "/admin/reports",
+          },
+        ],
       },
     ],
   },
