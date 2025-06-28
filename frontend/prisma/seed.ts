@@ -1,24 +1,29 @@
 /// <reference types="node" />
 
-import {
-  PrismaClient,
-  UserType,
-  InsuranceCardStatus,
-  PolicyType,
-} from "@prisma/client";
+import { PrismaClient, UserType, InsuranceCardStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
   // Nettoyer la base de données d'abord
-  await prisma.blockchainReference.deleteMany();
-  await prisma.insuranceCard.deleteMany();
-  await prisma.policy.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.insuredPerson.deleteMany();
-  await prisma.enterprise.deleteMany();
-  await prisma.insuranceCompany.deleteMany();
-  await prisma.role.deleteMany();
+  for (const model of [
+    "blockchainReference",
+    "insuranceCard",
+    "policy",
+    "user",
+    "insuredPerson",
+    "enterprise",
+    "insuranceCompany",
+    "role",
+  ]) {
+    try {
+      // @ts-ignore
+      await prisma[model].deleteMany();
+    } catch (e) {
+      const err = e as Error;
+      console.warn(`⚠️  Table manquante ou erreur sur ${model}:`, err.message);
+    }
+  }
 
   const adminRole = await prisma.role.create({
     data: {
@@ -91,8 +96,23 @@ async function main() {
     },
   });
 
-  // Recréer la police et la carte d'assurance pour la référence blockchain
+  // Créer une carte d'assurance d'abord
+  const insuranceCard = await prisma.insuranceCard.create({
+    data: {
+      insuredPersonName: "John Doe",
+      policyNumber: BigInt("123456789"),
+      cardNumber: "CARD001",
+      dateOfBirth: new Date("1990-01-01"),
+      policyEffectiveDate: new Date(),
+      hadDependent: true,
+      status: InsuranceCardStatus.ACTIVE,
+      validUntil: new Date("2025-12-31"),
+      insuranceCompanyId: insuranceCompany.id,
+      insuredPersonId: insuredPerson.id,
+    },
+  });
 
+  // Créer la référence blockchain
   await prisma.blockchainReference.create({
     data: {
       reference: BigInt("123456789"),
@@ -119,6 +139,8 @@ async function main() {
   console.log("Compagnie d'assurance créée:", insuranceCompany.name);
   console.log("Utilisateur créé:", user.username);
   console.log("Utilisateur lié à la compagnie:", insuranceCompany.name);
+  console.log("Assuré créé:", insuredPerson.firstName, insuredPerson.lastName);
+  console.log("Carte d'assurance créée:", insuranceCard.cardNumber);
 }
 
 main()

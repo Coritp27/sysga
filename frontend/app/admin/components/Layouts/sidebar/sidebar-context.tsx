@@ -12,6 +12,7 @@ type SidebarContextType = {
   setIsOpen: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  isMounted: boolean;
 };
 
 const SidebarContext = createContext<SidebarContextType | null>(null);
@@ -32,15 +33,22 @@ export function SidebarProvider({
   defaultOpen?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isMounted, setIsMounted] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     if (isMobile) {
       setIsOpen(false);
     } else {
       setIsOpen(true);
     }
-  }, [isMobile]);
+  }, [isMobile, isMounted]);
 
   function toggleSidebar() {
     setIsOpen((prev) => !prev);
@@ -54,6 +62,7 @@ export function SidebarProvider({
         setIsOpen,
         isMobile,
         toggleSidebar,
+        isMounted,
       }}
     >
       {children}
