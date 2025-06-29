@@ -26,7 +26,16 @@ export interface InsuredPerson {
   }[];
   dependents: {
     id: number;
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    gender: "MALE" | "FEMALE" | "OTHER";
     relation: string;
+    nationalId?: string;
+    isActive: boolean;
+    insuredPersonId: number;
+    createdAt?: string;
+    updatedAt?: string;
   }[];
 }
 

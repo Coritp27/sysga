@@ -14,8 +14,9 @@ import {
 } from "../../../hooks/useInsuredPersons";
 import { AuthenticationInfo } from "../components/ui/authentication-info";
 import { useEnterprises } from "../../../hooks/useEnterprises";
+import { Dependent } from "../../../hooks/useDependents";
 
-// Interface pour le formulaire (différente de celle du hook)
+// Interface pour le formulaire (doit correspondre à celle du composant InsuredPersonForm)
 interface FormInsuredPerson {
   id?: number;
   firstName: string;
@@ -38,6 +39,7 @@ interface FormInsuredPerson {
     relationship: string;
   };
   isActive: boolean;
+  dependents?: Dependent[];
 }
 
 const InsuredPersonsPage = () => {
@@ -63,6 +65,68 @@ const InsuredPersonsPage = () => {
   } = useInsuredPersons();
   const { enterprises } = useEnterprises(user?.insuranceCompany?.id);
 
+  // Fonction pour sauvegarder les dépendants
+  const saveDependents = async (
+    insuredPersonId: number,
+    dependents: Dependent[]
+  ) => {
+    try {
+      // Récupérer les dépendants existants
+      const existingDependentsResponse = await fetch(
+        `/api/dependents?insuredPersonId=${insuredPersonId}`
+      );
+      const existingDependents: Dependent[] = existingDependentsResponse.ok
+        ? await existingDependentsResponse.json()
+        : [];
+
+      // Créer des maps pour faciliter la comparaison
+      const newMap = new Map(
+        dependents.filter((dep) => dep.id).map((dep) => [dep.id, dep])
+      );
+
+      // Supprimer les dépendants qui ne sont plus dans la liste
+      for (const existing of existingDependents) {
+        if (!newMap.has(existing.id)) {
+          await fetch(`/api/dependents/${existing.id}`, {
+            method: "DELETE",
+          });
+        }
+      }
+
+      // Traiter chaque dépendant dans la nouvelle liste
+      for (const dependent of dependents) {
+        if (dependent.id) {
+          // Dépendant existant - mettre à jour
+          await fetch(`/api/dependents/${dependent.id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...dependent,
+              insuredPersonId: insuredPersonId,
+            }),
+          });
+        } else {
+          // Nouveau dépendant - créer
+          await fetch("/api/dependents", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...dependent,
+              insuredPersonId: insuredPersonId,
+            }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde des dépendants:", error);
+      throw error;
+    }
+  };
+
   // Fonction de transformation des données pour le formulaire
   const transformToFormData = (person: InsuredPerson): FormInsuredPerson => {
     return {
@@ -87,6 +151,20 @@ const InsuredPersonsPage = () => {
         relationship: "",
       },
       isActive: true,
+      dependents:
+        person.dependents?.map((dep) => ({
+          id: dep.id,
+          firstName: dep.firstName || "",
+          lastName: dep.lastName || "",
+          dateOfBirth: dep.dateOfBirth || "",
+          gender: (dep.gender as "MALE" | "FEMALE" | "OTHER") || "MALE",
+          relation: dep.relation || "",
+          nationalId: dep.nationalId || "",
+          isActive: dep.isActive ?? true,
+          insuredPersonId: dep.insuredPersonId,
+          createdAt: dep.createdAt,
+          updatedAt: dep.updatedAt,
+        })) || [],
     };
   };
 
@@ -110,8 +188,9 @@ const InsuredPersonsPage = () => {
       gender: formData.gender,
       cin: formData.nationalId, // Utiliser nationalId comme CIN
       nif: formData.nationalId, // Utiliser nationalId comme NIF temporairement
-      hasDependent: false, // À ajouter dans le formulaire si nécessaire
-      numberOfDependent: 0, // À ajouter dans le formulaire si nécessaire
+      hasDependent:
+        (formData.dependents && formData.dependents.length > 0) || false,
+      numberOfDependent: formData.dependents?.length || 0,
       policyEffectiveDate: formData.dateOfBirth, // Utiliser dateOfBirth comme approximation
       enterpriseId: enterpriseId,
     };
@@ -120,7 +199,17 @@ const InsuredPersonsPage = () => {
   const handleCreatePerson = async (formData: FormInsuredPerson) => {
     try {
       const apiData = transformFromFormData(formData);
-      await createInsuredPerson(apiData);
+      const newInsuredPerson = await createInsuredPerson(apiData);
+
+      // Sauvegarder les dépendants si l'assuré a été créé avec succès
+      if (
+        newInsuredPerson &&
+        formData.dependents &&
+        formData.dependents.length > 0
+      ) {
+        await saveDependents(newInsuredPerson.id, formData.dependents);
+      }
+
       closeForm();
       // Optionnel: Afficher un message de succès
     } catch (error) {
@@ -139,6 +228,12 @@ const InsuredPersonsPage = () => {
       } as UpdateInsuredPersonData;
 
       await updateInsuredPerson(apiData);
+
+      // Sauvegarder les dépendants
+      if (formData.dependents) {
+        await saveDependents(formData.id, formData.dependents);
+      }
+
       closeForm();
       // Optionnel: Afficher un message de succès
     } catch (error) {
@@ -212,6 +307,12 @@ const InsuredPersonsPage = () => {
       createdDate.getFullYear() === now.getFullYear()
     );
   }).length;
+
+  // Ajout du log de debug avant le rendu du formulaire
+  if (editingPerson) {
+    console.log("editingPerson", editingPerson);
+    console.log("dependents", editingPerson.dependents);
+  }
 
   if (loading) {
     return (

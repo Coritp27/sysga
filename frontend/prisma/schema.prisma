@@ -100,9 +100,24 @@ model InsuredPerson {
 
 model Dependent {
   id              Int     @id @default(autoincrement())
+  // Informations personnelles
+  firstName       String
+  lastName        String
+  dateOfBirth     DateTime
+  gender          String
   relation        String
+  nationalId      String? @unique
+  // Lien vers l'assuré
   insuredPersonId Int
   insuredPerson   InsuredPerson @relation(fields: [insuredPersonId], references: [id])
+  // Statut
+  isActive        Boolean @default(true)
+  // Audit fields
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String  @default("system")
+  lastModifiedBy  String  @default("system")
+  isDeleted       Boolean @default(false)
 }
 
 model Enterprise {
