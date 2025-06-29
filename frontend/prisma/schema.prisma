@@ -28,13 +28,15 @@ enum InsuranceCardStatus {
 enum PolicyType {
   INDIVIDUAL
   FAMILY
+  GROUP
+  ENTERPRISE
 }
 
 model User {
   id              Int      @id @default(autoincrement())
   username        String   @unique
   userType        UserType
-  idKeycloak      String
+  idClerk         String
   walletAddress   String?  @unique // Adresse du wallet blockchain
   institutionId   Int?
   insuranceCompanyId Int?  // Lien vers la compagnie d'assurance
@@ -149,7 +151,7 @@ model InsuranceCard {
 
 model Policy {
   id                  Int        @id @default(autoincrement())
-  policyNumber        BigInt     @unique
+  policyNumber        Int
   type                PolicyType
   coverage            String
   deductible          Decimal
@@ -158,6 +160,8 @@ model Policy {
   validUntil          DateTime
   insuranceCompanyId  Int
   insuranceCompany    InsuranceCompany @relation(fields: [insuranceCompanyId], references: [id])
+
+  @@unique([policyNumber, insuranceCompanyId])
 }
 
 model BlockchainReference {

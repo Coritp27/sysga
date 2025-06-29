@@ -1,151 +1,75 @@
 /// <reference types="node" />
 
-import { PrismaClient, UserType, InsuranceCardStatus } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Nettoyer la base de données d'abord
-  for (const model of [
-    "blockchainReference",
-    "insuranceCard",
-    "policy",
-    "user",
-    "insuredPerson",
-    "enterprise",
-    "insuranceCompany",
-    "role",
-  ]) {
-    try {
-      // @ts-ignore
-      await prisma[model].deleteMany();
-    } catch (e) {
-      const err = e as Error;
-      console.warn(`⚠️  Table manquante ou erreur sur ${model}:`, err.message);
-    }
-  }
+  console.log("🌱 Début du seeding...");
 
-  const adminRole = await prisma.role.create({
-    data: {
-      name: "Admin",
+  // Créer les rôles par défaut
+  const roles = [
+    {
+      id: 1,
+      name: "Administrateur",
       canRead: true,
       canWrite: true,
-      permission: "ALL",
+      permission: "FULL_ACCESS",
     },
-  });
-
-  const insuranceCompany = await prisma.insuranceCompany.create({
-    data: {
-      name: "Assureur A",
-      email: "contact@assureur-a.com",
-      phone1: "0123456789",
-      phone2: "0987654321",
-      address: "123 rue de l'assurance",
-      website: "www.assureur-a.com",
-      fiscalNumber: "FR123456789",
-      numberOfEmployees: 150,
+    {
+      id: 2,
+      name: "Utilisateur Standard",
+      canRead: true,
+      canWrite: true,
+      permission: "READ_WRITE",
     },
-  });
+    {
+      id: 3,
+      name: "Lecteur",
+      canRead: true,
+      canWrite: false,
+      permission: "READ_ONLY",
+    },
+  ];
 
-  const enterprise = await prisma.enterprise.create({
-    data: {
-      name: "Entreprise Test",
-      email: "contact@entreprise-test.com",
-      phone1: "0123456789",
-      phone2: "0987654321",
-      address: "456 rue de l'entreprise",
-      website: "www.entreprise-test.com",
-      fiscalNumber: "FR987654321",
-      numberOfEmployees: 50,
+  for (const role of roles) {
+    await prisma.role.upsert({
+      where: { id: role.id },
+      update: role,
+      create: role,
+    });
+    console.log(`✅ Rôle créé/mis à jour: ${role.name}`);
+  }
+
+  // Créer une compagnie d'assurance par défaut si elle n'existe pas
+  const defaultCompany = await prisma.insuranceCompany.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      name: "SYSGA Insurance",
+      email: "contact@sysga.com",
+      phone1: "+33 1 23 45 67 89",
+      phone2: "+33 1 23 45 67 90",
+      address: "123 Rue de la Paix, 75001 Paris, France",
+      website: "https://www.sysga.com",
+      fiscalNumber: "FR12345678901",
+      numberOfEmployees: 100,
+      blockchainAddress: "0x0000000000000000000000000000000000000000",
       createdBy: "system",
       lastModifiedBy: "system",
     },
   });
+  console.log(
+    `✅ Compagnie d'assurance créée/mise à jour: ${defaultCompany.name}`
+  );
 
-  const insuredPerson = await prisma.insuredPerson.create({
-    data: {
-      // Person fields
-      firstName: "John",
-      lastName: "Doe",
-      dateOfBirth: new Date("1990-01-01"),
-      email: "john.doe@email.com",
-      phone: "0123456789",
-      address: "789 rue de la personne",
-      gender: "M",
-      // InsuredPerson specific fields
-      cin: "CIN123456",
-      nif: "NIF654321",
-      hasDependent: true,
-      numberOfDependent: 2,
-      policyEffectiveDate: new Date(),
-      enterpriseId: enterprise.id,
-    },
-  });
-
-  // Créer un utilisateur avec une compagnie d'assurance
-  const user = await prisma.user.create({
-    data: {
-      username: "user_test",
-      userType: UserType.INSURER,
-      idKeycloak: "test_user_id",
-      walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
-      insuranceCompanyId: insuranceCompany.id,
-      roleId: adminRole.id,
-      createdBy: "system",
-      lastModifiedBy: "system",
-    },
-  });
-
-  // Créer une carte d'assurance d'abord
-  const insuranceCard = await prisma.insuranceCard.create({
-    data: {
-      insuredPersonName: "John Doe",
-      policyNumber: BigInt("123456789"),
-      cardNumber: "CARD001",
-      dateOfBirth: new Date("1990-01-01"),
-      policyEffectiveDate: new Date(),
-      hadDependent: true,
-      status: InsuranceCardStatus.ACTIVE,
-      validUntil: new Date("2025-12-31"),
-      insuranceCompanyId: insuranceCompany.id,
-      insuredPersonId: insuredPerson.id,
-    },
-  });
-
-  // Créer la référence blockchain
-  await prisma.blockchainReference.create({
-    data: {
-      reference: BigInt("123456789"),
-      cardNumber: "CARD001",
-      blockchainTxHash:
-        "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    },
-  });
-
-  await prisma.medicalInstitution.create({
-    data: {
-      name: "Clinique Y",
-      email: "contact@clinique-y.com",
-      phone1: "0123456789",
-      phone2: "0987654321",
-      address: "321 rue de la santé",
-      website: "www.clinique-y.com",
-      fiscalNumber: "FR111222333",
-      numberOfEmployees: 25,
-    },
-  });
-
-  console.log("Seed terminé avec succès!");
-  console.log("Compagnie d'assurance créée:", insuranceCompany.name);
-  console.log("Utilisateur créé:", user.username);
-  console.log("Utilisateur lié à la compagnie:", insuranceCompany.name);
-  console.log("Assuré créé:", insuredPerson.firstName, insuredPerson.lastName);
-  console.log("Carte d'assurance créée:", insuranceCard.cardNumber);
+  console.log("🎉 Seeding terminé avec succès!");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("❌ Erreur lors du seeding:", e);
     process.exit(1);
   })
   .finally(async () => {

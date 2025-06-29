@@ -30,7 +30,7 @@ export async function PUT(request: NextRequest) {
     // Récupérer l'utilisateur avec sa compagnie
     const user = await prisma.user.findFirst({
       where: {
-        idKeycloak: userId,
+        idClerk: userId,
         isDeleted: false,
       },
       include: {

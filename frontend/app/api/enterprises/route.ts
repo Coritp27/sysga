@@ -1,25 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
 
 const prisma = new PrismaClient();
 
-// GET - Récupérer toutes les entreprises filtrées par compagnie si précisé
-export async function GET(request: NextRequest) {
+// GET - Récupérer toutes les entreprises de la compagnie de l'utilisateur connecté
+export async function GET() {
   try {
-    console.log("🔍 API enterprises appelée");
-
-    const { searchParams } = new URL(request.url);
-    const insuranceCompanyId = searchParams.get("insuranceCompanyId");
-    console.log("📊 insuranceCompanyId:", insuranceCompanyId);
-
-    const where = insuranceCompanyId
-      ? { insuranceCompanyId: Number(insuranceCompanyId) }
-      : {};
-    console.log("🔍 where clause:", where);
-
-    console.log("📊 Exécution de la requête Prisma...");
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+    // Récupérer l'utilisateur et sa compagnie
+    const user = await prisma.user.findFirst({
+      where: { idClerk: userId, isDeleted: false },
+    });
+    if (!user?.insuranceCompanyId) {
+      return NextResponse.json(
+        { error: "Aucune compagnie associée" },
+        { status: 403 }
+      );
+    }
     const enterprises = await prisma.enterprise.findMany({
-      where,
+      where: { insuranceCompanyId: user.insuranceCompanyId, isDeleted: false },
       select: {
         id: true,
         name: true,
@@ -32,16 +38,11 @@ export async function GET(request: NextRequest) {
         numberOfEmployees: true,
         insuranceCompanyId: true,
       },
-      orderBy: {
-        name: "asc",
-      },
+      orderBy: { name: "asc" },
     });
-
-    console.log(`✅ ${enterprises.length} entreprise(s) trouvée(s)`);
     return NextResponse.json(enterprises);
   } catch (error) {
     console.error("❌ Erreur lors de la récupération des entreprises:", error);
-    console.error("Stack trace:", (error as Error).stack);
     return NextResponse.json(
       { error: "Erreur lors de la récupération des entreprises" },
       { status: 500 }
@@ -49,11 +50,27 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Créer une nouvelle entreprise liée à la compagnie d'assurance de l'utilisateur
+// POST - Créer une nouvelle entreprise liée à la compagnie de l'utilisateur connecté
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+    // Récupérer l'utilisateur et sa compagnie
+    const user = await prisma.user.findFirst({
+      where: { idClerk: userId, isDeleted: false },
+    });
+    if (!user?.insuranceCompanyId) {
+      return NextResponse.json(
+        { error: "Aucune compagnie associée" },
+        { status: 403 }
+      );
+    }
     const body = await request.json();
-    // Pour l'instant, on récupère l'ID de la compagnie depuis le body (à sécuriser avec l'auth plus tard)
     const {
       name,
       email,
@@ -63,16 +80,7 @@ export async function POST(request: NextRequest) {
       website,
       fiscalNumber,
       numberOfEmployees,
-      insuranceCompanyId,
     } = body;
-
-    if (!insuranceCompanyId) {
-      return NextResponse.json(
-        { error: "insuranceCompanyId requis" },
-        { status: 400 }
-      );
-    }
-
     const newEnterprise = await prisma.enterprise.create({
       data: {
         name,
@@ -83,12 +91,11 @@ export async function POST(request: NextRequest) {
         website,
         fiscalNumber,
         numberOfEmployees,
-        insuranceCompanyId,
-        createdBy: "system",
-        lastModifiedBy: "system",
+        insuranceCompanyId: user.insuranceCompanyId,
+        createdBy: user.username || "system",
+        lastModifiedBy: user.username || "system",
       },
     });
-
     return NextResponse.json(newEnterprise, { status: 201 });
   } catch (error) {
     console.error("Erreur lors de la création de l'entreprise:", error);
