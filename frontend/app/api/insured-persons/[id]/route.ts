@@ -120,9 +120,21 @@ export async function PUT(
           },
         },
         dependents: {
+          where: {
+            isActive: true,
+          },
           select: {
             id: true,
+            firstName: true,
+            lastName: true,
+            dateOfBirth: true,
+            gender: true,
             relation: true,
+            nationalId: true,
+            isActive: true,
+            insuredPersonId: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
       },
@@ -139,10 +151,7 @@ export async function PUT(
 }
 
 // DELETE - Supprimer un assuré
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE({ params }: { params: { id: string } }) {
   try {
     const id = parseInt(params.id);
 
