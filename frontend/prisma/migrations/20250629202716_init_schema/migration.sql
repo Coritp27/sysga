@@ -76,8 +76,19 @@ CREATE TABLE "InsuredPerson" (
 -- CreateTable
 CREATE TABLE "Dependent" (
     "id" SERIAL NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "lastName" TEXT NOT NULL,
+    "dateOfBirth" TIMESTAMP(3) NOT NULL,
+    "gender" TEXT NOT NULL,
     "relation" TEXT NOT NULL,
+    "nationalId" TEXT,
     "insuredPersonId" INTEGER NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" TEXT NOT NULL DEFAULT 'system',
+    "lastModifiedBy" TEXT NOT NULL DEFAULT 'system',
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Dependent_pkey" PRIMARY KEY ("id")
 );
@@ -201,10 +212,13 @@ CREATE UNIQUE INDEX "InsuredPerson_cin_key" ON "InsuredPerson"("cin");
 CREATE UNIQUE INDEX "InsuredPerson_nif_key" ON "InsuredPerson"("nif");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Dependent_nationalId_key" ON "Dependent"("nationalId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "InsuranceCard_cardNumber_key" ON "InsuranceCard"("cardNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Policy_policyNumber_key" ON "Policy"("policyNumber");
+CREATE UNIQUE INDEX "Policy_policyNumber_insuranceCompanyId_key" ON "Policy"("policyNumber", "insuranceCompanyId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BlockchainReference_cardNumber_key" ON "BlockchainReference"("cardNumber");
