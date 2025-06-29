@@ -57,9 +57,21 @@ export async function GET(request: NextRequest) {
           },
         },
         dependents: {
+          where: {
+            isActive: true,
+          },
           select: {
             id: true,
+            firstName: true,
+            lastName: true,
+            dateOfBirth: true,
+            gender: true,
             relation: true,
+            nationalId: true,
+            isActive: true,
+            insuredPersonId: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
       },
@@ -197,9 +209,21 @@ export async function POST(request: NextRequest) {
           },
         },
         dependents: {
+          where: {
+            isActive: true,
+          },
           select: {
             id: true,
+            firstName: true,
+            lastName: true,
+            dateOfBirth: true,
+            gender: true,
             relation: true,
+            nationalId: true,
+            isActive: true,
+            insuredPersonId: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
       },
