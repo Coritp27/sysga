@@ -1,47 +1,24 @@
 export interface Policy {
   id?: number;
-  policyNumber: string;
+  policyNumber: number;
   type: "INDIVIDUAL" | "FAMILY" | "GROUP" | "ENTERPRISE";
-  status: "ACTIVE" | "INACTIVE" | "EXPIRED" | "PENDING" | "CANCELLED";
-  startDate: string;
-  endDate: string;
-  premium: number;
-  coverage: number;
-  deductible?: number;
-  coPay?: number;
-  insuredPerson: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
-  insuranceCompany: {
-    id: number;
-    name: string;
-  };
-  enterprise?: {
-    id: number;
-    name: string;
-  };
-  coverageDetails: {
-    type: string;
-    description: string;
-    limits: string;
-    exclusions: string[];
-  };
-  paymentInfo: {
-    frequency: "MONTHLY" | "QUARTERLY" | "SEMI_ANNUAL" | "ANNUAL";
-    method: "BANK_TRANSFER" | "CREDIT_CARD" | "DEBIT_CARD" | "CHECK";
-    nextPaymentDate: string;
-    lastPaymentDate?: string;
-  };
-  documents: {
-    policyDocument?: string;
-    termsConditions?: string;
-    additionalDocuments?: string[];
-  };
-  notes?: string;
-  createdAt: string;
-  updatedAt?: string;
+  coverage: string;
+  deductible: number;
+  premiumAmount: number;
+  description: string;
+  validUntil: string;
+  insuranceCompanyId: number;
+  // Optionally keep frontend-only fields below, but mark as optional or comment out if not used by backend
+  // status?: string;
+  // startDate?: string;
+  // endDate?: string;
+  // insuredPerson?: any;
+  // insuranceCompany?: any;
+  // enterprise?: any;
+  // coverageDetails?: any;
+  // paymentInfo?: any;
+  // documents?: any;
+  // notes?: string;
+  // createdAt?: string;
+  // updatedAt?: string;
 }
