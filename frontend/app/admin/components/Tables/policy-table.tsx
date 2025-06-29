@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { PencilSquareIcon, TrashIcon } from "../../assets/icons";
 import { Policy } from "../../types/policy";
 
 interface PolicyTableProps {
@@ -23,16 +22,13 @@ export function PolicyTable({
   // Filtrer les polices
   const filteredPolicies = policies.filter((policy) => {
     return (
-      policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.insuredPerson.firstName
+      policy.policyNumber
+        .toString()
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      policy.insuredPerson.lastName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      policy.insuranceCompany.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      policy.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      policy.coverage.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      policy.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -41,47 +37,6 @@ export function PolicyTable({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentPolicies = filteredPolicies.slice(startIndex, endIndex);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return (
-          <span className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">
-            Actif
-          </span>
-        );
-      case "INACTIVE":
-        return (
-          <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">
-            Inactif
-          </span>
-        );
-      case "EXPIRED":
-        return (
-          <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
-            Expiré
-          </span>
-        );
-      case "PENDING":
-        return (
-          <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-600">
-            En attente
-          </span>
-        );
-      case "CANCELLED":
-        return (
-          <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
-            Annulée
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
-            {status}
-          </span>
-        );
-    }
-  };
 
   const getTypeBadge = (type: string) => {
     switch (type) {
@@ -118,6 +73,25 @@ export function PolicyTable({
     }
   };
 
+  const getStatusBadge = (validUntil: string) => {
+    const endDate = new Date(validUntil);
+    const now = new Date();
+
+    if (endDate > now) {
+      return (
+        <span className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">
+          Actif
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-3 py-1 text-sm font-medium text-warning">
+          Expiré
+        </span>
+      );
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, "0");
@@ -139,16 +113,13 @@ export function PolicyTable({
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800">
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-              Police
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-              Assuré
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-              Compagnie
+              Numéro
             </th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
               Type
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
+              Couverture
             </th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
               Statut
@@ -157,10 +128,10 @@ export function PolicyTable({
               Prime
             </th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-              Couverture
+              Franchise
             </th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-              Période
+              Validité
             </th>
             <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
               Actions
@@ -174,66 +145,72 @@ export function PolicyTable({
               className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <td className="px-4 py-4">
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {policy.policyNumber}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Créée le {formatDate(policy.createdAt)}
-                  </div>
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {policy.policyNumber}
                 </div>
               </td>
+              <td className="px-4 py-4">{getTypeBadge(policy.type)}</td>
               <td className="px-4 py-4">
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {policy.insuredPerson.firstName}{" "}
-                    {policy.insuredPerson.lastName}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {policy.insuredPerson.email}
-                  </div>
+                <div className="text-gray-900 dark:text-white">
+                  {policy.coverage}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {policy.description}
+                </div>
+              </td>
+              <td className="px-4 py-4">{getStatusBadge(policy.validUntil)}</td>
+              <td className="px-4 py-4">
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {formatCurrency(policy.premiumAmount)}
                 </div>
               </td>
               <td className="px-4 py-4">
                 <div className="text-gray-900 dark:text-white">
-                  {policy.insuranceCompany.name}
-                </div>
-              </td>
-              <td className="px-4 py-4">{getTypeBadge(policy.type)}</td>
-              <td className="px-4 py-4">{getStatusBadge(policy.status)}</td>
-              <td className="px-4 py-4">
-                <div className="font-medium text-gray-900 dark:text-white">
-                  {formatCurrency(policy.premium)}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  par an
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div className="font-medium text-gray-900 dark:text-white">
-                  {formatCurrency(policy.coverage)}
+                  {formatCurrency(policy.deductible)}
                 </div>
               </td>
               <td className="px-4 py-4">
                 <div className="text-sm text-gray-900 dark:text-white">
-                  {formatDate(policy.startDate)} - {formatDate(policy.endDate)}
+                  Jusqu'au {formatDate(policy.validUntil)}
                 </div>
               </td>
               <td className="px-4 py-4">
-                <div className="flex items-center justify-center space-x-2">
+                <div className="flex justify-center space-x-2">
                   <button
                     onClick={() => onEdit(policy)}
-                    className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
-                    title="Modifier"
+                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
-                    <PencilSquareIcon className="h-4 w-4" />
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
                   </button>
                   <button
-                    onClick={() => policy.id && onDelete(policy.id)}
-                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
-                    title="Supprimer"
+                    onClick={() => onDelete(policy.id!)}
+                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
                   </button>
                 </div>
               </td>
@@ -244,31 +221,28 @@ export function PolicyTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            Affichage de {startIndex + 1} à{" "}
-            {Math.min(endIndex, filteredPolicies.length)} sur{" "}
-            {filteredPolicies.length} résultats
-          </div>
-          <div className="flex space-x-2">
+        <div className="mt-4 flex justify-center">
+          <nav className="flex space-x-2">
             <button
-              onClick={() => setCurrentPage(currentPage - 1)}
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Précédent
             </button>
-            <span className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
-              Page {currentPage} sur {totalPages}
+            <span className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
+              {currentPage} sur {totalPages}
             </span>
             <button
-              onClick={() => setCurrentPage(currentPage + 1)}
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
               disabled={currentPage === totalPages}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Suivant
             </button>
-          </div>
+          </nav>
         </div>
       )}
     </div>

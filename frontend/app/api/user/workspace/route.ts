@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -7,21 +8,50 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
+    console.log("[API workspace] userId Clerk:", userId);
 
     if (!userId) {
+      console.log("[API workspace] Utilisateur non authentifié");
       return NextResponse.json(
         { error: "Utilisateur non authentifié" },
         { status: 401 }
       );
     }
 
+    // Récupérer l'email Clerk
+    let email = "";
+    try {
+      const clerkUser = await clerkClient.users.getUser(userId);
+      email = clerkUser?.emailAddresses?.[0]?.emailAddress || "";
+    } catch (e) {
+      console.warn("[API workspace] Impossible de récupérer l'email Clerk", e);
+    }
+
     const { searchParams } = new URL(request.url);
     const walletAddress = searchParams.get("walletAddress");
 
+    // S'assurer que le rôle Administrateur existe
+    let adminRole = await prisma.role.findFirst({
+      where: { name: "Administrateur" },
+    });
+    if (!adminRole) {
+      adminRole = await prisma.role.create({
+        data: {
+          name: "Administrateur",
+          canRead: true,
+          canWrite: true,
+          permission: "FULL_ACCESS",
+        },
+      });
+      console.log("[API workspace] Rôle Administrateur créé");
+    } else {
+      console.log("[API workspace] Rôle Administrateur déjà existant");
+    }
+
     // Récupérer l'utilisateur avec sa compagnie d'assurance
-    const user = await prisma.user.findFirst({
+    let user = await prisma.user.findFirst({
       where: {
-        idKeycloak: userId,
+        idClerk: userId,
         isDeleted: false,
       },
       include: {
@@ -29,16 +59,35 @@ export async function GET(request: NextRequest) {
         role: true,
       },
     });
+    console.log("[API workspace] Utilisateur trouvé:", user);
 
     if (!user) {
-      // Si l'utilisateur n'existe pas encore, le créer
-      const newUser = await prisma.user.create({
+      // Créer une nouvelle compagnie pour chaque nouvel utilisateur
+      const insuranceCompany = await prisma.insuranceCompany.create({
         data: {
-          username: `user_${userId}`,
+          name: `Compagnie de ${userId}`,
+          email: `contact+${userId}@assurance.com`,
+          phone1: "+33 1 23 45 67 89",
+          phone2: "",
+          address: "1 rue du nouvel utilisateur, 75000 Paris, France",
+          website: "",
+          fiscalNumber: `FR${Math.floor(Math.random() * 1e10)}`,
+          numberOfEmployees: 1,
+          blockchainAddress: null,
+          createdBy: "system",
+          lastModifiedBy: "system",
+        },
+      });
+      console.log("[API workspace] Compagnie créée:", insuranceCompany);
+
+      user = await prisma.user.create({
+        data: {
+          username: email || `user_${userId}`,
           userType: "INSURER",
-          idKeycloak: userId,
+          idClerk: userId,
           walletAddress: walletAddress || null,
-          roleId: 1, // Rôle par défaut
+          insuranceCompanyId: insuranceCompany.id,
+          roleId: adminRole.id, // Toujours administrateur à la création
           createdBy: "system",
           lastModifiedBy: "system",
         },
@@ -47,13 +96,7 @@ export async function GET(request: NextRequest) {
           role: true,
         },
       });
-
-      return NextResponse.json({
-        id: newUser.idKeycloak,
-        walletAddress: newUser.walletAddress,
-        insuranceCompany: newUser.insuranceCompany,
-        role: newUser.role,
-      });
+      console.log("[API workspace] Utilisateur créé:", user);
     }
 
     // Mettre à jour l'adresse du wallet si elle a changé
@@ -66,13 +109,23 @@ export async function GET(request: NextRequest) {
         },
       });
       user.walletAddress = walletAddress;
+      console.log("[API workspace] Wallet mis à jour:", walletAddress);
     }
 
-    return NextResponse.json({
-      id: user.idKeycloak,
+    console.log("[API workspace] Retour API:", {
+      id: user.idClerk,
       walletAddress: user.walletAddress,
       insuranceCompany: user.insuranceCompany,
       role: user.role,
+      isFirstUser: true,
+    });
+
+    return NextResponse.json({
+      id: user.idClerk,
+      walletAddress: user.walletAddress,
+      insuranceCompany: user.insuranceCompany,
+      role: user.role,
+      isFirstUser: true,
     });
   } catch (error) {
     console.error("Erreur API workspace:", error);

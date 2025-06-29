@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
 import { PolicyTable } from "../components/Tables/policy-table";
 import { PolicyForm } from "../components/Forms/policy-form";
@@ -8,146 +8,34 @@ import { ConfirmationModal } from "../components/ui/confirmation-modal";
 import { Policy } from "../types/policy";
 
 export default function PoliciesPage() {
-  const [policies, setPolicies] = useState<Policy[]>([
-    {
-      id: 1,
-      policyNumber: "POL-2024-001",
-      type: "INDIVIDUAL",
-      status: "ACTIVE",
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-      premium: 1200,
-      coverage: 50000,
-      deductible: 500,
-      coPay: 20,
-      insuredPerson: {
-        id: 1,
-        firstName: "Jean",
-        lastName: "Dupont",
-        email: "jean.dupont@email.com",
-        phone: "01 23 45 67 89",
-      },
-      insuranceCompany: {
-        id: 1,
-        name: "AXA Assurance",
-      },
-      coverageDetails: {
-        type: "Couverture complète santé",
-        description:
-          "Couverture médicale complète incluant consultations, hospitalisation et médicaments",
-        limits: "50,000 € par an",
-        exclusions: ["Maladies préexistantes", "Traitements cosmétiques"],
-      },
-      paymentInfo: {
-        frequency: "MONTHLY",
-        method: "BANK_TRANSFER",
-        nextPaymentDate: "2024-02-01",
-        lastPaymentDate: "2024-01-01",
-      },
-      documents: {
-        policyDocument: "POL-2024-001.pdf",
-        termsConditions: "terms-2024.pdf",
-        additionalDocuments: [],
-      },
-      notes: "Police standard pour un employé",
-      createdAt: "2023-12-15",
-    },
-    {
-      id: 2,
-      policyNumber: "POL-2024-002",
-      type: "FAMILY",
-      status: "ACTIVE",
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-      premium: 2400,
-      coverage: 100000,
-      deductible: 1000,
-      coPay: 15,
-      insuredPerson: {
-        id: 2,
-        firstName: "Marie",
-        lastName: "Martin",
-        email: "marie.martin@email.com",
-        phone: "01 98 76 54 32",
-      },
-      insuranceCompany: {
-        id: 2,
-        name: "Allianz France",
-      },
-      coverageDetails: {
-        type: "Couverture familiale santé",
-        description:
-          "Couverture pour toute la famille avec soins dentaires et optiques",
-        limits: "100,000 € par an",
-        exclusions: ["Médecine alternative", "Soins dentaires"],
-      },
-      paymentInfo: {
-        frequency: "QUARTERLY",
-        method: "CREDIT_CARD",
-        nextPaymentDate: "2024-04-01",
-        lastPaymentDate: "2024-01-01",
-      },
-      documents: {
-        policyDocument: "POL-2024-002.pdf",
-        termsConditions: "terms-family-2024.pdf",
-        additionalDocuments: [],
-      },
-      notes: "Police familiale premium",
-      createdAt: "2023-12-20",
-    },
-    {
-      id: 3,
-      policyNumber: "POL-2024-003",
-      type: "ENTERPRISE",
-      status: "ACTIVE",
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-      premium: 15000,
-      coverage: 500000,
-      deductible: 5000,
-      coPay: 10,
-      insuredPerson: {
-        id: 3,
-        firstName: "Pierre",
-        lastName: "Durand",
-        email: "pierre.durand@entreprise.com",
-        phone: "01 45 67 89 12",
-      },
-      insuranceCompany: {
-        id: 3,
-        name: "Groupama",
-      },
-      enterprise: {
-        id: 1,
-        name: "TechCorp Solutions",
-      },
-      coverageDetails: {
-        type: "Couverture entreprise complète",
-        description: "Couverture pour tous les employés de l'entreprise",
-        limits: "500,000 € par an",
-        exclusions: ["Accidents de travail", "Maladies professionnelles"],
-      },
-      paymentInfo: {
-        frequency: "ANNUAL",
-        method: "BANK_TRANSFER",
-        nextPaymentDate: "2025-01-01",
-        lastPaymentDate: "2024-01-01",
-      },
-      documents: {
-        policyDocument: "POL-2024-003.pdf",
-        termsConditions: "terms-enterprise-2024.pdf",
-        additionalDocuments: [],
-      },
-      notes: "Police d'entreprise pour TechCorp",
-      createdAt: "2023-11-30",
-    },
-  ]);
-
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+
+  // Fetch policies from API
+  const fetchPolicies = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/policies");
+      if (!res.ok) throw new Error("Erreur lors du chargement des policies");
+      const data = await res.json();
+      setPolicies(data);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPolicies();
+  }, []);
 
   const handleCreate = () => {
     setFormMode("create");
@@ -169,36 +57,57 @@ export default function PoliciesPage() {
     }
   };
 
-  const handleSubmit = (data: Policy) => {
-    if (formMode === "create") {
-      const newPolicy = {
-        ...data,
-        id: Math.max(...policies.map((p) => p.id || 0)) + 1,
-      };
-      setPolicies([...policies, newPolicy]);
-    } else {
-      setPolicies(
-        policies.map((policy) =>
-          policy.id === selectedPolicy?.id ? { ...data, id: policy.id } : policy
-        )
-      );
+  const handleSubmit = async (data: Policy) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const method = formMode === "create" ? "POST" : "PUT";
+      const url = formMode === "create" ? "/api/policies" : `/api/policies`;
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Erreur lors de l'enregistrement");
+      await fetchPolicies();
+      setIsFormOpen(false);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const confirmDelete = () => {
-    if (selectedPolicy?.id) {
-      setPolicies(policies.filter((policy) => policy.id !== selectedPolicy.id));
+  const confirmDelete = async () => {
+    if (!selectedPolicy) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/policies?id=${selectedPolicy.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Erreur lors de la suppression");
+      await fetchPolicies();
       setIsDeleteModalOpen(false);
       setSelectedPolicy(null);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   // Calculs pour les statistiques
   const totalPolicies = policies.length;
-  const activePolicies = policies.filter((p) => p.status === "ACTIVE").length;
-  const totalPremium = policies.reduce((sum, p) => sum + p.premium, 0);
+  const activePolicies = policies.filter(
+    (p) => new Date(p.validUntil) > new Date()
+  ).length;
+  const totalPremium = policies.reduce(
+    (sum, p) => sum + (p.premiumAmount || 0),
+    0
+  );
   const expiringThisMonth = policies.filter((p) => {
-    const endDate = new Date(p.endDate);
+    const endDate = new Date(p.validUntil);
     const now = new Date();
     return (
       endDate.getMonth() === now.getMonth() &&
