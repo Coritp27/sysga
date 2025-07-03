@@ -101,6 +101,19 @@ export async function GET(request: NextRequest) {
 
     // Mettre à jour l'adresse du wallet si elle a changé
     if (walletAddress && user.walletAddress !== walletAddress) {
+      // Vérifier unicité
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          walletAddress: walletAddress,
+          id: { not: user.id },
+        },
+      });
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "Ce wallet est déjà associé à un autre utilisateur." },
+          { status: 400 }
+        );
+      }
       await prisma.user.update({
         where: { id: user.id },
         data: {

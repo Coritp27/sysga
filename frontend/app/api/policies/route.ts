@@ -4,116 +4,153 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// GET - List all policies for the user's company
-export async function GET() {
+// GET - Récupérer toutes les polices
+export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
-    if (!userId)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
 
+    // Récupérer l'utilisateur et sa compagnie d'assurance
     const user = await prisma.user.findFirst({
       where: { idClerk: userId, isDeleted: false },
     });
 
-    if (!user?.insuranceCompanyId)
-      return NextResponse.json({ error: "No company" }, { status: 403 });
+    if (!user?.insuranceCompanyId) {
+      return NextResponse.json(
+        { error: "Aucune compagnie d'assurance associée" },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search");
+
+    let whereClause: any = {
+      insuranceCompanyId: user.insuranceCompanyId,
+    };
+
+    // Recherche par numéro de police ou description
+    if (search) {
+      whereClause.OR = [
+        { policyNumber: { equals: parseInt(search) || 0 } },
+        { description: { contains: search, mode: "insensitive" } },
+        { type: { contains: search, mode: "insensitive" } },
+      ];
+    }
 
     const policies = await prisma.policy.findMany({
-      where: { insuranceCompanyId: user.insuranceCompanyId },
-      orderBy: { id: "desc" },
+      where: whereClause,
+      include: {
+        insuranceCompany: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        policyNumber: "desc",
+      },
     });
 
-    // Convert BigInt to Number for JSON serialization
-    const serializedPolicies = policies.map((policy) => ({
-      ...policy,
-      policyNumber: Number(policy.policyNumber),
-    }));
-
-    return NextResponse.json(serializedPolicies);
-  } catch (error: any) {
-    console.error("GET /api/policies error:", error);
+    return NextResponse.json(policies);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des polices:", error);
     return NextResponse.json(
-      { error: "Internal server error", details: error.message },
+      { error: "Erreur lors de la récupération des polices" },
       { status: 500 }
     );
   }
 }
 
-// POST - Create a new policy for the user's company
+// POST - Créer une nouvelle police
 export async function POST(request: NextRequest) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  console.log("Creating policy for user:", userId);
-
-  const user = await prisma.user.findFirst({
-    where: { idClerk: userId, isDeleted: false },
-  });
-
-  console.log("Found user:", user);
-
-  if (!user?.insuranceCompanyId)
-    return NextResponse.json({ error: "No company" }, { status: 403 });
-
-  const body = await request.json();
-  console.log("Request body:", body);
-
-  // Correction: ensure validUntil is a Date object
-  if (body.validUntil) {
-    body.validUntil = new Date(body.validUntil);
-  }
-
   try {
-    // Generate next available policy number if not provided or if it already exists
-    let policyNumber = body.policyNumber;
-    if (!policyNumber || policyNumber <= 0) {
-      const lastPolicy = await prisma.policy.findFirst({
-        where: { insuranceCompanyId: user.insuranceCompanyId },
-        orderBy: { policyNumber: "desc" },
-      });
-      policyNumber = lastPolicy ? Number(lastPolicy.policyNumber) + 1 : 1;
-    } else {
-      // Check if policy number already exists
-      const existingPolicy = await prisma.policy.findFirst({
-        where: {
-          policyNumber: policyNumber,
-          insuranceCompanyId: user.insuranceCompanyId,
-        },
-      });
-      if (existingPolicy) {
-        // Find next available number
-        const lastPolicy = await prisma.policy.findFirst({
-          where: { insuranceCompanyId: user.insuranceCompanyId },
-          orderBy: { policyNumber: "desc" },
-        });
-        policyNumber = lastPolicy ? Number(lastPolicy.policyNumber) + 1 : 1;
-      }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
     }
 
-    const newPolicy = await prisma.policy.create({
-      data: {
-        ...body,
-        policyNumber: policyNumber,
+    // Récupérer l'utilisateur et sa compagnie d'assurance
+    const user = await prisma.user.findFirst({
+      where: { idClerk: userId, isDeleted: false },
+    });
+
+    if (!user?.insuranceCompanyId) {
+      return NextResponse.json(
+        { error: "Aucune compagnie d'assurance associée" },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const {
+      policyNumber,
+      type,
+      coverage,
+      deductible,
+      premiumAmount,
+      description,
+      validUntil,
+    } = body;
+
+    // Validation des champs requis
+    if (!policyNumber || !type || !coverage || !description || !validUntil) {
+      return NextResponse.json(
+        { error: "Tous les champs sont requis" },
+        { status: 400 }
+      );
+    }
+
+    // Vérifier si le numéro de police existe déjà pour cette compagnie
+    const existingPolicy = await prisma.policy.findFirst({
+      where: {
+        policyNumber: parseInt(policyNumber),
         insuranceCompanyId: user.insuranceCompanyId,
       },
     });
-    console.log("Created policy:", newPolicy);
 
-    // Convert BigInt to Number for JSON serialization
-    const serializedPolicy = {
-      ...newPolicy,
-      policyNumber: Number(newPolicy.policyNumber),
-    };
-
-    return NextResponse.json(serializedPolicy, { status: 201 });
-  } catch (e: any) {
-    console.error("Error creating policy:", e);
-    if (e instanceof Error && e.stack) {
-      console.error(e.stack);
+    if (existingPolicy) {
+      return NextResponse.json(
+        { error: "Un numéro de police existe déjà pour cette compagnie" },
+        { status: 400 }
+      );
     }
+
+    const policy = await prisma.policy.create({
+      data: {
+        policyNumber: parseInt(policyNumber),
+        type,
+        coverage,
+        deductible: parseFloat(deductible),
+        premiumAmount: parseFloat(premiumAmount),
+        description,
+        validUntil: new Date(validUntil),
+        insuranceCompanyId: user.insuranceCompanyId,
+      },
+      include: {
+        insuranceCompany: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(policy, { status: 201 });
+  } catch (error) {
+    console.error("Erreur lors de la création de la police:", error);
     return NextResponse.json(
-      { error: "Error creating policy", details: e?.message || e },
+      { error: "Erreur lors de la création de la police" },
       { status: 500 }
     );
   }

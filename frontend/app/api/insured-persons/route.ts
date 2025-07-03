@@ -1,38 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
 
 const prisma = new PrismaClient();
 
 // GET - Récupérer tous les assurés
 export async function GET(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+
+    // Récupérer l'utilisateur et sa compagnie d'assurance
+    const user = await prisma.user.findFirst({
+      where: { idClerk: userId, isDeleted: false },
+    });
+
+    if (!user?.insuranceCompanyId) {
+      return NextResponse.json(
+        { error: "Aucune compagnie d'assurance associée" },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const insuranceCompanyId = searchParams.get("insuranceCompanyId");
     const search = searchParams.get("search");
 
     let whereClause: any = {};
 
+    // Logique corrigée : récupérer uniquement les assurés de la compagnie d'assurance
+    // Chaque compagnie ne doit voir que ses propres assurés
+
     // Filtrer par compagnie d'assurance via les entreprises
-    if (
-      insuranceCompanyId &&
-      insuranceCompanyId !== "null" &&
-      insuranceCompanyId !== "undefined"
-    ) {
-      whereClause.enterprise = {
-        insuranceCompanyId: Number(insuranceCompanyId),
-      };
-    }
+    whereClause.OR = [
+      {
+        enterprise: {
+          insuranceCompanyId: user.insuranceCompanyId,
+        },
+      },
+      // Inclure aussi les assurés sans entreprise (si nécessaire)
+      // {
+      //   enterpriseId: null,
+      // },
+    ];
 
     // Recherche par nom, email, CIN, NIF
     if (search) {
-      whereClause.OR = [
+      const searchConditions = [
         { firstName: { contains: search, mode: "insensitive" } },
         { lastName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
         { cin: { contains: search, mode: "insensitive" } },
         { nif: { contains: search, mode: "insensitive" } },
       ];
+
+      // Combiner avec les conditions existantes
+      whereClause.AND = [{ OR: whereClause.OR }, { OR: searchConditions }];
+      delete whereClause.OR;
     }
+
+    // Debug: afficher les conditions de recherche
+    console.log(
+      "🔍 Conditions de recherche:",
+      JSON.stringify(whereClause, null, 2)
+    );
+    console.log("🏢 Compagnie d'assurance ID:", user.insuranceCompanyId);
 
     const insuredPersons = await prisma.insuredPerson.findMany({
       where: whereClause,
@@ -80,6 +116,16 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    console.log("📊 Nombre d'assurés trouvés:", insuredPersons.length);
+    console.log(
+      "👥 Assurés:",
+      insuredPersons.map((p) => ({
+        id: p.id,
+        name: `${p.firstName} ${p.lastName}`,
+        enterpriseId: p.enterpriseId,
+      }))
+    );
+
     return NextResponse.json(insuredPersons);
   } catch (error) {
     console.error("Erreur lors de la récupération des assurés:", error);
@@ -93,6 +139,26 @@ export async function GET(request: NextRequest) {
 // POST - Créer un nouvel assuré
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
+    }
+
+    // Récupérer l'utilisateur et sa compagnie d'assurance
+    const user = await prisma.user.findFirst({
+      where: { idClerk: userId, isDeleted: false },
+    });
+
+    if (!user?.insuranceCompanyId) {
+      return NextResponse.json(
+        { error: "Aucune compagnie d'assurance associée" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const {
       firstName,
@@ -108,7 +174,6 @@ export async function POST(request: NextRequest) {
       numberOfDependent,
       policyEffectiveDate,
       enterpriseId,
-      insuranceCompanyId,
     } = body;
 
     // Validation des champs requis
@@ -120,13 +185,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier que l'entreprise appartient bien à la compagnie
-    if (insuranceCompanyId) {
+    if (enterpriseId) {
       const enterprise = await prisma.enterprise.findUnique({
         where: { id: Number(enterpriseId) },
       });
       if (
         !enterprise ||
-        enterprise.insuranceCompanyId !== Number(insuranceCompanyId)
+        enterprise.insuranceCompanyId !== user.insuranceCompanyId
       ) {
         return NextResponse.json(
           {

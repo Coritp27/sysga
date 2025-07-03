@@ -19,7 +19,7 @@ export function Header() {
       <div className="flex items-center gap-3">
         <button
           onClick={toggleSidebar}
-          className="rounded-lg border p-2 transition-colors hover:bg-gray-50 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A] lg:hidden"
+          className="rounded-lg border p-2 transition-colors hover:bg-gray-50 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A]"
           aria-label="Toggle Sidebar"
         >
           <MenuIcon />
