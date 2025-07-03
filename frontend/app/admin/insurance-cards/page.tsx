@@ -4,11 +4,10 @@ import InsuranceCardTable from "../components/Tables/insurance-card-table";
 import { AddIcon, SearchIcon, RefreshCwIcon } from "../assets/icons";
 import { InsuranceCardForm } from "../components/Forms/insurance-card-form";
 import { ConfirmationModal } from "../components/ui/confirmation-modal";
-import { useBlockchainCards } from "@/hooks/useBlockchainCards";
-import { transformBlockchainCards } from "@/services/blockchain-card.service";
-import { useWorkspace } from "@/hooks/useWorkspace";
 import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
 import { AuthenticationInfo } from "../components/ui/authentication-info";
+import { useWorkspace } from "@/hooks/useWorkspace";
+import { useInsuranceCards } from "@/hooks/useInsuranceCards";
 
 export default function InsuranceCardsPage() {
   const { user, isLoading: workspaceLoading } = useWorkspace();
@@ -19,36 +18,34 @@ export default function InsuranceCardsPage() {
   const [editingCard, setEditingCard] = useState<any>(null);
   const [deletingCard, setDeletingCard] = useState<any>(null);
 
-  // Hook pour récupérer les cartes blockchain
+  // Hook pour récupérer les cartes d'assurance depuis l'API
   const {
-    cards: blockchainCards,
+    cards: insuranceCards,
     isLoading,
     error,
     refetch,
-    isConnected,
-  } = useBlockchainCards();
-
-  // Transformer les données blockchain pour l'interface
-  const formattedCards = transformBlockchainCards(blockchainCards);
+  } = useInsuranceCards();
 
   // Filtrer les cartes selon le terme de recherche
-  const filteredCards = formattedCards.filter(
+  const filteredCards = insuranceCards.filter(
     (card) =>
       card.cardNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.insuredPersonName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.insuranceCompany.toLowerCase().includes(searchTerm.toLowerCase())
+      card.policyNumber.toString().includes(searchTerm.toLowerCase()) ||
+      card.insuranceCompany.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   // Calculer les statistiques
-  const totalCards = formattedCards.length;
-  const activeCards = formattedCards.filter(
-    (card) => card.status === "ACTIVE"
+  const totalCards = insuranceCards.length;
+  const activeCards = insuranceCards.filter(
+    (card: any) => card.status === "ACTIVE"
   ).length;
-  const expiredCards = formattedCards.filter(
-    (card) => card.status === "EXPIRED"
+  const expiredCards = insuranceCards.filter(
+    (card: any) => card.status === "REVOKED"
   ).length;
-  const newThisMonth = formattedCards.filter((card) => {
+  const newThisMonth = insuranceCards.filter((card: any) => {
     const cardDate = new Date(card.policyEffectiveDate);
     const now = new Date();
     return (
@@ -62,7 +59,7 @@ export default function InsuranceCardsPage() {
     // La création se fait maintenant via le formulaire blockchain
     setIsFormOpen(false);
     // Rafraîchir les données après création
-    setTimeout(() => refetch(), 2000);
+    setTimeout(() => refetch(), 1000);
   };
 
   const handleEditCard = (data: any) => {
@@ -187,82 +184,13 @@ export default function InsuranceCardsPage() {
           </button>
           <button
             onClick={openCreateForm}
-            disabled={!isConnected}
-            className={`inline-flex items-center justify-center rounded-md px-10 py-2 text-center font-medium lg:px-8 xl:px-10 ${
-              isConnected
-                ? "bg-primary text-white hover:bg-opacity-90"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+            className="inline-flex items-center justify-center rounded-md px-10 py-2 text-center font-medium lg:px-8 xl:px-10 bg-primary text-white hover:bg-opacity-90"
           >
             <AddIcon className="mr-2 h-4 w-4" />
-            {isConnected ? "Nouvelle Carte" : "Connectez votre wallet"}
+            Nouvelle Carte
           </button>
         </div>
       </div>
-
-      {/* Statut de connexion blockchain */}
-      {!isConnected && (
-        <div className="mb-6 rounded-sm border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-              <svg
-                className="h-4 w-4 text-yellow-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                Wallet non connecté
-              </p>
-              <p className="text-xs text-yellow-600 dark:text-yellow-300">
-                Connectez votre wallet via le bouton en haut à droite pour créer
-                ou modifier des cartes d'assurance sur la blockchain
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Statut de connexion blockchain - Connecté */}
-      {isConnected && (
-        <div className="mb-6 rounded-sm border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-              <svg
-                className="h-4 w-4 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                Wallet connecté
-              </p>
-              <p className="text-xs text-green-600 dark:text-green-300">
-                Vous pouvez maintenant créer et modifier des cartes d'assurance
-                sur la blockchain
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Erreur blockchain */}
       {error && (
@@ -431,10 +359,9 @@ export default function InsuranceCardsPage() {
 
       {/* Table des cartes */}
       <InsuranceCardTable
-        insuranceCards={filteredCards}
+        cards={filteredCards}
         onEdit={openEditForm}
         onDelete={openDeleteModal}
-        isLoading={isLoading}
       />
 
       {/* Formulaire modal */}
