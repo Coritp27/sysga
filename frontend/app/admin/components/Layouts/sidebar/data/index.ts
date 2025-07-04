@@ -44,17 +44,17 @@ export const NAV_DATA = [
           },
         ],
       },
-      {
-        title: "Réclamations",
-        url: "/admin/claims",
-        icon: Icons.Alphabet,
-        items: [
-          {
-            title: "Liste des Réclamations",
-            url: "/admin/claims",
-          },
-        ],
-      },
+      // {
+      //   title: "Réclamations",
+      //   url: "/admin/claims",
+      //   icon: Icons.Alphabet,
+      //   items: [
+      //     {
+      //       title: "Liste des Réclamations",
+      //       url: "/admin/claims",
+      //     },
+      //   ],
+      // },
     ],
   },
   {

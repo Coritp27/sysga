@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   useAccount,
@@ -10,91 +10,202 @@ import {
 import { contractAddress, contractAbi } from "@/constants";
 import Breadcrumb from "../../components/Breadcrumbs/Breadcrumb";
 
+interface InsuredPerson {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  cin: string;
+  nif: string;
+  dateOfBirth: string;
+  policyEffectiveDate: string;
+  hasDependent: boolean;
+  numberOfDependent: number;
+}
+
 interface InsuranceCardFormData {
+  insuredPersonId: number | null;
+  insuredPersonName: string;
   cardNumber: string;
-  issuedOn: string; // Date d'émission (sera convertie en timestamp)
-  status: string;
-  insuranceCompany: string; // Adresse de la compagnie d'assurance
+  policyNumber: string;
+  dateOfBirth: string;
+  policyEffectiveDate: string;
+  hadDependent: boolean;
+  numberOfDependent: number;
+  status: "ACTIVE" | "INACTIVE" | "REVOKED";
+  validUntil: string;
 }
 
 const statusOptions = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "expired", label: "Expirée" },
-  { value: "suspended", label: "Suspendue" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "INACTIVE", label: "Inactive" },
+  { value: "REVOKED", label: "Révoquée" },
 ];
 
-// Adresses mockées des compagnies d'assurance (en production, ceci viendrait de la DB)
-const mockInsuranceCompanies = [
-  {
-    address: "0x1234567890123456789012345678901234567890",
-    name: "AXA Assurance",
-  },
-  {
-    address: "0x2345678901234567890123456789012345678901",
-    name: "Allianz France",
-  },
-  { address: "0x3456789012345678901234567890123456789012", name: "Groupama" },
-  { address: "0x4567890123456789012345678901234567890123", name: "MAIF" },
-  { address: "0x5678901234567890123456789012345678901234", name: "MACIF" },
-];
+// Fonction pour réinitialiser le formulaire
+const getInitialFormData = (): InsuranceCardFormData => ({
+  insuredPersonId: null,
+  insuredPersonName: "",
+  cardNumber: "",
+  policyNumber: "",
+  dateOfBirth: "",
+  policyEffectiveDate: "",
+  hadDependent: false,
+  numberOfDependent: 0,
+  status: "ACTIVE",
+  validUntil: "",
+});
 
 export default function NewInsuranceCardPage() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
 
-  const [formData, setFormData] = useState<InsuranceCardFormData>({
-    cardNumber: "",
-    issuedOn: "",
-    status: "active",
-    insuranceCompany: "",
-  });
+  const [formData, setFormData] =
+    useState<InsuranceCardFormData>(getInitialFormData());
+  const [insuredPersons, setInsuredPersons] = useState<InsuredPerson[]>([]);
+  const [selectedPerson, setSelectedPerson] = useState<InsuredPerson | null>(
+    null
+  );
+  const [isLoadingPersons, setIsLoadingPersons] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [errors, setErrors] = useState<{
+    insuredPersonId?: string;
+    insuredPersonName?: string;
     cardNumber?: string;
-    issuedOn?: string;
-    insuranceCompany?: string;
+    policyNumber?: string;
+    dateOfBirth?: string;
+    policyEffectiveDate?: string;
+    validUntil?: string;
+    numberOfDependent?: string;
   }>({});
 
   // Hook pour écrire sur la blockchain
-  const { data: hash, isPending, error, writeContract } = useWriteContract();
+  const { data: hash, isPending, writeContract } = useWriteContract();
 
   // Hook pour attendre la confirmation de la transaction
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({ hash });
 
+  // Charger les personnes assurées
+  useEffect(() => {
+    const loadInsuredPersons = async () => {
+      setIsLoadingPersons(true);
+      try {
+        const response = await fetch("/api/insured-persons");
+        if (response.ok) {
+          const data = await response.json();
+          setInsuredPersons(data);
+        } else {
+          console.error("Erreur lors du chargement des personnes assurées");
+        }
+      } catch (error) {
+        console.error(
+          "Erreur lors du chargement des personnes assurées:",
+          error
+        );
+      } finally {
+        setIsLoadingPersons(false);
+      }
+    };
+
+    loadInsuredPersons();
+  }, []);
+
+  // Mettre à jour les données du formulaire quand une personne est sélectionnée
+  useEffect(() => {
+    if (selectedPerson) {
+      setFormData((prev) => ({
+        ...prev,
+        insuredPersonId: selectedPerson.id,
+        insuredPersonName: `${selectedPerson.firstName} ${selectedPerson.lastName}`,
+        dateOfBirth: selectedPerson.dateOfBirth.split("T")[0],
+        policyEffectiveDate: selectedPerson.policyEffectiveDate.split("T")[0],
+        hadDependent: selectedPerson.hasDependent,
+        numberOfDependent: selectedPerson.numberOfDependent,
+      }));
+    }
+  }, [selectedPerson]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
 
-    // Clear error when user starts typing
+    if (type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: checked,
+      }));
+    } else if (type === "number") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: parseInt(value) || 0,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+
+    // Effacer l'erreur du champ modifié
     if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
+  };
+
+  const handlePersonSelect = (personId: number) => {
+    const person = insuredPersons.find((p) => p.id === personId);
+    setSelectedPerson(person || null);
+
+    if (errors.insuredPersonId) {
+      setErrors((prev) => ({
+        ...prev,
+        insuredPersonId: undefined,
+      }));
     }
   };
 
   const validateForm = (): boolean => {
-    const newErrors: {
-      cardNumber?: string;
-      issuedOn?: string;
-      insuranceCompany?: string;
-    } = {};
+    const newErrors: typeof errors = {};
+
+    if (!formData.insuredPersonId) {
+      newErrors.insuredPersonId = "Veuillez sélectionner une personne assurée";
+    }
+
+    if (!formData.insuredPersonName.trim()) {
+      newErrors.insuredPersonName = "Le nom de la personne assurée est requis";
+    }
 
     if (!formData.cardNumber.trim()) {
       newErrors.cardNumber = "Le numéro de carte est requis";
     }
 
-    if (!formData.issuedOn) {
-      newErrors.issuedOn = "La date d'émission est requise";
+    if (!formData.policyNumber.trim()) {
+      newErrors.policyNumber = "Le numéro de police est requis";
     }
 
-    if (!formData.insuranceCompany) {
-      newErrors.insuranceCompany = "La compagnie d'assurance est requise";
+    if (!formData.dateOfBirth) {
+      newErrors.dateOfBirth = "La date de naissance est requise";
+    }
+
+    if (!formData.policyEffectiveDate) {
+      newErrors.policyEffectiveDate =
+        "La date d'effet de la police est requise";
+    }
+
+    if (!formData.validUntil) {
+      newErrors.validUntil = "La date de validité est requise";
+    }
+
+    if (formData.hadDependent && formData.numberOfDependent <= 0) {
+      newErrors.numberOfDependent =
+        "Le nombre de dépendants doit être supérieur à 0";
     }
 
     setErrors(newErrors);
@@ -113,10 +224,12 @@ export default function NewInsuranceCardPage() {
 
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
+
     try {
-      // Convertir la date en timestamp Unix
+      // Convertir la date d'émission en timestamp Unix pour la blockchain
       const issuedOnTimestamp = Math.floor(
-        new Date(formData.issuedOn).getTime() / 1000
+        new Date(formData.policyEffectiveDate).getTime() / 1000
       );
 
       // Appel au smart contract
@@ -127,32 +240,79 @@ export default function NewInsuranceCardPage() {
         args: [
           formData.cardNumber,
           issuedOnTimestamp,
-          formData.status,
-          formData.insuranceCompany,
+          formData.status.toLowerCase(),
+          address, // Adresse de la compagnie d'assurance (wallet connecté)
         ],
         account: address,
       });
     } catch (error) {
       console.error("Erreur lors de la création de la carte:", error);
       alert("Erreur lors de la création de la carte d'assurance");
+      setIsSubmitting(false);
     }
   };
+
+  // Sauvegarder en base de données après confirmation blockchain
+  useEffect(() => {
+    if (isConfirmed && hash) {
+      const saveToDatabase = async () => {
+        try {
+          // Récupérer les données de la transaction blockchain
+          const response = await fetch("/api/insurance-cards", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              insuredPersonId: formData.insuredPersonId,
+              cardNumber: formData.cardNumber,
+              policyNumber: formData.policyNumber,
+              dateOfBirth: formData.dateOfBirth,
+              policyEffectiveDate: formData.policyEffectiveDate,
+              hadDependent: formData.hadDependent,
+              numberOfDependent: formData.numberOfDependent,
+              status: formData.status,
+              validUntil: formData.validUntil,
+              blockchainReference: Date.now(), // Référence unique
+              blockchainTxHash: hash,
+            }),
+          });
+
+          if (response.ok) {
+            alert("Carte d'assurance créée avec succès !");
+            // Réinitialiser le formulaire
+            setFormData(getInitialFormData());
+            setSelectedPerson(null);
+            setErrors({});
+            // Redirection vers la liste
+            setTimeout(() => {
+              router.push("/admin/insurance-cards");
+            }, 1000);
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Erreur lors de la sauvegarde");
+          }
+        } catch (error) {
+          console.error("Erreur lors de la sauvegarde en base:", error);
+          alert(
+            `Erreur lors de la sauvegarde: ${error instanceof Error ? error.message : "Erreur inconnue"}`
+          );
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+
+      saveToDatabase();
+    }
+  }, [isConfirmed, hash, formData, router]);
 
   const handleCancel = () => {
     router.push("/admin/insurance-cards");
   };
 
-  // Redirection automatique après confirmation
-  if (isConfirmed) {
-    setTimeout(() => {
-      router.push("/admin/insurance-cards");
-    }, 2000);
-  }
-
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-      {/* Breadcrumb avec ConnectButton */}
-      <Breadcrumb pageName="Nouvelle Carte d'Assurance (Blockchain)" />
+      <Breadcrumb pageName="Nouvelle Carte d'Assurance" />
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -176,6 +336,9 @@ export default function NewInsuranceCardPage() {
             </svg>
             Retour
           </button>
+          <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+            Nouvelle Carte d'Assurance
+          </h2>
         </div>
       </div>
 
@@ -199,11 +362,12 @@ export default function NewInsuranceCardPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-black dark:text-white">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
                 Transaction en cours...
               </p>
-              <p className="text-xs text-muted-foreground">
-                Hash: {hash.slice(0, 10)}...{hash.slice(-8)}
+              <p className="text-xs text-blue-600 dark:text-blue-300">
+                Hash: {hash.substring(0, 10)}...
+                {hash.substring(hash.length - 10)}
               </p>
             </div>
           </div>
@@ -229,10 +393,10 @@ export default function NewInsuranceCardPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-black dark:text-white">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                 Confirmation de la transaction...
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-yellow-600 dark:text-yellow-300">
                 Veuillez patienter pendant que la transaction est confirmée sur
                 la blockchain
               </p>
@@ -260,71 +424,11 @@ export default function NewInsuranceCardPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-black dark:text-white">
-                Carte d'assurance créée avec succès !
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                Transaction confirmée !
               </p>
-              <p className="text-xs text-muted-foreground">
-                Redirection automatique dans 2 secondes...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-6 rounded-sm border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-              <svg
-                className="h-4 w-4 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Erreur lors de la création
-              </p>
-              <p className="text-xs text-red-600 dark:text-red-300">
-                {error.message}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!isConnected && (
-        <div className="mb-6 rounded-sm border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-              <svg
-                className="h-4 w-4 text-yellow-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                Wallet non connecté
-              </p>
-              <p className="text-xs text-yellow-600 dark:text-yellow-300">
-                Veuillez connecter votre wallet pour créer une carte d'assurance
+              <p className="text-xs text-green-600 dark:text-green-300">
+                Sauvegarde en base de données en cours...
               </p>
             </div>
           </div>
@@ -332,194 +436,283 @@ export default function NewInsuranceCardPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Informations de base */}
+        {/* Sélection de la personne assurée */}
         <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Informations de Base
+            Sélection de la Personne Assurée
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Numéro de carte *
-              </label>
-              <input
-                type="text"
-                name="cardNumber"
-                value={formData.cardNumber}
-                onChange={handleInputChange}
-                disabled={isPending || isConfirming}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.cardNumber
-                    ? "border-red-500"
-                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
-                } ${isPending || isConfirming ? "opacity-50 cursor-not-allowed" : ""}`}
-                placeholder="ex: CARD-2024-001"
-              />
-              {errors.cardNumber && (
-                <p className="mt-1 text-sm text-red-500">{errors.cardNumber}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Date d'émission *
-              </label>
-              <input
-                type="date"
-                name="issuedOn"
-                value={formData.issuedOn}
-                onChange={handleInputChange}
-                disabled={isPending || isConfirming}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.issuedOn
-                    ? "border-red-500"
-                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
-                } ${isPending || isConfirming ? "opacity-50 cursor-not-allowed" : ""}`}
-              />
-              {errors.issuedOn && (
-                <p className="mt-1 text-sm text-red-500">{errors.issuedOn}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Statut
-              </label>
+          <div>
+            <label className="block text-sm font-medium text-black dark:text-white mb-2">
+              Personne assurée *
+            </label>
+            {isLoadingPersons ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <span className="ml-2 text-sm text-gray-500">
+                  Chargement...
+                </span>
+              </div>
+            ) : (
               <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                disabled={isPending || isConfirming}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark ${
-                  isPending || isConfirming
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
+                value={formData.insuredPersonId || ""}
+                onChange={(e) => handlePersonSelect(Number(e.target.value))}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.insuredPersonId
+                    ? "border-red-500"
+                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
                 }`}
               >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                <option value="">Sélectionner une personne assurée</option>
+                {insuredPersons.map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.firstName} {person.lastName} - {person.email} (CIN:{" "}
+                    {person.cin})
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Compagnie d'assurance (Adresse) *
-              </label>
-              <select
-                name="insuranceCompany"
-                value={formData.insuranceCompany}
-                onChange={handleInputChange}
-                disabled={isPending || isConfirming}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.insuranceCompany
-                    ? "border-red-500"
-                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
-                } ${isPending || isConfirming ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <option value="">Sélectionner une compagnie</option>
-                {mockInsuranceCompanies.map((company) => (
-                  <option key={company.address} value={company.address}>
-                    {company.name} - {company.address.slice(0, 10)}...
-                    {company.address.slice(-8)}
-                  </option>
-                ))}
-              </select>
-              {errors.insuranceCompany && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.insuranceCompany}
-                </p>
-              )}
-            </div>
+            )}
+            {errors.insuredPersonId && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.insuredPersonId}
+              </p>
+            )}
           </div>
+
+          {/* Informations de la personne sélectionnée */}
+          {selectedPerson && (
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-md">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Informations de la personne sélectionnée :
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="font-medium">Nom complet :</span>{" "}
+                  {selectedPerson.firstName} {selectedPerson.lastName}
+                </div>
+                <div>
+                  <span className="font-medium">Email :</span>{" "}
+                  {selectedPerson.email}
+                </div>
+                <div>
+                  <span className="font-medium">CIN :</span>{" "}
+                  {selectedPerson.cin}
+                </div>
+                <div>
+                  <span className="font-medium">NIF :</span>{" "}
+                  {selectedPerson.nif}
+                </div>
+                <div>
+                  <span className="font-medium">Dépendants :</span>{" "}
+                  {selectedPerson.hasDependent
+                    ? `Oui (${selectedPerson.numberOfDependent})`
+                    : "Non"}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Informations blockchain */}
+        {/* Informations de la carte */}
         <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Informations Blockchain
+            Informations de la Carte d'Assurance
           </h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center">
-                <svg
-                  className="h-3 w-3 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-black dark:text-white">
-                  Contrat Smart Contract
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {contractAddress}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center">
-                <svg
-                  className="h-3 w-3 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
+          {/* Informations de base */}
+          <div className="mb-6">
+            <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Informations de base
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <p className="text-sm font-medium text-black dark:text-white">
-                  Fonction
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  addInsuranceCard(cardNumber, issuedOn, status,
-                  insuranceCompany)
-                </p>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Nom de la personne assurée *
+                </label>
+                <input
+                  type="text"
+                  name="insuredPersonName"
+                  value={formData.insuredPersonName}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.insuredPersonName
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                  }`}
+                />
+                {errors.insuredPersonName && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.insuredPersonName}
+                  </p>
+                )}
               </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center">
-                <svg
-                  className="h-3 w-3 text-purple-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
-              </div>
               <div>
-                <p className="text-sm font-medium text-black dark:text-white">
-                  Sécurité
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Les données seront stockées de manière immuable sur la
-                  blockchain
-                </p>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Numéro de carte *
+                </label>
+                <input
+                  type="text"
+                  name="cardNumber"
+                  value={formData.cardNumber}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.cardNumber
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                  }`}
+                  placeholder="ex: CARD-2024-001"
+                />
+                {errors.cardNumber && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.cardNumber}
+                  </p>
+                )}
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Numéro de police *
+                </label>
+                <input
+                  type="text"
+                  name="policyNumber"
+                  value={formData.policyNumber}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.policyNumber
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                  }`}
+                  placeholder="ex: 123456789"
+                />
+                {errors.policyNumber && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.policyNumber}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Date de naissance *
+                </label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.dateOfBirth
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                  }`}
+                />
+                {errors.dateOfBirth && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.dateOfBirth}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Date d'effet de la police *
+                </label>
+                <input
+                  type="date"
+                  name="policyEffectiveDate"
+                  value={formData.policyEffectiveDate}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.policyEffectiveDate
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                  }`}
+                />
+                {errors.policyEffectiveDate && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.policyEffectiveDate}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Date de validité *
+                </label>
+                <input
+                  type="date"
+                  name="validUntil"
+                  value={formData.validUntil}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors.validUntil
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                  }`}
+                />
+                {errors.validUntil && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.validUntil}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Statut
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
+                >
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="hadDependent"
+                  checked={formData.hadDependent}
+                  onChange={handleInputChange}
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label className="text-sm font-medium text-black dark:text-white">
+                  A des dépendants
+                </label>
+              </div>
+
+              {formData.hadDependent && (
+                <div>
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                    Nombre de dépendants *
+                  </label>
+                  <input
+                    type="number"
+                    name="numberOfDependent"
+                    value={formData.numberOfDependent}
+                    onChange={handleInputChange}
+                    min="1"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                      errors.numberOfDependent
+                        ? "border-red-500"
+                        : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                    }`}
+                  />
+                  {errors.numberOfDependent && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.numberOfDependent}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -529,21 +722,19 @@ export default function NewInsuranceCardPage() {
           <button
             type="button"
             onClick={handleCancel}
-            disabled={isPending || isConfirming}
-            className="inline-flex items-center justify-center rounded-md border border-stroke bg-white px-6 py-2 text-center font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center rounded-md border border-stroke bg-white px-6 py-2 text-center font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4"
+            disabled={isSubmitting || isPending || isConfirming}
           >
             Annuler
           </button>
           <button
             type="submit"
-            disabled={!isConnected || isPending || isConfirming}
+            disabled={!isConnected || isSubmitting || isPending || isConfirming}
             className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2 text-center font-medium text-white hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isPending
+            {isSubmitting || isPending || isConfirming
               ? "Création..."
-              : isConfirming
-                ? "Confirmation..."
-                : "Créer sur Blockchain"}
+              : "Créer la Carte"}
           </button>
         </div>
       </form>

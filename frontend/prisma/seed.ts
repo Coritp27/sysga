@@ -64,6 +64,87 @@ async function main() {
     `✅ Compagnie d'assurance créée/mise à jour: ${defaultCompany.name}`
   );
 
+  // Créer une entreprise par défaut
+  const defaultEnterprise = await prisma.enterprise.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      name: "Entreprise Test SYSGA",
+      email: "contact@entreprise-test.com",
+      phone1: "+33 1 98 76 54 32",
+      phone2: "+33 1 98 76 54 33",
+      address: "456 Avenue des Tests, 75002 Paris, France",
+      website: "https://www.entreprise-test.com",
+      fiscalNumber: "FR98765432109",
+      numberOfEmployees: 50,
+      insuranceCompanyId: defaultCompany.id,
+      createdBy: "system",
+      lastModifiedBy: "system",
+    },
+  });
+  console.log(`✅ Entreprise créée/mise à jour: ${defaultEnterprise.name}`);
+
+  // Créer des assurés de test
+  const testInsuredPersons = [
+    {
+      firstName: "Jean",
+      lastName: "Dupont",
+      dateOfBirth: new Date("1985-03-15"),
+      email: "jean.dupont@email.com",
+      phone: "+33 6 12 34 56 78",
+      address: "789 Rue des Assurés, 75003 Paris, France",
+      gender: "M",
+      cin: "CIN001",
+      nif: "NIF001",
+      hasDependent: true,
+      numberOfDependent: 2,
+      policyEffectiveDate: new Date("2024-01-01"),
+      enterpriseId: defaultEnterprise.id,
+    },
+    {
+      firstName: "Marie",
+      lastName: "Martin",
+      dateOfBirth: new Date("1990-07-22"),
+      email: "marie.martin@email.com",
+      phone: "+33 6 98 76 54 32",
+      address: "321 Avenue des Tests, 75004 Paris, France",
+      gender: "F",
+      cin: "CIN002",
+      nif: "NIF002",
+      hasDependent: false,
+      numberOfDependent: 0,
+      policyEffectiveDate: new Date("2024-02-01"),
+      enterpriseId: defaultEnterprise.id,
+    },
+    {
+      firstName: "Pierre",
+      lastName: "Bernard",
+      dateOfBirth: new Date("1978-11-08"),
+      email: "pierre.bernard@email.com",
+      phone: "+33 6 55 44 33 22",
+      address: "654 Boulevard des Assurés, 75005 Paris, France",
+      gender: "M",
+      cin: "CIN003",
+      nif: "NIF003",
+      hasDependent: true,
+      numberOfDependent: 1,
+      policyEffectiveDate: new Date("2024-03-01"),
+      enterpriseId: defaultEnterprise.id,
+    },
+  ];
+
+  for (const insuredPerson of testInsuredPersons) {
+    await prisma.insuredPerson.upsert({
+      where: { email: insuredPerson.email },
+      update: insuredPerson,
+      create: insuredPerson,
+    });
+    console.log(
+      `✅ Assuré créé/mis à jour: ${insuredPerson.firstName} ${insuredPerson.lastName}`
+    );
+  }
+
   console.log("🎉 Seeding terminé avec succès!");
 }
 

@@ -10,36 +10,13 @@ interface InsuredPersonFormData {
   phone: string;
   dateOfBirth: string;
   gender: "MALE" | "FEMALE" | "OTHER";
-  address: {
-    street: string;
-    city: string;
-    postalCode: string;
-    country: string;
-  };
-  personalInfo: {
-    nationalId: string;
-    passportNumber: string;
-    occupation: string;
-    employer: string;
-  };
-  emergencyContact: {
-    name: string;
-    relationship: string;
-    phone: string;
-    email: string;
-  };
-  medicalInfo: {
-    bloodType: string;
-    allergies: string[];
-    conditions: string[];
-    medications: string[];
-  };
-  insuranceHistory: {
-    previousInsurer: string;
-    previousPolicyNumber: string;
-    claimsHistory: string;
-  };
-  additionalInfo: string;
+  address: string;
+  cin: string;
+  nif: string;
+  hasDependent: boolean;
+  numberOfDependent: number;
+  policyEffectiveDate: string;
+  enterpriseId?: number;
 }
 
 const genderOptions = [
@@ -48,70 +25,28 @@ const genderOptions = [
   { value: "OTHER", label: "Autre" },
 ];
 
-const bloodTypeOptions = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-
-const allergyOptions = [
-  "Pénicilline",
-  "Aspirine",
-  "Latex",
-  "Arachides",
-  "Lactose",
-  "Gluten",
-  "Poussière",
-  "Pollen",
-  "Aucune",
-];
-
-const conditionOptions = [
-  "Diabète",
-  "Hypertension",
-  "Asthme",
-  "Maladie cardiaque",
-  "Cancer",
-  "VIH/SIDA",
-  "Aucune",
-];
+// Fonction pour réinitialiser le formulaire
+const getInitialFormData = (): InsuredPersonFormData => ({
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  dateOfBirth: "",
+  gender: "MALE",
+  address: "",
+  cin: "",
+  nif: "",
+  hasDependent: false,
+  numberOfDependent: 0,
+  policyEffectiveDate: "",
+  enterpriseId: undefined,
+});
 
 export default function NewInsuredPersonPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState<InsuredPersonFormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dateOfBirth: "",
-    gender: "MALE",
-    address: {
-      street: "",
-      city: "",
-      postalCode: "",
-      country: "France",
-    },
-    personalInfo: {
-      nationalId: "",
-      passportNumber: "",
-      occupation: "",
-      employer: "",
-    },
-    emergencyContact: {
-      name: "",
-      relationship: "",
-      phone: "",
-      email: "",
-    },
-    medicalInfo: {
-      bloodType: "",
-      allergies: [],
-      conditions: [],
-      medications: [],
-    },
-    insuranceHistory: {
-      previousInsurer: "",
-      previousPolicyNumber: "",
-      claimsHistory: "",
-    },
-    additionalInfo: "",
-  });
+  const [formData, setFormData] =
+    useState<InsuredPersonFormData>(getInitialFormData());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [errors, setErrors] = useState<{
     firstName?: string;
@@ -119,14 +54,10 @@ export default function NewInsuredPersonPage() {
     email?: string;
     phone?: string;
     dateOfBirth?: string;
-    address?: {
-      street?: string;
-      city?: string;
-      postalCode?: string;
-    };
-    personalInfo?: {
-      nationalId?: string;
-    };
+    address?: string;
+    cin?: string;
+    nif?: string;
+    policyEffectiveDate?: string;
   }>({});
 
   const handleInputChange = (
@@ -137,68 +68,15 @@ export default function NewInsuredPersonPage() {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
-    if (name.startsWith("address.")) {
-      const field = name.split(".")[1];
+    if (type === "checkbox") {
       setFormData((prev) => ({
         ...prev,
-        address: { ...prev.address, [field]: value },
+        [name]: checked,
       }));
-      if (errors.address?.[field as keyof typeof errors.address]) {
-        setErrors((prev) => ({
-          ...prev,
-          address: { ...prev.address, [field]: undefined },
-        }));
-      }
-    } else if (name.startsWith("personalInfo.")) {
-      const field = name.split(".")[1];
+    } else if (type === "number") {
       setFormData((prev) => ({
         ...prev,
-        personalInfo: { ...prev.personalInfo, [field]: value },
-      }));
-      if (errors.personalInfo?.[field as keyof typeof errors.personalInfo]) {
-        setErrors((prev) => ({
-          ...prev,
-          personalInfo: { ...prev.personalInfo, [field]: undefined },
-        }));
-      }
-    } else if (name.startsWith("emergencyContact.")) {
-      const field = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        emergencyContact: { ...prev.emergencyContact, [field]: value },
-      }));
-    } else if (name.startsWith("medicalInfo.")) {
-      const field = name.split(".")[1];
-      if (field === "allergies" || field === "conditions") {
-        setFormData((prev) => ({
-          ...prev,
-          medicalInfo: {
-            ...prev.medicalInfo,
-            [field]: checked
-              ? [
-                  ...(prev.medicalInfo[
-                    field as keyof typeof prev.medicalInfo
-                  ] as string[]),
-                  value,
-                ]
-              : (
-                  prev.medicalInfo[
-                    field as keyof typeof prev.medicalInfo
-                  ] as string[]
-                ).filter((item) => item !== value),
-          },
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          medicalInfo: { ...prev.medicalInfo, [field]: value },
-        }));
-      }
-    } else if (name.startsWith("insuranceHistory.")) {
-      const field = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        insuranceHistory: { ...prev.insuranceHistory, [field]: value },
+        [name]: parseInt(value) || 0,
       }));
     } else {
       setFormData((prev) => ({
@@ -207,28 +85,17 @@ export default function NewInsuredPersonPage() {
       }));
     }
 
-    // Clear error when user starts typing
+    // Effacer l'erreur du champ modifié
     if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
     }
   };
 
   const validateForm = (): boolean => {
-    const newErrors: {
-      firstName?: string;
-      lastName?: string;
-      email?: string;
-      phone?: string;
-      dateOfBirth?: string;
-      address?: {
-        street?: string;
-        city?: string;
-        postalCode?: string;
-      };
-      personalInfo?: {
-        nationalId?: string;
-      };
-    } = {};
+    const newErrors: typeof errors = {};
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = "Le prénom est requis";
@@ -252,47 +119,75 @@ export default function NewInsuredPersonPage() {
       newErrors.dateOfBirth = "La date de naissance est requise";
     }
 
-    if (!formData.address.street.trim()) {
-      newErrors.address = {
-        ...newErrors.address,
-        street: "La rue est requise",
-      };
+    if (!formData.address.trim()) {
+      newErrors.address = "L'adresse est requise";
     }
 
-    if (!formData.address.city.trim()) {
-      newErrors.address = {
-        ...newErrors.address,
-        city: "La ville est requise",
-      };
+    if (!formData.cin.trim()) {
+      newErrors.cin = "Le CIN est requis";
     }
 
-    if (!formData.address.postalCode.trim()) {
-      newErrors.address = {
-        ...newErrors.address,
-        postalCode: "Le code postal est requis",
-      };
+    if (!formData.nif.trim()) {
+      newErrors.nif = "Le NIF est requis";
     }
 
-    if (!formData.personalInfo.nationalId.trim()) {
-      newErrors.personalInfo = {
-        ...newErrors.personalInfo,
-        nationalId: "Le numéro national est requis",
-      };
+    if (!formData.policyEffectiveDate) {
+      newErrors.policyEffectiveDate =
+        "La date d'effet de la police est requise";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    // Ici, vous pouvez ajouter la logique pour sauvegarder la personne
-    console.log("Nouvelle personne assurée:", formData);
+    setIsSubmitting(true);
 
-    // Redirection vers la liste des personnes
-    router.push("/admin/insured-persons");
+    try {
+      const response = await fetch("/api/insured-persons", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          dateOfBirth: formData.dateOfBirth,
+          gender: formData.gender,
+          address: formData.address,
+          cin: formData.cin,
+          nif: formData.nif,
+          hasDependent: formData.hasDependent,
+          numberOfDependent: formData.numberOfDependent,
+          policyEffectiveDate: formData.policyEffectiveDate,
+          enterpriseId: formData.enterpriseId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erreur lors de la création");
+      }
+
+      // Réinitialiser le formulaire après succès
+      setFormData(getInitialFormData());
+      setErrors({});
+
+      // Redirection vers la liste des personnes
+      router.push("/admin/insured-persons");
+    } catch (error) {
+      console.error("Erreur lors de la création:", error);
+      alert(
+        error instanceof Error ? error.message : "Erreur lors de la création"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -455,391 +350,126 @@ export default function NewInsuredPersonPage() {
                 ))}
               </select>
             </div>
-          </div>
-        </div>
 
-        {/* Adresse */}
-        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Adresse
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Rue *
+                CIN *
               </label>
               <input
                 type="text"
-                name="address.street"
-                value={formData.address.street}
+                name="cin"
+                value={formData.cin}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.address?.street
+                  errors.cin
                     ? "border-red-500"
                     : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
                 }`}
               />
-              {errors.address?.street && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.address.street}
-                </p>
+              {errors.cin && (
+                <p className="mt-1 text-sm text-red-500">{errors.cin}</p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Ville *
+                NIF *
               </label>
               <input
                 type="text"
-                name="address.city"
-                value={formData.address.city}
+                name="nif"
+                value={formData.nif}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.address?.city
+                  errors.nif
                     ? "border-red-500"
                     : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
                 }`}
               />
-              {errors.address?.city && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.address.city}
-                </p>
+              {errors.nif && (
+                <p className="mt-1 text-sm text-red-500">{errors.nif}</p>
               )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Code postal *
-              </label>
-              <input
-                type="text"
-                name="address.postalCode"
-                value={formData.address.postalCode}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.address?.postalCode
-                    ? "border-red-500"
-                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
-                }`}
-              />
-              {errors.address?.postalCode && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.address.postalCode}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Pays
-              </label>
-              <input
-                type="text"
-                name="address.country"
-                value={formData.address.country}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Informations personnelles détaillées */}
-        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Informations Détaillées
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Numéro national *
-              </label>
-              <input
-                type="text"
-                name="personalInfo.nationalId"
-                value={formData.personalInfo.nationalId}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.personalInfo?.nationalId
-                    ? "border-red-500"
-                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
-                }`}
-              />
-              {errors.personalInfo?.nationalId && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.personalInfo.nationalId}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Numéro de passeport
-              </label>
-              <input
-                type="text"
-                name="personalInfo.passportNumber"
-                value={formData.personalInfo.passportNumber}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Profession
-              </label>
-              <input
-                type="text"
-                name="personalInfo.occupation"
-                value={formData.personalInfo.occupation}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Employeur
-              </label>
-              <input
-                type="text"
-                name="personalInfo.employer"
-                value={formData.personalInfo.employer}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Informations médicales */}
-        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Informations Médicales
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Groupe sanguin
-              </label>
-              <select
-                name="medicalInfo.bloodType"
-                value={formData.medicalInfo.bloodType}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              >
-                <option value="">Sélectionner</option>
-                {bloodTypeOptions.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Médicaments actuels
-              </label>
-              <input
-                type="text"
-                name="medicalInfo.medications"
-                value={formData.medicalInfo.medications.join(", ")}
-                onChange={(e) => {
-                  const medications = e.target.value
-                    .split(",")
-                    .map((m) => m.trim())
-                    .filter((m) => m);
-                  setFormData((prev) => ({
-                    ...prev,
-                    medicalInfo: { ...prev.medicalInfo, medications },
-                  }));
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-                placeholder="Séparés par des virgules"
-              />
-            </div>
-          </div>
-
-          {/* Allergies */}
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-black dark:text-white mb-3">
-              Allergies
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {allergyOptions.map((allergy) => (
-                <label key={allergy} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="medicalInfo.allergies"
-                    value={allergy}
-                    checked={formData.medicalInfo.allergies.includes(allergy)}
-                    onChange={handleInputChange}
-                    className="rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-black dark:text-white">
-                    {allergy}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Conditions médicales */}
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-black dark:text-white mb-3">
-              Conditions médicales
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {conditionOptions.map((condition) => (
-                <label key={condition} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="medicalInfo.conditions"
-                    value={condition}
-                    checked={formData.medicalInfo.conditions.includes(
-                      condition
-                    )}
-                    onChange={handleInputChange}
-                    className="rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-black dark:text-white">
-                    {condition}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Contact d'urgence */}
-        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Contact d'Urgence
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Nom complet
-              </label>
-              <input
-                type="text"
-                name="emergencyContact.name"
-                value={formData.emergencyContact.name}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Relation
-              </label>
-              <input
-                type="text"
-                name="emergencyContact.relationship"
-                value={formData.emergencyContact.relationship}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-                placeholder="ex: Conjoint, Parent, etc."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Téléphone
-              </label>
-              <input
-                type="tel"
-                name="emergencyContact.phone"
-                value={formData.emergencyContact.phone}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                name="emergencyContact.email"
-                value={formData.emergencyContact.email}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Historique d'assurance */}
-        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Historique d'Assurance
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Assureur précédent
-              </label>
-              <input
-                type="text"
-                name="insuranceHistory.previousInsurer"
-                value={formData.insuranceHistory.previousInsurer}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Numéro de police précédent
-              </label>
-              <input
-                type="text"
-                name="insuranceHistory.previousPolicyNumber"
-                value={formData.insuranceHistory.previousPolicyNumber}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              />
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Historique des réclamations
+                Adresse *
               </label>
               <textarea
-                name="insuranceHistory.claimsHistory"
-                value={formData.insuranceHistory.claimsHistory}
+                name="address"
+                value={formData.address}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-                placeholder="Décrivez l'historique des réclamations..."
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.address
+                    ? "border-red-500"
+                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                }`}
+                placeholder="Adresse complète..."
               />
+              {errors.address && (
+                <p className="mt-1 text-sm text-red-500">{errors.address}</p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Informations supplémentaires */}
+        {/* Informations d'assurance */}
         <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-            Informations Supplémentaires
+            Informations d'Assurance
           </h3>
-          <div>
-            <label className="block text-sm font-medium text-black dark:text-white mb-2">
-              Notes et commentaires
-            </label>
-            <textarea
-              name="additionalInfo"
-              value={formData.additionalInfo}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
-              placeholder="Informations supplémentaires, notes spéciales, etc."
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                Date d'effet de la police *
+              </label>
+              <input
+                type="date"
+                name="policyEffectiveDate"
+                value={formData.policyEffectiveDate}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.policyEffectiveDate
+                    ? "border-red-500"
+                    : "border-gray-300 dark:border-strokedark dark:bg-boxdark"
+                }`}
+              />
+              {errors.policyEffectiveDate && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.policyEffectiveDate}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="hasDependent"
+                checked={formData.hasDependent}
+                onChange={handleInputChange}
+                className="rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <label className="text-sm font-medium text-black dark:text-white">
+                A des dépendants
+              </label>
+            </div>
+
+            {formData.hasDependent && (
+              <div>
+                <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                  Nombre de dépendants
+                </label>
+                <input
+                  type="number"
+                  name="numberOfDependent"
+                  value={formData.numberOfDependent}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -849,14 +479,16 @@ export default function NewInsuredPersonPage() {
             type="button"
             onClick={handleCancel}
             className="inline-flex items-center justify-center rounded-md border border-stroke bg-white px-6 py-2 text-center font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4"
+            disabled={isSubmitting}
           >
             Annuler
           </button>
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2 text-center font-medium text-white hover:bg-opacity-90"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2 text-center font-medium text-white hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Créer la Personne
+            {isSubmitting ? "Création..." : "Créer la Personne"}
           </button>
         </div>
       </form>
