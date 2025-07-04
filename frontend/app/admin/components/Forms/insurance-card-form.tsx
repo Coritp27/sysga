@@ -206,6 +206,17 @@ export function InsuranceCardForm({
     const person = insuredPersons.find((p) => p.id === personId);
     setSelectedPerson(person || null);
 
+    // Update formData with the selected person ID
+    setFormData((prev) => ({
+      ...prev,
+      insuredPersonId: personId,
+      insuredPersonName: person ? `${person.firstName} ${person.lastName}` : "",
+      dateOfBirth: person?.dateOfBirth || "",
+      policyEffectiveDate: person?.policyEffectiveDate || "",
+      hadDependent: person?.hasDependent || false,
+      numberOfDependent: person?.numberOfDependent || 0,
+    }));
+
     if (errors.insuredPersonId) {
       setErrors((prev) => ({
         ...prev,
@@ -353,28 +364,36 @@ export function InsuranceCardForm({
         try {
           console.log("💾 Sauvegarde en base de données...");
 
+          // Log the data being sent for debugging
+          const requestData = {
+            insuredPersonId: formData.insuredPersonId,
+            cardNumber: formData.cardNumber,
+            policyNumber: formData.policyNumber,
+            dateOfBirth: formData.dateOfBirth,
+            policyEffectiveDate: formData.policyEffectiveDate,
+            hadDependent: formData.hadDependent,
+            status: formData.status,
+            validUntil: formData.validUntil,
+            blockchainReference: Date.now(),
+            blockchainTxHash: hash,
+          };
+
+          console.log("📤 Données envoyées à l'API:", requestData);
+
           const response = await fetch("/api/insurance-cards", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              insuredPersonId: formData.insuredPersonId,
-              cardNumber: formData.cardNumber,
-              policyNumber: formData.policyNumber,
-              dateOfBirth: formData.dateOfBirth,
-              policyEffectiveDate: formData.policyEffectiveDate,
-              hadDependent: formData.hadDependent,
-              numberOfDependent: formData.numberOfDependent,
-              status: formData.status,
-              validUntil: formData.validUntil,
-              blockchainReference: Date.now(),
-              blockchainTxHash: hash,
-            }),
+            body: JSON.stringify(requestData),
           });
 
           if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            console.error("❌ Réponse d'erreur de l'API:", errorData);
+            throw new Error(
+              `Erreur HTTP: ${response.status} - ${errorData.error || "Erreur inconnue"}`
+            );
           }
 
           const savedCard = await response.json();

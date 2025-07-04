@@ -29,17 +29,32 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
+    const searchAll = searchParams.get("all") === "true";
 
-    let whereClause: any = {
-      insuranceCompanyId: user.insuranceCompanyId,
-    };
+    let whereClause: any = {};
 
-    // Recherche par numéro de carte, nom de l'assuré, numéro de police
+    // Si ce n'est pas une recherche globale, filtrer par compagnie de l'utilisateur
+    if (!searchAll) {
+      whereClause.insuranceCompanyId = user.insuranceCompanyId;
+    }
+
+    // Recherche universelle : nom, CIN, NIF, numéro de carte, numéro de police
     if (search) {
       whereClause.OR = [
         { cardNumber: { contains: search, mode: "insensitive" } },
         { insuredPersonName: { contains: search, mode: "insensitive" } },
         { policyNumber: { equals: BigInt(search) || BigInt(0) } },
+        {
+          insuredPerson: {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+              { cin: { contains: search, mode: "insensitive" } },
+              { nif: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+            ],
+          },
+        },
       ];
     }
 
