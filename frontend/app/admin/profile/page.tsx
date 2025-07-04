@@ -5,13 +5,31 @@ import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { CameraIcon } from "./_components/icons";
 import { SocialAccounts } from "./_components/social-accounts";
+import { useUserProfile } from "../../../hooks/useUserProfile";
+import { useUser } from "@clerk/nextjs";
 
 export default function Page() {
+  const { user: clerkUser } = useUser();
+  const { profile, loading, error } = useUserProfile();
   const [data, setData] = useState({
-    name: "Danish Heilium",
+    name: "Chargement...",
     profilePhoto: "/images/user/user-03.png",
     coverPhoto: "/images/cover/cover-01.png",
   });
+
+  // Mettre à jour les données quand le profil est chargé
+  React.useEffect(() => {
+    if (profile) {
+      const fullName = profile.insuredPerson
+        ? `${profile.insuredPerson.firstName} ${profile.insuredPerson.lastName}`
+        : profile.username;
+
+      setData((prev) => ({
+        ...prev,
+        name: fullName,
+      }));
+    }
+  }, [profile]);
 
   const handleChange = (e: any) => {
     if (e.target.name === "profilePhoto") {
@@ -35,6 +53,39 @@ export default function Page() {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-[970px]">
+        <Breadcrumb pageName="Profile" />
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto w-full max-w-[970px]">
+        <Breadcrumb pageName="Profile" />
+        <div className="text-center py-8">
+          <p className="text-red-500">Erreur: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="mx-auto w-full max-w-[970px]">
+        <Breadcrumb pageName="Profile" />
+        <div className="text-center py-8">
+          <p className="text-gray-500">Aucun profil trouvé</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-[970px]">
@@ -109,39 +160,98 @@ export default function Page() {
             <h3 className="mb-1 text-heading-6 font-bold text-dark dark:text-white">
               {data?.name}
             </h3>
-            <p className="font-medium">Ui/Ux Designer</p>
+            <p className="font-medium">{profile.role?.name || "Utilisateur"}</p>
+
+            {/* Informations utilisateur */}
             <div className="mx-auto mb-5.5 mt-5 grid max-w-[370px] grid-cols-3 rounded-[5px] border border-stroke py-[9px] shadow-1 dark:border-dark-3 dark:bg-dark-2 dark:shadow-card">
               <div className="flex flex-col items-center justify-center gap-1 border-r border-stroke px-4 dark:border-dark-3 xsm:flex-row">
                 <span className="font-medium text-dark dark:text-white">
-                  259
+                  {profile.userType}
                 </span>
-                <span className="text-body-sm">Posts</span>
+                <span className="text-body-sm">Type</span>
               </div>
               <div className="flex flex-col items-center justify-center gap-1 border-r border-stroke px-4 dark:border-dark-3 xsm:flex-row">
                 <span className="font-medium text-dark dark:text-white">
-                  129K
+                  {profile.isActive ? "Actif" : "Inactif"}
                 </span>
-                <span className="text-body-sm">Followers</span>
+                <span className="text-body-sm">Statut</span>
               </div>
               <div className="flex flex-col items-center justify-center gap-1 px-4 xsm:flex-row">
                 <span className="font-medium text-dark dark:text-white">
-                  2K
+                  {profile.insuredPerson?.numberOfDependent || 0}
                 </span>
-                <span className="text-body-sm-sm">Following</span>
+                <span className="text-body-sm-sm">Dépendants</span>
               </div>
             </div>
 
             <div className="mx-auto max-w-[720px]">
               <h4 className="font-medium text-dark dark:text-white">
-                About Me
+                Informations Personnelles
               </h4>
-              <p className="mt-4">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Pellentesque posuere fermentum urna, eu condimentum mauris
-                tempus ut. Donec fermentum blandit aliquet. Etiam dictum dapibus
-                ultricies. Sed vel aliquet libero. Nunc a augue fermentum,
-                pharetra ligula sed, aliquam lacus.
-              </p>
+              <div className="mt-4 space-y-2 text-left">
+                {profile.insuredPerson && (
+                  <>
+                    <p>
+                      <strong>Email:</strong> {profile.insuredPerson.email}
+                    </p>
+                    <p>
+                      <strong>Téléphone:</strong> {profile.insuredPerson.phone}
+                    </p>
+                    <p>
+                      <strong>Adresse:</strong> {profile.insuredPerson.address}
+                    </p>
+                    <p>
+                      <strong>CIN:</strong> {profile.insuredPerson.cin}
+                    </p>
+                    <p>
+                      <strong>NIF:</strong> {profile.insuredPerson.nif}
+                    </p>
+                    <p>
+                      <strong>Date de naissance:</strong>{" "}
+                      {new Date(
+                        profile.insuredPerson.dateOfBirth
+                      ).toLocaleDateString("fr-FR")}
+                    </p>
+                    <p>
+                      <strong>Genre:</strong> {profile.insuredPerson.gender}
+                    </p>
+                  </>
+                )}
+
+                {profile.walletAddress && (
+                  <p>
+                    <strong>Adresse Wallet:</strong> {profile.walletAddress}
+                  </p>
+                )}
+
+                {profile.insuranceCompany && (
+                  <>
+                    <h5 className="font-medium text-dark dark:text-white mt-4">
+                      Compagnie d'Assurance
+                    </h5>
+                    <p>
+                      <strong>Nom:</strong> {profile.insuranceCompany.name}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {profile.insuranceCompany.email}
+                    </p>
+                    <p>
+                      <strong>Téléphone:</strong>{" "}
+                      {profile.insuranceCompany.phone1}
+                    </p>
+                    <p>
+                      <strong>Adresse:</strong>{" "}
+                      {profile.insuranceCompany.address}
+                    </p>
+                    {profile.insuranceCompany.website && (
+                      <p>
+                        <strong>Site web:</strong>{" "}
+                        {profile.insuranceCompany.website}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
             <SocialAccounts />
