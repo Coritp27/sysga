@@ -2,120 +2,87 @@
 
 import { useState } from "react";
 import { AddIcon, SearchIcon } from "../assets/icons";
-import { BlockchainReferenceTable } from "../components/Tables/blockchain-reference-table";
+import { BlockchainReferencesTable } from "../components/Tables/blockchain-references-table";
 import { ConfirmationModal } from "../components/ui/confirmation-modal";
-import { BlockchainReference } from "../types/blockchain-reference";
-import { BlockchainReferenceForm } from "../components/Forms/blockchain-reference-form";
-
-const initialReferences: BlockchainReference[] = [
-  {
-    id: 1,
-    referenceId: "REF-2024-001",
-    type: "POLICY",
-    status: "CONFIRMED",
-    blockNumber: "0x1234567890abcdef",
-    transactionHash:
-      "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    relatedEntity: { type: "Police", id: "POL-2024-001", name: "Jean Dupont" },
-    createdAt: "2024-01-15",
-    confirmedAt: "2024-01-15",
-    notes: "Exemple de référence blockchain.",
-  },
-  {
-    id: 2,
-    referenceId: "REF-2024-002",
-    type: "CARD",
-    status: "CONFIRMED",
-    blockNumber: "0x1234567890abcdef",
-    transactionHash:
-      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    relatedEntity: { type: "Carte", id: "CARD-2024-001", name: "Marie Martin" },
-    createdAt: "2024-02-15",
-    confirmedAt: "2024-02-15",
-    notes: "Carte blockchain.",
-  },
-  {
-    id: 3,
-    referenceId: "REF-2024-003",
-    type: "CLAIM",
-    status: "PENDING",
-    blockNumber: "0xabcdef1234567890",
-    transactionHash:
-      "0x7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456",
-    relatedEntity: {
-      type: "Réclamation",
-      id: "CLAIM-2024-001",
-      name: "Pierre Durand",
-    },
-    createdAt: "2024-03-01",
-    notes: "Réclamation en attente.",
-  },
-];
+import { useBlockchainReferences } from "../../../hooks/useBlockchainReferences";
 
 export default function BlockchainReferencesPage() {
-  const [references, setReferences] =
-    useState<BlockchainReference[]>(initialReferences);
+  const { references, loading, error, refetch } = useBlockchainReferences();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedReference, setSelectedReference] =
-    useState<BlockchainReference | null>(null);
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [selectedReference, setSelectedReference] = useState<any>(null);
 
-  const handleCreate = () => {
-    setFormMode("create");
-    setSelectedReference(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEdit = (reference: BlockchainReference) => {
-    setFormMode("edit");
-    setSelectedReference(reference);
-    setIsFormOpen(true);
-  };
-
-  const handleDelete = (reference: BlockchainReference) => {
+  const handleDelete = (reference: any) => {
     setSelectedReference(reference);
     setIsDeleteModalOpen(true);
   };
 
-  const handleFormSubmit = (data: BlockchainReference) => {
-    if (formMode === "create") {
-      const newReference = {
-        ...data,
-        id: Math.max(0, ...references.map((r) => r.id)) + 1,
-      };
-      setReferences([...references, newReference]);
-    } else if (formMode === "edit" && selectedReference) {
-      setReferences(
-        references.map((r) =>
-          r.id === selectedReference.id ? { ...data, id: r.id } : r
-        )
-      );
-    }
-    setIsFormOpen(false);
-  };
-
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedReference) {
-      setReferences(references.filter((r) => r.id !== selectedReference.id));
-      setIsDeleteModalOpen(false);
-      setSelectedReference(null);
+      try {
+        const response = await fetch(
+          `/api/blockchain-references/${selectedReference.id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (response.ok) {
+          refetch();
+          setIsDeleteModalOpen(false);
+          setSelectedReference(null);
+        } else {
+          console.error("Erreur lors de la suppression");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la suppression:", error);
+      }
     }
   };
 
   const filteredReferences = references.filter((reference) => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-      reference.referenceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reference.relatedEntity.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      reference.relatedEntity.id
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      reference.transactionHash.toLowerCase().includes(searchTerm.toLowerCase())
+      reference.reference.toString().includes(searchLower) ||
+      reference.cardNumber.toLowerCase().includes(searchLower) ||
+      reference.blockchainTxHash.toLowerCase().includes(searchLower) ||
+      reference.card?.insuredPerson?.firstName
+        ?.toLowerCase()
+        .includes(searchLower) ||
+      reference.card?.insuredPerson?.lastName
+        ?.toLowerCase()
+        .includes(searchLower) ||
+      reference.card?.insuranceCompany?.name
+        ?.toLowerCase()
+        .includes(searchLower)
     );
   });
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+        <div className="text-center py-8">
+          <p className="text-red-500">Erreur: {error}</p>
+          <button
+            onClick={refetch}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
@@ -124,11 +91,11 @@ export default function BlockchainReferencesPage() {
           Références Blockchain
         </h2>
         <button
-          onClick={handleCreate}
+          onClick={refetch}
           className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
         >
           <AddIcon className="mr-2 h-4 w-4" />
-          Nouvelle Référence
+          Actualiser
         </button>
       </div>
 
@@ -165,10 +132,10 @@ export default function BlockchainReferencesPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Références Confirmées
+                Cartes Actives
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                {references.filter((r) => r.status === "CONFIRMED").length}
+                {references.filter((r) => r.card?.status === "ACTIVE").length}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -193,10 +160,44 @@ export default function BlockchainReferencesPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                En Attente
+                Cartes Inactives
               </p>
               <p className="text-2xl font-bold text-black dark:text-white">
-                {references.filter((r) => r.status === "PENDING").length}
+                {references.filter((r) => r.card?.status === "INACTIVE").length}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Compagnies
+              </p>
+              <p className="text-2xl font-bold text-black dark:text-white">
+                {
+                  new Set(
+                    references
+                      .map((r) => r.card?.insuranceCompany?.name)
+                      .filter(Boolean)
+                  ).size
+                }
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -210,35 +211,7 @@ export default function BlockchainReferencesPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Échouées
-              </p>
-              <p className="text-2xl font-bold text-black dark:text-white">
-                {references.filter((r) => r.status === "FAILED").length}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-              <svg
-                className="h-6 w-6 text-purple-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                 />
               </svg>
             </div>
@@ -266,20 +239,12 @@ export default function BlockchainReferencesPage() {
             </div>
           </div>
         </div>
-        <BlockchainReferenceTable
+        <BlockchainReferencesTable
           references={filteredReferences}
-          onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </div>
 
-      <BlockchainReferenceForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        initialData={selectedReference || undefined}
-        mode={formMode}
-      />
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

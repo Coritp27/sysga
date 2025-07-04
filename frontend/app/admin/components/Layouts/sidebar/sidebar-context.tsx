@@ -43,12 +43,9 @@ export function SidebarProvider({
   useEffect(() => {
     if (!isMounted) return;
 
-    if (isMobile) {
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
-  }, [isMobile, isMounted]);
+    // Toujours ouvrir la sidebar par défaut, même sur mobile
+    setIsOpen(true);
+  }, [isMounted]);
 
   function toggleSidebar() {
     setIsOpen((prev) => !prev);

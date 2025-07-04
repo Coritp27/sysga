@@ -9,11 +9,29 @@ import {
 import { WagmiProvider } from "wagmi";
 import { hardhat } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { http } from "wagmi";
+
+// Configuration personnalisée pour le réseau Hardhat local
+const hardhatLocal = {
+  ...hardhat,
+  rpcUrls: {
+    ...hardhat.rpcUrls,
+    default: {
+      http: ["http://localhost:8545"],
+    },
+    public: {
+      http: ["http://localhost:8545"],
+    },
+  },
+};
 
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
   projectId: "b7e487bd30ff27535b63f6fbe1b52954",
-  chains: [hardhat],
+  chains: [hardhatLocal],
+  transports: {
+    [hardhatLocal.id]: http("http://localhost:8545"),
+  },
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
