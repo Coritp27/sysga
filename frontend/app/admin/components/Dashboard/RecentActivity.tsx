@@ -3,15 +3,14 @@ import {
   Clock,
   User,
   CreditCard,
-  Building2,
-  FileText,
+  Shield,
   CheckCircle,
   AlertCircle,
   Info,
 } from "lucide-react";
 
 interface ActivityItemProps {
-  type: "card" | "person" | "company" | "policy";
+  type: "card" | "person" | "blockchain" | "system";
   action: string;
   description: string;
   time: string;
@@ -31,10 +30,10 @@ const ActivityItem = ({
         return <CreditCard className="h-4 w-4" />;
       case "person":
         return <User className="h-4 w-4" />;
-      case "company":
-        return <Building2 className="h-4 w-4" />;
-      case "policy":
-        return <FileText className="h-4 w-4" />;
+      case "blockchain":
+        return <Shield className="h-4 w-4" />;
+      case "system":
+        return <Info className="h-4 w-4" />;
       default:
         return <Info className="h-4 w-4" />;
     }
@@ -81,42 +80,42 @@ const RecentActivity = () => {
     {
       type: "card" as const,
       action: "Nouvelle carte créée",
-      description: "Carte d'assurance #CARD123456 créée pour John Doe",
+      description: "Carte #CARD123456 créée sur la blockchain",
       time: "Il y a 2 minutes",
+      status: "success" as const,
+    },
+    {
+      type: "blockchain" as const,
+      action: "Transaction confirmée",
+      description: "Hash: 0x1234...abcd confirmé sur Ethereum",
+      time: "Il y a 5 minutes",
       status: "success" as const,
     },
     {
       type: "person" as const,
       action: "Personne assurée ajoutée",
-      description: "Marie Dupont ajoutée au système avec CIN: CIN789012",
+      description: "Jean Dupont ajouté au système",
       time: "Il y a 15 minutes",
       status: "success" as const,
     },
     {
-      type: "company" as const,
-      action: "Entreprise mise à jour",
-      description: "Informations de l'entreprise ABC Corp mises à jour",
+      type: "card" as const,
+      action: "Carte mise à jour",
+      description: "Statut de la carte #CARD789012 modifié",
       time: "Il y a 1 heure",
       status: "info" as const,
     },
     {
-      type: "policy" as const,
-      action: "Police renouvelée",
-      description: "Police #POL1001 renouvelée pour 12 mois supplémentaires",
+      type: "blockchain" as const,
+      action: "Transaction en attente",
+      description: "Nouvelle carte en cours de validation",
       time: "Il y a 2 heures",
-      status: "success" as const,
-    },
-    {
-      type: "card" as const,
-      action: "Carte désactivée",
-      description: "Carte #CARD654321 désactivée - expiration",
-      time: "Il y a 3 heures",
       status: "warning" as const,
     },
     {
-      type: "person" as const,
-      action: "Dépendant ajouté",
-      description: "Dépendant ajouté pour Jean Martin (relation: Enfant)",
+      type: "system" as const,
+      action: "Synchronisation blockchain",
+      description: "Synchronisation des données avec la blockchain",
       time: "Il y a 4 heures",
       status: "success" as const,
     },
@@ -128,7 +127,7 @@ const RecentActivity = () => {
         <div>
           <h2 className="text-xl font-semibold">Activité Récente</h2>
           <p className="text-sm text-muted-foreground">
-            Dernières actions effectuées dans le système
+            Dernières actions dans le système d'assurance
           </p>
         </div>
         <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">

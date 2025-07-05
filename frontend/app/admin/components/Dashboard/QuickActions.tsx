@@ -5,9 +5,9 @@ import {
   Plus,
   Users,
   CreditCard,
-  Building2,
-  FileText,
   Search,
+  Shield,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -56,7 +56,7 @@ const QuickActions = () => {
   const actions = [
     {
       title: "Nouvelle Carte",
-      description: "Créer une nouvelle carte d'assurance",
+      description: "Créer une carte d'assurance sur la blockchain",
       icon: <CreditCard className="h-6 w-6 text-white" />,
       href: "/admin/insurance-cards/new",
       color: "bg-blue-600 hover:bg-blue-700",
@@ -69,22 +69,15 @@ const QuickActions = () => {
       color: "bg-green-600 hover:bg-green-700",
     },
     {
-      title: "Nouvelle Entreprise",
-      description: "Créer une nouvelle entreprise",
-      icon: <Building2 className="h-6 w-6 text-white" />,
-      href: "/admin/enterprises/new",
+      title: "Blockchain",
+      description: "Voir les transactions blockchain",
+      icon: <Shield className="h-6 w-6 text-white" />,
+      href: "/admin/blockchain-references",
       color: "bg-purple-600 hover:bg-purple-700",
     },
     {
-      title: "Nouvelle Police",
-      description: "Créer une nouvelle police d'assurance",
-      icon: <FileText className="h-6 w-6 text-white" />,
-      href: "/admin/policies/new",
-      color: "bg-orange-600 hover:bg-orange-700",
-    },
-    {
-      title: "Recherche Avancée",
-      description: "Rechercher dans toutes les données",
+      title: "Recherche",
+      description: "Rechercher dans les données",
       icon: <Search className="h-6 w-6 text-white" />,
       href: "/admin/search",
       color: "bg-gray-600 hover:bg-gray-700",
@@ -96,11 +89,11 @@ const QuickActions = () => {
       <div>
         <h2 className="text-xl font-semibold">Actions Rapides</h2>
         <p className="text-sm text-muted-foreground">
-          Accédez rapidement aux fonctionnalités les plus utilisées
+          Accédez rapidement aux fonctionnalités principales
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {actions.map((action, index) => (
           <QuickAction key={index} {...action} />
         ))}
