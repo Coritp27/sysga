@@ -1,19 +1,21 @@
 "use client";
 import { useState } from "react";
+import { useAccount } from "wagmi";
 import InsuranceCardTable from "../components/Tables/insurance-card-table";
 import { AddIcon, SearchIcon, RefreshCwIcon } from "../assets/icons";
 import { InsuranceCardForm } from "../components/Forms/insurance-card-form";
 import { ConfirmationModal } from "../components/ui/confirmation-modal";
-import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
-import { AuthenticationInfo } from "../components/ui/authentication-info";
+import WalletConnectionModal from "../components/ui/wallet-connection-modal";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useInsuranceCards } from "@/hooks/useInsuranceCards";
 
 export default function InsuranceCardsPage() {
   const { user, isLoading: workspaceLoading } = useWorkspace();
+  const { isConnected } = useAccount();
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editingCard, setEditingCard] = useState<any>(null);
   const [deletingCard, setDeletingCard] = useState<any>(null);
@@ -83,6 +85,12 @@ export default function InsuranceCardsPage() {
   };
 
   const openCreateForm = () => {
+    // Vérifier si le wallet est connecté
+    if (!isConnected) {
+      setIsWalletModalOpen(true);
+      return;
+    }
+
     setFormMode("create");
     setEditingCard(null);
     setIsFormOpen(true);
@@ -109,6 +117,10 @@ export default function InsuranceCardsPage() {
     setDeletingCard(null);
   };
 
+  const closeWalletModal = () => {
+    setIsWalletModalOpen(false);
+  };
+
   const confirmDelete = () => {
     if (deletingCard) {
       handleDeleteCard(deletingCard);
@@ -130,43 +142,6 @@ export default function InsuranceCardsPage() {
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-      {/* Breadcrumb avec ConnectButton */}
-      <Breadcrumb pageName="Cartes d'Assurance (Blockchain)" />
-
-      {/* Information sur le système d'authentification hybride */}
-      <AuthenticationInfo user={user} />
-
-      {/* Informations de la compagnie connectée */}
-      {user?.insuranceCompany && (
-        <div className="mb-6 rounded-sm border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <svg
-                className="h-4 w-4 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Compagnie connectée : {user.insuranceCompany.name}
-              </p>
-              <p className="text-xs text-blue-600 dark:text-blue-300">
-                Vous visualisez uniquement les données de votre compagnie
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Cartes d'Assurance (Blockchain)
@@ -380,6 +355,14 @@ export default function InsuranceCardsPage() {
         onConfirm={confirmDelete}
         title="Supprimer la carte d'assurance"
         message={`Êtes-vous sûr de vouloir supprimer la carte ${deletingCard?.cardNumber} ? Cette action ne peut pas être annulée.`}
+      />
+
+      {/* Modal de connexion wallet */}
+      <WalletConnectionModal
+        isOpen={isWalletModalOpen}
+        onClose={closeWalletModal}
+        title="Connexion Wallet Requise"
+        message="Connectez votre wallet pour créer une nouvelle carte d'assurance sur la blockchain"
       />
     </div>
   );

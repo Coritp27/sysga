@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
 import { WorkspaceMembers } from "../components/WorkspaceMembers";
+import { Wallet, Shield, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, isLoading } = useWorkspace();
+  const { isConnected, address } = useAccount();
   const [activeTab, setActiveTab] = useState("company");
 
   // État pour les informations de la compagnie
@@ -69,6 +73,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "company", label: "Compagnie", icon: "🏢" },
+    { id: "blockchain", label: "Blockchain", icon: "🔗" },
     { id: "members", label: "Membres", icon: "👥" },
   ];
 
@@ -244,12 +249,12 @@ export default function SettingsPage() {
                       <label className="block text-sm font-medium text-black dark:text-white mb-2">
                         Adresse *
                       </label>
-                      <input
-                        type="text"
+                      <textarea
                         value={companyInfo.address}
                         onChange={(e) =>
                           handleCompanyChange("address", e.target.value)
                         }
+                        rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
                       />
                     </div>
@@ -292,7 +297,7 @@ export default function SettingsPage() {
                         onChange={(e) =>
                           handleCompanyChange(
                             "numberOfEmployees",
-                            parseInt(e.target.value) || 0
+                            parseInt(e.target.value)
                           )
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:border-strokedark dark:bg-boxdark"
@@ -302,14 +307,101 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {activeTab === "members" && (
+              {activeTab === "blockchain" && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-black dark:text-white">
-                    Membres de l'Entreprise
-                  </h3>
-                  <WorkspaceMembers user={user} />
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-black dark:text-white">
+                      Configuration Blockchain
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      {isConnected ? (
+                        <div className="flex items-center space-x-2 text-green-600">
+                          <CheckCircle className="h-5 w-5" />
+                          <span className="text-sm font-medium">Connecté</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2 text-yellow-600">
+                          <AlertCircle className="h-5 w-5" />
+                          <span className="text-sm font-medium">
+                            Non connecté
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                          <Shield className="h-6 w-6 text-blue-600" />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-semibold text-blue-900 mb-2">
+                          Wallet Blockchain
+                        </h4>
+                        <p className="text-blue-800 mb-4">
+                          Connectez votre wallet pour signer les transactions
+                          blockchain lors de la création et modification des
+                          cartes d'assurance. Cela garantit la sécurité et
+                          l'immutabilité des données.
+                        </p>
+
+                        <div className="space-y-4">
+                          <div className="flex justify-center">
+                            <ConnectButton showBalance={false} />
+                          </div>
+
+                          {isConnected && address && (
+                            <div className="bg-white rounded-lg p-4 border border-blue-200">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Wallet className="h-4 w-4 text-green-600" />
+                                <span className="text-sm font-medium text-green-800">
+                                  Wallet connecté
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-600 font-mono break-all">
+                                {address}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                      Informations sur la Blockchain
+                    </h4>
+                    <div className="space-y-3 text-sm text-gray-700">
+                      <div className="flex items-start space-x-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p>
+                          <strong>Réseau :</strong> Ethereum Sepolia (testnet)
+                        </p>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p>
+                          <strong>Sécurité :</strong> Chaque carte d'assurance
+                          est enregistrée sur la blockchain
+                        </p>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p>
+                          <strong>Traçabilité :</strong> Toutes les transactions
+                          sont publiques et vérifiables
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {activeTab === "members" && <WorkspaceMembers user={user} />}
             </div>
           </div>
         </div>

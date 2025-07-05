@@ -40,10 +40,9 @@ export async function GET(request: NextRequest) {
 
     // Recherche universelle : nom, CIN, NIF, numéro de carte, numéro de police
     if (search) {
-      whereClause.OR = [
+      const searchConditions: any[] = [
         { cardNumber: { contains: search, mode: "insensitive" } },
         { insuredPersonName: { contains: search, mode: "insensitive" } },
-        { policyNumber: { equals: BigInt(search) || BigInt(0) } },
         {
           insuredPerson: {
             OR: [
@@ -56,6 +55,20 @@ export async function GET(request: NextRequest) {
           },
         },
       ];
+
+      // Essayer de convertir en BigInt seulement si c'est un nombre
+      const numericSearch = search.replace(/\s/g, ""); // Enlever les espaces
+      if (/^\d+$/.test(numericSearch)) {
+        try {
+          searchConditions.push({
+            policyNumber: { equals: BigInt(numericSearch) },
+          });
+        } catch (error) {
+          console.log("Impossible de convertir en BigInt:", search);
+        }
+      }
+
+      whereClause.OR = searchConditions;
     }
 
     const insuranceCards = await prisma.insuranceCard.findMany({
