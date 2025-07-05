@@ -4,6 +4,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/",
+  "/explorer",
   "/api/(.*)", // Exclure toutes les routes API de la protection
 ]);
 
