@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useAccount, useReadContract } from "wagmi";
-import { contractAddress, contractAbi } from "@/constants";
-
-interface BlockchainCard {
-  id: bigint;
-  cardNumber: string;
-  issuedOn: bigint;
-  status: string;
-  insuranceCompany: string;
-}
+import { useState, useEffect } from "react";
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Search,
+  CreditCard,
+  Shield,
+  AlertTriangle,
+} from "lucide-react";
+import { useContractRead } from "wagmi";
+import { contractAbi } from "../../constants";
 
 interface DatabaseCard {
   id: number;
@@ -43,71 +44,106 @@ interface DatabaseCard {
   } | null;
 }
 
-interface SearchResult {
-  blockchainCard?: BlockchainCard;
-  databaseCard?: DatabaseCard;
+interface BlockchainCard {
+  id: number;
+  cardNumber: string;
+  issuedOn: number;
+  status: string;
+  insuranceCompany: string;
 }
 
 export default function BlockchainExplorerPage() {
-  const { address, isConnected } = useAccount();
   const [searchValue, setSearchValue] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchResult, setSearchResult] = useState<DatabaseCard | null>(null);
+  const [blockchainData, setBlockchainData] = useState<BlockchainCard | null>(
+    null
+  );
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [verificationStatus, setVerificationStatus] = useState<
+    "pending" | "verified" | "mismatch" | "not-found"
+  >("pending");
+  const [isClient, setIsClient] = useState(false);
 
-  // Lecture des cartes pour l'adresse connectée (blockchain)
-  const {
-    data: userCards,
-    isLoading: isLoadingBlockchain,
-    error: blockchainError,
-  } = useReadContract({
-    address: contractAddress,
+  // Éviter l'hydratation avec des données qui changent
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Lecture des données blockchain
+  const { data: blockchainCards } = useContractRead({
+    address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
     abi: contractAbi,
     functionName: "getInsuranceCards",
-    args: [address || ""],
-    query: {
-      enabled: !!address,
-    },
+    args: [process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`],
   });
 
-  // Lecture du nextId pour vérifier l'état du contrat
-  const { data: nextId } = useReadContract({
-    address: contractAddress,
-    abi: contractAbi,
-    functionName: "nextId",
-  });
-
-  // Recherche universelle dans la base de données
-  const searchInDatabase = async (searchTerm: string) => {
-    try {
-      const params = new URLSearchParams();
-      params.append("search", searchTerm);
-      params.append("all", "true"); // Toujours recherche globale
-
-      const response = await fetch(`/api/insurance-cards?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Erreur lors de la recherche:", error);
-      return [];
-    }
-  };
-
-  const handleSearch = async () => {
+  // Recherche ultra-simple
+  const searchCard = async () => {
     if (!searchValue.trim()) return;
 
     setIsSearching(true);
     setSearchError("");
-    setSearchResults([]);
+    setSearchResult(null);
+    setBlockchainData(null);
+    setVerificationStatus("pending");
 
     try {
-      const dbResults = await searchInDatabase(searchValue);
-      const results: SearchResult[] = dbResults.map((dbCard: DatabaseCard) => ({
-        databaseCard: dbCard,
-      }));
-      setSearchResults(results);
+      const params = new URLSearchParams();
+      params.append("search", searchValue);
+      params.append("all", "true");
+
+      const response = await fetch(`/api/insurance-cards?${params.toString()}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Erreur HTTP:", response.status, errorText);
+        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+      }
+
+      const results = await response.json();
+
+      if (results.length > 0) {
+        const dbCard = results[0];
+        setSearchResult(dbCard);
+
+        // Vérifier les données blockchain
+        if (dbCard.blockchainReference && blockchainCards) {
+          const blockchainCard = (blockchainCards as any[]).find(
+            (card: any) =>
+              card.id.toString() ===
+              dbCard.blockchainReference?.reference.toString()
+          );
+
+          if (blockchainCard) {
+            setBlockchainData({
+              id: Number(blockchainCard.id),
+              cardNumber: blockchainCard.cardNumber,
+              issuedOn: Number(blockchainCard.issuedOn),
+              status: blockchainCard.status,
+              insuranceCompany: blockchainCard.insuranceCompany,
+            });
+
+            // Vérifier la cohérence
+            const isCardNumberMatch =
+              blockchainCard.cardNumber === dbCard.cardNumber;
+            const isStatusMatch =
+              blockchainCard.status.toLowerCase() ===
+              dbCard.status.toLowerCase();
+
+            if (isCardNumberMatch && isStatusMatch) {
+              setVerificationStatus("verified");
+            } else {
+              setVerificationStatus("mismatch");
+            }
+          } else {
+            setVerificationStatus("not-found");
+          }
+        } else {
+          setVerificationStatus("not-found");
+        }
+      } else {
+        setSearchError("Aucune carte trouvée");
+      }
     } catch (error) {
       setSearchError("Erreur lors de la recherche");
       console.error("Erreur de recherche:", error);
@@ -116,322 +152,419 @@ export default function BlockchainExplorerPage() {
     }
   };
 
-  const loadAllCards = async () => {
-    setIsSearching(true);
-    setSearchError("");
-    setSearchResults([]);
-
-    try {
-      const dbResults = await searchInDatabase("");
-      const results: SearchResult[] = dbResults.map((dbCard: DatabaseCard) => ({
-        databaseCard: dbCard,
-      }));
-      setSearchResults(results);
-    } catch (error) {
-      setSearchError("Erreur lors de la récupération de toutes les cartes");
-      console.error("Erreur:", error);
-    } finally {
-      setIsSearching(false);
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
+      case "inactive":
+        return <Clock className="h-6 w-6 text-yellow-500" />;
+      case "revoked":
+        return <XCircle className="h-6 w-6 text-red-500" />;
+      default:
+        return <Clock className="h-6 w-6 text-gray-500" />;
     }
   };
 
-  const formatDate = (timestamp: bigint | string) => {
-    const date =
-      typeof timestamp === "bigint"
-        ? new Date(Number(timestamp) * 1000)
-        : new Date(timestamp);
+  const getStatusText = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return "Carte Valide";
+      case "inactive":
+        return "Carte Inactive";
+      case "revoked":
+        return "Carte Révoquée";
+      default:
+        return "Statut Inconnu";
+    }
+  };
 
+  const getVerificationIcon = () => {
+    switch (verificationStatus) {
+      case "verified":
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
+      case "mismatch":
+        return <AlertTriangle className="h-6 w-6 text-yellow-500" />;
+      case "not-found":
+        return <XCircle className="h-6 w-6 text-red-500" />;
+      default:
+        return <Clock className="h-6 w-6 text-gray-400" />;
+    }
+  };
+
+  const getVerificationText = () => {
+    switch (verificationStatus) {
+      case "verified":
+        return "✅ Vérification Blockchain Réussie";
+      case "mismatch":
+        return "⚠️ Données Incohérentes";
+      case "not-found":
+        return "❌ Non Trouvé sur Blockchain";
+      default:
+        return "⏳ Vérification en cours...";
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    // Éviter l'hydratation avec des dates qui changent
+    if (!isClient) return "";
+
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "UTC", // Forcer UTC pour la cohérence
+    });
+  };
+
+  const formatBlockchainDate = (timestamp: number) => {
+    // Utiliser UTC pour éviter les problèmes de fuseau horaire
+    const date = new Date(timestamp * 1000);
     return date.toLocaleDateString("fr-FR", {
       year: "numeric",
       month: "long",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      timeZone: "UTC", // Forcer UTC pour la cohérence
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
-        return "bg-gray-100 text-gray-800";
-      case "expired":
-        return "bg-red-100 text-red-800";
-      case "suspended":
-        return "bg-yellow-100 text-yellow-800";
-      case "revoked":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-blue-100 text-blue-800";
-    }
-  };
-
-  return (
-    <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-black dark:text-white mb-2">
-          🔍 Explorateur Blockchain
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Trouvez rapidement une carte d'assurance
-        </p>
-      </div>
-
-      {/* Informations du contrat */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Contrat Blockchain
-            </label>
-            <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">
-              {contractAddress}
+  // Éviter l'hydratation complète si pas côté client
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center mb-4">
+              <Shield className="h-12 w-12 text-blue-600 mr-3" />
+              <h1 className="text-3xl font-bold text-gray-900">
+                Vérification Carte d'Assurance
+              </h1>
+            </div>
+            <p className="text-gray-600 text-lg">
+              Entrez le numéro de carte, CIN ou nom pour vérifier la validité
             </p>
           </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Total Cartes
-            </label>
-            <p className="text-2xl font-bold text-blue-600">
-              {nextId ? Number(nextId) : "..."}
-            </p>
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Numéro de carte, CIN ou nom..."
+                    className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  disabled
+                  className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center"
+                >
+                  <Search className="h-5 w-5 mr-2" />
+                  Vérifier
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Comment vérifier une carte d'assurance ?
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold text-lg">1</span>
+                </div>
+                <p className="text-gray-600">
+                  Entrez le numéro de carte, CIN ou nom
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold text-lg">2</span>
+                </div>
+                <p className="text-gray-600">Cliquez sur "Vérifier"</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold text-lg">3</span>
+                </div>
+                <p className="text-gray-600">Consultez le résultat</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Recherche ultra-simple */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-        <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold text-black dark:text-white mb-2">
-            🔍 Recherche Rapide
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Entrez un nom, CIN, NIF, numéro de carte ou numéro de police
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto p-6">
+        {/* En-tête simple */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <Shield className="h-12 w-12 text-blue-600 mr-3" />
+            <h1 className="text-3xl font-bold text-gray-900">
+              Vérification Carte d'Assurance
+            </h1>
+          </div>
+          <p className="text-gray-600 text-lg">
+            Entrez le numéro de carte, CIN ou nom pour vérifier la validité
           </p>
         </div>
 
-        {/* Barre de recherche unique */}
-        <div className="flex gap-4 max-w-2xl mx-auto">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Ex: John Wick, 123456789, 5258 97..."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
-            />
+        {/* Recherche ultra-simple */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Numéro de carte, CIN ou nom..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && searchCard()}
+                  className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <button
+                onClick={searchCard}
+                disabled={!searchValue.trim() || isSearching}
+                className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center"
+              >
+                {isSearching ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Recherche...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-5 w-5 mr-2" />
+                    Vérifier
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleSearch}
-            disabled={!searchValue.trim() || isSearching}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            {isSearching ? "🔍" : "Rechercher"}
-          </button>
-        </div>
 
-        {/* Bouton voir toutes les cartes */}
-        <div className="text-center mt-6">
-          <button
-            onClick={loadAllCards}
-            disabled={isSearching}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            {isSearching ? "⏳" : "📋 Voir Toutes les Cartes"}
-          </button>
-        </div>
-
-        {searchError && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md max-w-2xl mx-auto">
-            <p className="text-red-600 text-sm">{searchError}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Mes cartes blockchain (si connecté) */}
-      {isConnected && address && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-black dark:text-white mb-4">
-            🏢 Mes Cartes Blockchain
-          </h2>
-
-          {isLoadingBlockchain ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <span className="text-gray-600 dark:text-gray-400">
-                Chargement...
-              </span>
-            </div>
-          ) : blockchainError ? (
-            <div className="text-center py-8 text-red-500">
-              Erreur: {blockchainError.message}
-            </div>
-          ) : Array.isArray(userCards) && userCards.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {userCards.map((card: BlockchainCard, index: number) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-black dark:text-white">
-                      Carte #{Number(card.id)}
-                    </h3>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(card.status)}`}
-                    >
-                      {card.status}
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="font-medium">Numéro:</span>{" "}
-                      {card.cardNumber}
-                    </div>
-                    <div>
-                      <span className="font-medium">Date:</span>{" "}
-                      {formatDate(card.issuedOn)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-              Aucune carte blockchain trouvée
+          {searchError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg max-w-2xl mx-auto">
+              <p className="text-red-600 text-center">{searchError}</p>
             </div>
           )}
         </div>
-      )}
 
-      {/* Résultats de recherche */}
-      {searchResults.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-black dark:text-white mb-4">
-            📋 Résultats ({searchResults.length} carte(s))
-          </h2>
-
-          <div className="space-y-4">
-            {searchResults.map((result, index) => {
-              const card = result.databaseCard;
-              if (!card) return null;
-
-              return (
-                <div
-                  key={index}
-                  className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-black dark:text-white">
-                      {card.insuredPerson.firstName}{" "}
-                      {card.insuredPerson.lastName}
-                    </h3>
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(card.status)}`}
-                    >
-                      {card.status}
-                    </span>
+        {/* Résultat avec vérification blockchain */}
+        {searchResult && (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="max-w-4xl mx-auto">
+              {/* En-tête avec statut et vérification blockchain */}
+              <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {searchResult.insuredPerson.firstName}{" "}
+                    {searchResult.insuredPerson.lastName}
+                  </h2>
+                  <p className="text-gray-600">
+                    Carte: {searchResult.cardNumber}
+                  </p>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="flex items-center justify-center">
+                    {getStatusIcon(searchResult.status)}
+                    <p className="text-sm font-medium ml-2">
+                      {getStatusText(searchResult.status)}
+                    </p>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Informations principales */}
-                    <div className="space-y-2">
-                      <div>
-                        <span className="font-medium">Carte:</span>{" "}
-                        {card.cardNumber}
-                      </div>
-                      <div>
-                        <span className="font-medium">Police:</span>{" "}
-                        {card.policyNumber}
-                      </div>
-                      <div>
-                        <span className="font-medium">Email:</span>{" "}
-                        {card.insuredPerson.email}
-                      </div>
-                      <div>
-                        <span className="font-medium">CIN:</span>{" "}
-                        {card.insuredPerson.cin}
-                      </div>
-                      <div>
-                        <span className="font-medium">NIF:</span>{" "}
-                        {card.insuredPerson.nif}
-                      </div>
-                    </div>
-
-                    {/* Dates */}
-                    <div className="space-y-2">
-                      <div>
-                        <span className="font-medium">Naissance:</span>{" "}
-                        {formatDate(card.dateOfBirth)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Effet:</span>{" "}
-                        {formatDate(card.policyEffectiveDate)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Validité:</span>{" "}
-                        {formatDate(card.validUntil)}
-                      </div>
-                      {card.hadDependent && (
-                        <div>
-                          <span className="font-medium">Dépendants:</span>{" "}
-                          {card.numberOfDependent}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Compagnie et blockchain */}
-                    <div className="space-y-2">
-                      <div>
-                        <span className="font-medium">Compagnie:</span>{" "}
-                        {card.insuranceCompany.name}
-                      </div>
-                      {card.blockchainReference && (
-                        <>
-                          <div>
-                            <span className="font-medium">Référence:</span>{" "}
-                            {card.blockchainReference.reference}
-                          </div>
-                          <div className="text-xs">
-                            <span className="font-medium">Hash:</span>{" "}
-                            {card.blockchainReference.blockchainTxHash.slice(
-                              0,
-                              20
-                            )}
-                            ...
-                          </div>
-                        </>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-center">
+                    {getVerificationIcon()}
+                    <p className="text-sm font-medium ml-2">
+                      {getVerificationText()}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+              </div>
 
-      {/* Instructions simples */}
-      {searchResults.length === 0 && !isSearching && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
-          <h2 className="text-xl font-semibold text-black dark:text-white mb-4">
-            💡 Comment utiliser
-          </h2>
-          <div className="space-y-2 text-gray-600 dark:text-gray-400">
-            <p>
-              <strong>1.</strong> Entrez un nom, CIN, NIF ou numéro de carte
-            </p>
-            <p>
-              <strong>2.</strong> Cliquez sur "Rechercher"
-            </p>
-            <p>
-              <strong>3.</strong> Ou cliquez sur "Voir Toutes les Cartes"
-            </p>
+              {/* Informations essentielles */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Données de la base de données */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                    📊 Données Base de Données
+                  </h3>
+
+                  <div className="flex items-center">
+                    <CreditCard className="h-5 w-5 text-blue-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        Police #{searchResult.policyNumber}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {searchResult.insuranceCompany.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-medium text-gray-900">Validité</p>
+                    <p className="text-sm text-gray-600">
+                      {isClient ? (
+                        <>
+                          Du {formatDate(searchResult.policyEffectiveDate)} au{" "}
+                          {formatDate(searchResult.validUntil)}
+                        </>
+                      ) : (
+                        <span className="text-gray-400">Chargement...</span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-medium text-gray-900">Identité</p>
+                    <p className="text-sm text-gray-600">
+                      CIN: {searchResult.insuredPerson.cin} | NIF:{" "}
+                      {searchResult.insuredPerson.nif}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-medium text-gray-900">Contact</p>
+                    <p className="text-sm text-gray-600">
+                      {searchResult.insuredPerson.email}
+                    </p>
+                  </div>
+
+                  {searchResult.hadDependent && (
+                    <div>
+                      <p className="font-medium text-gray-900">Dépendants</p>
+                      <p className="text-sm text-gray-600">
+                        {searchResult.numberOfDependent} personne(s)
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Données blockchain */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                    ⛓️ Données Blockchain
+                  </h3>
+
+                  {blockchainData && isClient ? (
+                    <>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Référence Blockchain
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          #{blockchainData.id}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Numéro de Carte
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {blockchainData.cardNumber}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Date d'Émission
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {isClient
+                            ? formatBlockchainDate(blockchainData.issuedOn)
+                            : "Chargement..."}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium text-gray-900">Statut</p>
+                        <p className="text-sm text-gray-600">
+                          {blockchainData.status}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="font-medium text-gray-900">Compagnie</p>
+                        <p className="text-sm text-gray-600">
+                          {blockchainData.insuranceCompany}
+                        </p>
+                      </div>
+
+                      {searchResult.blockchainReference && (
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            Transaction Hash
+                          </p>
+                          <p className="text-sm text-gray-600 font-mono">
+                            {searchResult.blockchainReference.blockchainTxHash}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">
+                        Aucune donnée blockchain trouvée
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Bouton nouvelle recherche */}
+              <div className="text-center mt-8">
+                <button
+                  onClick={() => {
+                    setSearchValue("");
+                    setSearchResult(null);
+                    setBlockchainData(null);
+                    setSearchError("");
+                    setVerificationStatus("pending");
+                  }}
+                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
+                >
+                  Nouvelle Recherche
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Instructions simples */}
+        {!searchResult && !isSearching && (
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Comment vérifier une carte d'assurance ?
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold text-lg">1</span>
+                </div>
+                <p className="text-gray-600">
+                  Entrez le numéro de carte, CIN ou nom
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold text-lg">2</span>
+                </div>
+                <p className="text-gray-600">Cliquez sur "Vérifier"</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold text-lg">3</span>
+                </div>
+                <p className="text-gray-600">Consultez le résultat</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

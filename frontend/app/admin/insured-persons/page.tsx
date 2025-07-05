@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
 import InsuredPersonTable from "../components/Tables/InsuredPersonTable";
 import { ConfirmationModal } from "../components/ui/confirmation-modal";
 import { AddIcon, SearchIcon } from "../assets/icons";
@@ -12,7 +11,6 @@ import {
   CreateInsuredPersonData,
   UpdateInsuredPersonData,
 } from "../../../hooks/useInsuredPersons";
-import { AuthenticationInfo } from "../components/ui/authentication-info";
 import { useEnterprises } from "../../../hooks/useEnterprises";
 import { Dependent } from "../../../hooks/useDependents";
 
@@ -324,42 +322,6 @@ const InsuredPersonsPage = () => {
 
   return (
     <>
-      <Breadcrumb pageName="Personnes Assurées" />
-
-      {/* Information sur le système d'authentification hybride */}
-      <AuthenticationInfo user={user} />
-
-      {/* Informations de la compagnie connectée */}
-      {user?.insuranceCompany && (
-        <div className="mb-6 rounded-sm border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <svg
-                className="h-4 w-4 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Compagnie connectée : {user.insuranceCompany.name}
-              </p>
-              <p className="text-xs text-blue-600 dark:text-blue-300">
-                Vous visualisez uniquement les assurés de votre compagnie
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
