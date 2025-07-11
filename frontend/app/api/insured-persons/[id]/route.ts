@@ -151,9 +151,14 @@ export async function PUT(
 }
 
 // DELETE - Supprimer un assuré
-export async function DELETE({ params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const id = parseInt(params.id);
+    const body = await request.json();
+    console.log(body);
 
     // Vérifier si l'assuré existe
     const existingPerson = await prisma.insuredPerson.findUnique({
