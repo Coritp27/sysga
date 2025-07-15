@@ -1,5 +1,18 @@
 version: "3.8"
 services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: sysga
+      POSTGRES_USER: sysga
+      POSTGRES_PASSWORD: sysga123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sysga
+
   backend:
     build:
       context: ./backend
@@ -18,11 +31,13 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - DATABASE_URL=postgresql://sysga:sysga123@postgres:5432/sysga
     depends_on:
+      - postgres
       - backend
     volumes:
       - ./frontend:/app
-    command: yarn dev
+    command: sh -c "npx prisma migrate deploy && yarn dev"
     networks:
       - sysga
 
@@ -36,6 +51,9 @@ services:
     command: sh -c "sleep 10 && npx hardhat ignition deploy ./ignition/modules/SysGa.js && npx hardhat test"
     networks:
       - sysga
+
+volumes:
+  postgres_data:
 
 networks:
   sysga:
