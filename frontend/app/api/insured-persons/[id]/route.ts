@@ -151,7 +151,10 @@ export async function PUT(
 }
 
 // DELETE - Supprimer un assuré
-export async function DELETE({ params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const id = parseInt(params.id);
 
