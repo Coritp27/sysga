@@ -1,24 +1,16 @@
 "use client";
 import "@rainbow-me/rainbowkit/styles.css";
 
-import {
-  getDefaultConfig,
-  RainbowKitProvider,
-  darkTheme,
-} from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { http } from "wagmi";
 
 const config = getDefaultConfig({
   appName: "SYSGA Insurance System",
   projectId: "b7e487bd30ff27535b63f6fbe1b52954",
   chains: [sepolia],
-  transports: {
-    [sepolia.id]: http("https://rpc.sepolia.org"),
-  },
-  ssr: true, // If your dApp uses server side rendering (SSR)
+  ssr: true,
 });
 
 const queryClient = new QueryClient();
