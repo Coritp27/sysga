@@ -11,6 +11,7 @@
     "@typechain/hardhat": "^9.0.0",
     "@types/mocha": "^9.1.0",
     "chai": "^4.2.0",
+    "dotenv": "^16.3.1",
     "ethers": "^6.14.0",
     "hardhat": "^2.24.0",
     "hardhat-gas-reporter": "^1.0.8",
@@ -22,5 +23,17 @@
   "dependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
     "@nomicfoundation/solidity-analyzer-linux-arm64-gnu": "^0.1.2"
+  },
+  "scripts": {
+    "deploy:sepolia": "hardhat ignition deploy ./ignition/modules/SysGa.js --network sepolia",
+    "deploy:mainnet": "hardhat ignition deploy ./ignition/modules/SysGa.js --network mainnet",
+    "deploy:mumbai": "hardhat ignition deploy ./ignition/modules/SysGa.js --network mumbai",
+    "verify:sepolia": "hardhat verify --network sepolia",
+    "verify:mainnet": "hardhat verify --network mainnet",
+    "verify:mumbai": "hardhat verify --network mumbai",
+    "check-balance": "hardhat run scripts/check-balance.js",
+    "interact": "hardhat run scripts/interact.js",
+    "deploy:manual": "hardhat run scripts/deploy.js",
+    "deploy:sepolia:manual": "hardhat run scripts/deploy-sepolia.js --network sepolia"
   }
 }
