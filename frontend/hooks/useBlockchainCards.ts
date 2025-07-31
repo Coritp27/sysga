@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useReadContract, useAccount } from "wagmi";
+import { useReadContract, useAccount, useChainId } from "wagmi";
 import { contractAddress, contractAbi } from "@/constants/index";
 
 export interface BlockchainCard {
@@ -17,19 +17,26 @@ export interface UseBlockchainCardsReturn {
   refetch: () => void;
   isConnected: boolean;
   walletAddress: string | null;
+  isChainSupported: boolean;
 }
 
 export const useBlockchainCards = (): UseBlockchainCardsReturn => {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const [enabled, setEnabled] = useState(false);
+
+  // Vérifier si la chaîne est supportée (Sepolia = 11155111)
+  const isChainSupported = chainId === 11155111;
 
   // Debug logs
   useEffect(() => {
     console.log("🔍 Debug useBlockchainCards:");
     console.log("- isConnected:", isConnected);
     console.log("- walletAddress:", address);
+    console.log("- chainId:", chainId);
+    console.log("- isChainSupported:", isChainSupported);
     console.log("- enabled:", enabled);
-  }, [isConnected, address, enabled]);
+  }, [isConnected, address, chainId, isChainSupported, enabled]);
 
   const {
     data: userCards,
@@ -42,13 +49,13 @@ export const useBlockchainCards = (): UseBlockchainCardsReturn => {
     functionName: "getInsuranceCards",
     args: address ? [address] : undefined,
     query: {
-      enabled: enabled && !!address,
+      enabled: enabled && !!address && isChainSupported,
     },
   });
 
   useEffect(() => {
-    setEnabled(isConnected && !!address);
-  }, [isConnected, address]);
+    setEnabled(isConnected && !!address && isChainSupported);
+  }, [isConnected, address, isChainSupported]);
 
   // Transform data
   const cards: BlockchainCard[] = Array.isArray(userCards)
@@ -68,5 +75,6 @@ export const useBlockchainCards = (): UseBlockchainCardsReturn => {
     refetch,
     isConnected,
     walletAddress: address || null,
+    isChainSupported,
   };
 };
