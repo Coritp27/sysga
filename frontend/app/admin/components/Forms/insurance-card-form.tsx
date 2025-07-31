@@ -6,7 +6,7 @@ import {
   useWaitForTransactionReceipt,
   useAccount,
 } from "wagmi";
-import { contractAddress, contractAbi } from "@/constants";
+import { contractAddress, contractAbi } from "@/constants/index";
 import { useWorkspace } from "@/hooks/useWorkspace";
 
 interface InsuredPerson {
@@ -309,18 +309,8 @@ export function InsuranceCardForm({
       console.log("- insuranceCompanyAddress:", address);
 
       // Convertir la date d'effet en timestamp
-
-      // Utiliser la même approche que CreateCard
-      console.log("🚀 Tentative de création de carte sur la blockchain:");
-      console.log("- cardNumber:", formData.cardNumber);
-      console.log("- policyNumber:", formData.policyNumber);
-      console.log("- insuredPersonName:", formData.insuredPersonName);
-      console.log("- status:", formData.status);
-      console.log("- insuranceCompanyAddress:", address);
-
-      // Convertir la date d'effet en timestamp
-      const policyEffectiveTimestamp = Math.floor(
-        new Date(formData.policyEffectiveDate).getTime() / 1000
+      const policyEffectiveTimestamp = BigInt(
+        Math.floor(new Date(formData.policyEffectiveDate).getTime() / 1000)
       );
 
       try {

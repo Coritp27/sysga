@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useReadContract, useAccount } from "wagmi";
-import { contractAddress, contractAbi } from "@/constants";
+import { contractAddress, contractAbi } from "@/constants/index";
 
 export interface BlockchainCard {
   id: bigint;
@@ -40,7 +40,7 @@ export const useBlockchainCards = (): UseBlockchainCardsReturn => {
     address: contractAddress,
     abi: contractAbi,
     functionName: "getInsuranceCards",
-    args: [address],
+    args: address ? [address] : undefined,
     query: {
       enabled: enabled && !!address,
     },
