@@ -17,9 +17,9 @@ export const BLOCKCHAIN_CONFIG = {
     sepolia: {
       chainId: 11155111,
       name: "Sepolia",
-      rpcUrl: "https://sepolia.infura.io/v3/YOUR-PROJECT-ID", // À configurer
+      rpcUrl: "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // RPC public Infura
       explorer: "https://sepolia.etherscan.io",
-      contractAddress: "0x4fB79C396dd4A48376cFF5111A36adDd40f45d69", // Contrat déployé et vérifié
+      contractAddress: "0x4fB79C396dd4A48376cFF5111A36adDd40f45d69", // ⚠️ Mettre à jour après redéploiement
     },
 
     // Ethereum mainnet (production)

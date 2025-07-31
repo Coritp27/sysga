@@ -34,6 +34,7 @@
     "check-balance": "hardhat run scripts/check-balance.js",
     "interact": "hardhat run scripts/interact.js",
     "deploy:manual": "hardhat run scripts/deploy.js",
-    "deploy:sepolia:manual": "hardhat run scripts/deploy-sepolia.js --network sepolia"
+    "deploy:sepolia:manual": "hardhat run scripts/deploy-sepolia.js --network sepolia",
+    "update-frontend-address": "node scripts/update-frontend-address.js"
   }
 }
