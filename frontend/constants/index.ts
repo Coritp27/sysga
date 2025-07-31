@@ -1,7 +1,6 @@
 // Configuration sécurisée avec variables d'environnement
-export const contractAddress =
-  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
-  "0x4fB79C396dd4A48376cFF5111A36adDd40f45d69";
+export const contractAddress = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
+  "0x4fB79C396dd4A48376cFF5111A36adDd40f45d69") as `0x${string}`;
 
 export const networkConfig = {
   sepolia: {
@@ -117,4 +116,4 @@ export const contractAbi = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
