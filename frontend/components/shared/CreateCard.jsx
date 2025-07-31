@@ -56,15 +56,47 @@ const CreateCard = () => {
     }
 
     try {
-      writeContract({
+      console.log("📡 Envoi de la transaction...");
+
+      // Ajouter un timeout pour éviter les blocages
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(
+          () =>
+            reject(new Error("Timeout: La transaction a pris trop de temps")),
+          120000
+        ); // 2 minutes
+      });
+
+      const contractPromise = writeContract({
         address: contractAddress,
         abi: contractAbi,
         functionName: "addInsuranceCard",
         args: [cardNumber, issuedOnTimestamp, status, insuranceCompanyAddress],
         account: address,
+        gas: 300000, // Limite de gas explicite
       });
+
+      // Race entre le timeout et la transaction
+      await Promise.race([contractPromise, timeoutPromise]);
+
+      console.log("✅ Transaction envoyée avec succès");
     } catch (err) {
       console.error("❌ Erreur lors de l'appel writeContract:", err);
+
+      // Gestion spécifique des erreurs de timeout
+      if (err.message.includes("Timeout")) {
+        alert(
+          "Erreur: La transaction a pris trop de temps. Veuillez réessayer ou vérifier votre connexion réseau."
+        );
+      } else if (err.message.includes("insufficient funds")) {
+        alert(
+          "Erreur: Fonds insuffisants pour payer les frais de transaction."
+        );
+      } else if (err.message.includes("user rejected")) {
+        alert("Transaction annulée par l'utilisateur.");
+      } else {
+        alert(`Erreur lors de la création de la carte: ${err.message}`);
+      }
     }
   };
 

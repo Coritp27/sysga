@@ -1,17 +1,30 @@
-export const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138";
+// Configuration sécurisée avec variables d'environnement
+export const contractAddress = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
+  "0x4fB79C396dd4A48376cFF5111A36adDd40f45d69") as `0x${string}`;
 
 export const networkConfig = {
   sepolia: {
     chainId: 11155111,
     name: "Sepolia Testnet",
-    rpcUrl: "https://sepolia.infura.io/v3/YOUR-PROJECT-ID",
+    rpcUrl:
+      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL ||
+      `https://sepolia.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_PROJECT_ID}`,
     explorer: "https://sepolia.etherscan.io",
   },
   polygonMumbai: {
     chainId: 80001,
     name: "Polygon Mumbai",
-    rpcUrl: "https://polygon-mumbai.infura.io/v3/YOUR-PROJECT-ID",
+    rpcUrl:
+      process.env.NEXT_PUBLIC_MUMBAI_RPC_URL ||
+      `https://polygon-mumbai.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_PROJECT_ID}`,
     explorer: "https://mumbai.polygonscan.com",
+  },
+  localhost: {
+    chainId: 1337,
+    name: "Localhost",
+    rpcUrl:
+      process.env.NEXT_PUBLIC_LOCALHOST_RPC_URL || "http://localhost:8545",
+    explorer: null,
   },
 };
 
@@ -103,4 +116,4 @@ export const contractAbi = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;

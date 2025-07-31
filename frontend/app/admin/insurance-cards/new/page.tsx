@@ -7,7 +7,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { contractAddress, contractAbi } from "@/constants";
+import { contractAddress, contractAbi } from "@/constants/index";
 import Breadcrumb from "../../components/Breadcrumbs/Breadcrumb";
 
 interface InsuredPerson {
@@ -228,11 +228,17 @@ export default function NewInsuranceCardPage() {
 
     try {
       // Convertir la date d'émission en timestamp Unix pour la blockchain
-      const issuedOnTimestamp = Math.floor(
-        new Date(formData.policyEffectiveDate).getTime() / 1000
+      const issuedOnTimestamp = BigInt(
+        Math.floor(new Date(formData.policyEffectiveDate).getTime() / 1000)
       );
 
       // Appel au smart contract
+      if (!address) {
+        alert("Erreur: Adresse wallet non disponible");
+        setIsSubmitting(false);
+        return;
+      }
+
       writeContract({
         address: contractAddress,
         abi: contractAbi,
