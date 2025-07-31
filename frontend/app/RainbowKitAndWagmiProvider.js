@@ -9,7 +9,11 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 const config = createConfig({
   chains: [sepolia],
   transports: {
-    [sepolia.id]: http(),
+    [sepolia.id]: http("https://rpc.sepolia.org", {
+      timeout: 30000, // 30 secondes
+      retryCount: 3,
+      retryDelay: 1000,
+    }),
   },
 });
 
