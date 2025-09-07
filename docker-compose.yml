@@ -32,12 +32,43 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://sysga:sysga123@postgres:5432/sysga
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER:-}
+      - EMAIL_SERVICE=${EMAIL_SERVICE:-gmail}
+      - EMAIL_USER=${EMAIL_USER:-}
+      - EMAIL_PASS=${EMAIL_PASS:-}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-}
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL:-}
     depends_on:
       - postgres
       - backend
     volumes:
       - ./frontend:/app
-    command: sh -c "npx prisma migrate deploy && yarn dev"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && yarn dev"
+    networks:
+      - sysga
+
+  prisma-studio:
+    build:
+      context: ./frontend
+    ports:
+      - "5555:5555"
+    environment:
+      - DATABASE_URL=postgresql://sysga:sysga123@postgres:5432/sysga
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER:-}
+      - EMAIL_SERVICE=${EMAIL_SERVICE:-gmail}
+      - EMAIL_USER=${EMAIL_USER:-}
+      - EMAIL_PASS=${EMAIL_PASS:-}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-}
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL:-}
+    depends_on:
+      - postgres
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npx prisma generate && npx prisma studio --hostname 0.0.0.0 --port 5555"
     networks:
       - sysga
 
