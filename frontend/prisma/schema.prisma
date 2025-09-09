@@ -230,3 +230,19 @@ model MedicalInstitution {
   fiscalNumber      String
   numberOfEmployees Int
 }
+
+model OTPVerification {
+  id          Int      @id @default(autoincrement())
+  cardNumber  String
+  phoneNumber String?
+  email       String?
+  otpCode     String
+  isUsed      Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  
+  @@index([cardNumber, otpCode])
+  @@index([expiresAt])
+}
