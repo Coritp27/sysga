@@ -110,7 +110,6 @@ export async function POST(request: NextRequest) {
       validUntil: insuranceCard.validUntil,
       status: insuranceCard.status,
       hadDependent: insuranceCard.hadDependent,
-      numberOfDependent: insuranceCard.numberOfDependent,
       insuredPerson: insuranceCard.insuredPerson,
       insuranceCompany: insuranceCard.insuranceCompany,
       blockchainReference: insuranceCard.blockchainReference,
