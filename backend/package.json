@@ -22,7 +22,9 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
-    "@nomicfoundation/solidity-analyzer-linux-arm64-gnu": "^0.1.2"
+    "@nomicfoundation/solidity-analyzer-linux-arm64-gnu": "^0.1.2",
+    "fp-ts": "^2.16.0",
+    "io-ts": "^2.2.20"
   },
   "scripts": {
     "deploy:sepolia": "hardhat ignition deploy ./ignition/modules/SysGa.js --network sepolia",
