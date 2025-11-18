@@ -56,8 +56,8 @@ async function testSMS() {
   if (!accountSid || !authToken || !fromPhoneNumber) {
     console.log("❌ Credentials Twilio manquants dans le fichier .env");
     console.log("📝 Vérifiez que votre fichier .env contient :");
-    console.log("   TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-    console.log("   TWILIO_AUTH_TOKEN=votre_auth_token");
+    console.log("   TWILIO_ACCOUNT_SID=YOUR_TWILIO_ACCOUNT_SID");
+    console.log("   TWILIO_AUTH_TOKEN=YOUR_TWILIO_AUTH_TOKEN");
     console.log("   TWILIO_PHONE_NUMBER=+1234567890");
     return;
   }
