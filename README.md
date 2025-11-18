@@ -16,6 +16,23 @@ SYSGA est une application d'assurance décentralisée qui permet de gérer et tr
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
+### Diagramme des modules
+
+```mermaid
+flowchart LR
+  U[Utilisateur web] --> FE[Frontend]
+  subgraph FrontendZone["Frontend (Next.js)"]
+    FE --> DB[(PostgreSQL)]
+    FE --> Auth[(Clerk)]
+    FE --> SMS[(Twilio)]
+    FE --> Mail[(SendGrid)]
+    FE --> RPC[(RPC Ethereum)]
+  end
+  subgraph BackendZone["Blockchain(Hardhat)"]
+    RPC --> SC[Smart contract SysGa.sol]
+  end
+```
+
 ## 🎯 Environnements de Déploiement
 
 ### 🔧 **Développement Local** (Recommandé pour commencer)
