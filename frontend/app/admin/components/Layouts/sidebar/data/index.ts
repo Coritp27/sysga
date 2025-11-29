@@ -2,17 +2,12 @@ import * as Icons from "../icons";
 
 export const NAV_DATA = [
   {
-    label: "GESTION D'ASSURANCE",
     items: [
       {
-        title: "Dashboard",
+        title: "Tableau de bord",
+        url: "/admin/dashboard",
         icon: Icons.HomeIcon,
-        items: [
-          {
-            title: "Dashboard",
-            url: "/admin/dashboard",
-          },
-        ],
+        items: [],
       },
       {
         title: "Gestion des Assurés",
@@ -58,22 +53,6 @@ export const NAV_DATA = [
     ],
   },
   {
-    label: "BLOCKCHAIN",
-    items: [
-      {
-        title: "Références",
-        url: "/admin/blockchain-references",
-        icon: Icons.FourCircle,
-        items: [
-          {
-            title: "Liste des Références",
-            url: "/admin/blockchain-references",
-          },
-        ],
-      },
-    ],
-  },
-  {
     label: "SYSTÈME",
     items: [
       {
@@ -89,16 +68,6 @@ export const NAV_DATA = [
           {
             title: "Paramètres",
             url: "/admin/settings",
-          },
-        ],
-      },
-      {
-        title: "Rapports",
-        icon: Icons.PieChart,
-        items: [
-          {
-            title: "Rapports",
-            url: "/admin/reports",
           },
         ],
       },

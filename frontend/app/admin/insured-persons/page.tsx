@@ -321,202 +321,197 @@ const InsuredPersonsPage = () => {
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Personnes Assurées
-            </h1>
-            <p className="text-muted-foreground">
-              Gérez toutes les personnes assurées dans le système
-            </p>
-          </div>
-          <button
-            onClick={openCreateForm}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
-          >
-            <AddIcon className="mr-2 h-4 w-4" />
-            <span>Nouvelle Personne</span>
-          </button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Liste des Assurés
+          </h1>
         </div>
+        <button
+          onClick={openCreateForm}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+        >
+          <AddIcon className="mr-2 h-4 w-4" />
+          <span>Nouveau Assuré</span>
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
-          <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total Personnes
-                </p>
-                <p className="text-2xl font-bold text-black dark:text-white">
-                  {loading ? "..." : totalPersons.toLocaleString()}
-                </p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <svg
-                  className="h-6 w-6 text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-              </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+        <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Total des Assurés
+              </p>
+              <p className="text-2xl font-bold text-black dark:text-white">
+                {loading ? "..." : totalPersons.toLocaleString()}
+              </p>
             </div>
-          </div>
-
-          <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Actives
-                </p>
-                <p className="text-2xl font-bold text-black dark:text-white">
-                  {loading ? "..." : activePersons.toLocaleString()}
-                </p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <svg
-                  className="h-6 w-6 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Nouvelles Ce Mois
-                </p>
-                <p className="text-2xl font-bold text-black dark:text-white">
-                  {loading ? "..." : newThisMonth.toLocaleString()}
-                </p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <svg
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  En Attente
-                </p>
-                <p className="text-2xl font-bold text-black dark:text-white">
-                  {loading
-                    ? "..."
-                    : (totalPersons - activePersons).toLocaleString()}
-                </p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                <svg
-                  className="h-6 w-6 text-yellow-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <div className="rounded-sm border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-            <p className="text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        )}
-
-        <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark mt-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-black dark:text-white">
-              Liste des Personnes Assurées
-            </h3>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher une personne..."
-                  value={searchTerm}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setSearchTerm(e.target.value)
-                  }
-                  className="pl-10 w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-primary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                 />
-              </div>
+              </svg>
             </div>
           </div>
-          <InsuredPersonTable
-            insuredPersons={insuredPersons}
-            loading={loading}
-            searchTerm={searchTerm}
-            onEdit={openEditForm}
-            onDelete={openDeleteModal}
-          />
         </div>
 
-        {/* Modal de formulaire */}
-        <InsuredPersonForm
-          isOpen={isFormOpen}
-          onClose={closeForm}
-          onSubmit={handleFormSubmit}
-          initialData={
-            editingPerson ? transformToFormData(editingPerson) : undefined
-          }
-          mode={formMode}
-          enterprises={enterprises}
-        />
+        <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Actives
+              </p>
+              <p className="text-2xl font-bold text-black dark:text-white">
+                {loading ? "..." : activePersons.toLocaleString()}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
 
-        {/* Modal de confirmation de suppression */}
-        <ConfirmationModal
-          isOpen={isDeleteModalOpen}
-          onClose={closeDeleteModal}
-          onConfirm={confirmDelete}
-          title="Confirmer la suppression"
-          message={`Êtes-vous sûr de vouloir supprimer ${deletingPerson?.firstName} ${deletingPerson?.lastName} ? Cette action est irréversible.`}
-          confirmText="Supprimer"
-          cancelText="Annuler"
-          type="danger"
+        <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Récents
+              </p>
+              <p className="text-2xl font-bold text-black dark:text-white">
+                {loading ? "..." : newThisMonth.toLocaleString()}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Expirés
+              </p>
+              <p className="text-2xl font-bold text-black dark:text-white">
+                {loading
+                  ? "..."
+                  : (totalPersons - activePersons).toLocaleString()}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-yellow-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-sm border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+          <p className="text-red-600 dark:text-red-400">{error}</p>
+        </div>
+      )}
+
+      <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark mt-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-black dark:text-white">
+            Liste des Assurés
+          </h3>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Rechercher une personne..."
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearchTerm(e.target.value)
+                }
+                className="pl-10 w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          </div>
+        </div>
+        <InsuredPersonTable
+          insuredPersons={insuredPersons}
+          loading={loading}
+          searchTerm={searchTerm}
+          onEdit={openEditForm}
+          onDelete={openDeleteModal}
         />
       </div>
-    </>
+
+      {/* Modal de formulaire */}
+      <InsuredPersonForm
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        onSubmit={handleFormSubmit}
+        initialData={
+          editingPerson ? transformToFormData(editingPerson) : undefined
+        }
+        mode={formMode}
+        enterprises={enterprises}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer ${deletingPerson?.firstName} ${deletingPerson?.lastName} ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
+    </div>
   );
 };
 
