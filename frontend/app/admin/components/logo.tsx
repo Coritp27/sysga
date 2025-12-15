@@ -9,7 +9,7 @@ export function Logo() {
         width={120}
         height={32}
         className="h-8 w-auto dark:hidden"
-        alt="SYSGA"
+        alt="VeriCarte"
         priority
       />
       <Image
@@ -17,7 +17,7 @@ export function Logo() {
         width={120}
         height={32}
         className="h-8 w-auto hidden dark:block"
-        alt="SYSGA"
+        alt="VeriCarte"
         priority
       />
     </div>

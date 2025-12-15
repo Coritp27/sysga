@@ -18,21 +18,16 @@ const DashboardPage = () => {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard SYSGA</h1>
-        <p className="text-muted-foreground">
-          Système de Gestion d'Assurance - Interface de gestion des cartes
-          d'assurance avec intégration blockchain
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Tableau de bord
+        </h1>
       </div>
 
       {/* Wallet Status */}
       <WalletStatus />
 
-      {/* Blockchain Info */}
-      <BlockchainInfo />
-
       {/* Stats Cards */}
-      <DashboardStats />
+      {/* <DashboardStats /> */}
 
       {/* Blockchain Status */}
       <BlockchainStatus />
