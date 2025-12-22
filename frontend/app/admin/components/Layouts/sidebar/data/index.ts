@@ -1,6 +1,24 @@
 import * as Icons from "../icons";
+import type { ComponentType } from "react";
 
-export const NAV_DATA = [
+export interface NavSubItem {
+  title: string;
+  url: string;
+}
+
+export interface NavItem {
+  title: string;
+  url: string;
+  icon?: ComponentType<any>;
+  items: NavSubItem[];
+}
+
+export interface NavSection {
+  label?: string;
+  items: NavItem[];
+}
+
+export const NAV_DATA: NavSection[] = [
   {
     items: [
       {
