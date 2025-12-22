@@ -202,5 +202,3 @@ export function ArrowLeftIcon(props: PropsType) {
     </svg>
   );
 }
-
-

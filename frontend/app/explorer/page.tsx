@@ -730,7 +730,7 @@ export default function BlockchainExplorerPage() {
                       <div>
                         <p className="text-sm text-gray-500">Assuré</p>
                         <h3 className="text-2xl font-bold text-gray-900">
-                          {searchResult.insuredPerson.firstName} {" "}
+                          {searchResult.insuredPerson.firstName}{" "}
                           {searchResult.insuredPerson.lastName}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
@@ -754,15 +754,21 @@ export default function BlockchainExplorerPage() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Police</p>
-                        <p className="font-medium">#{searchResult.policyNumber}</p>
+                        <p className="font-medium">
+                          #{searchResult.policyNumber}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">CIN</p>
-                        <p className="font-medium">{searchResult.insuredPerson.cin}</p>
+                        <p className="font-medium">
+                          {searchResult.insuredPerson.cin}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">NIF</p>
-                        <p className="font-medium">{searchResult.insuredPerson.nif}</p>
+                        <p className="font-medium">
+                          {searchResult.insuredPerson.nif}
+                        </p>
                       </div>
                     </div>
                   </div>

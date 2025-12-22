@@ -28,7 +28,12 @@ export async function GET(request: NextRequest) {
       console.log(
         `[API GET insurance-cards] db user: ${
           user
-            ? JSON.stringify({ id: user.id, username: user.username, userType: user.userType, insuranceCompanyId: user.insuranceCompanyId })
+            ? JSON.stringify({
+                id: user.id,
+                username: user.username,
+                userType: user.userType,
+                insuranceCompanyId: user.insuranceCompanyId,
+              })
             : "null"
         }`
       );

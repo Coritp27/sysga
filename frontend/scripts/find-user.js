@@ -1,21 +1,25 @@
 // Usage: node frontend/scripts/find-user.js <username|idClerk>
 // Example: node frontend/scripts/find-user.js medical@vericarte.com
 
-require('dotenv').config({ path: './.env' });
-const { PrismaClient } = require('@prisma/client');
+require("dotenv").config({ path: "./.env" });
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
   const arg = process.argv[2];
   if (!arg) {
-    console.error('Usage: node find-user.js <username|idClerk>');
+    console.error("Usage: node find-user.js <username|idClerk>");
     process.exit(1);
   }
 
   // Try to find by username first, then by idClerk
-  let user = await prisma.user.findFirst({ where: { username: arg, isDeleted: false } });
+  let user = await prisma.user.findFirst({
+    where: { username: arg, isDeleted: false },
+  });
   if (!user) {
-    user = await prisma.user.findFirst({ where: { idClerk: arg, isDeleted: false } });
+    user = await prisma.user.findFirst({
+      where: { idClerk: arg, isDeleted: false },
+    });
   }
 
   if (!user) {
@@ -23,7 +27,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.log('User found:');
+  console.log("User found:");
   // Print only key fields
   const out = {
     id: user.id,
@@ -39,7 +43,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('Error:', e);
+    console.error("Error:", e);
     process.exit(1);
   })
   .finally(async () => {
