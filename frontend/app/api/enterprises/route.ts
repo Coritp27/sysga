@@ -42,7 +42,7 @@ export async function GET() {
     });
     return NextResponse.json(enterprises);
   } catch (error) {
-    console.error("❌ Erreur lors de la récupération des entreprises:", error);
+    console.error("Erreur lors de la récupération des entreprises:", error);
     return NextResponse.json(
       { error: "Erreur lors de la récupération des entreprises" },
       { status: 500 }

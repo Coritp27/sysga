@@ -30,7 +30,7 @@ export const useBlockchainCards = (): UseBlockchainCardsReturn => {
 
   // Debug logs
   useEffect(() => {
-    console.log("🔍 Debug useBlockchainCards:");
+    console.log("Debug useBlockchainCards:");
     console.log("- isConnected:", isConnected);
     console.log("- walletAddress:", address);
     console.log("- chainId:", chainId);

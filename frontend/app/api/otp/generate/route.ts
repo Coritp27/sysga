@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       method: phoneNumber ? "SMS" : "Email",
     });
   } catch (error) {
-    console.error("❌ Error generating OTP:", error);
+    console.error("Error generating OTP:", error);
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 }

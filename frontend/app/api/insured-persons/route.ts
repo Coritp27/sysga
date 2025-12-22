@@ -65,10 +65,13 @@ export async function GET(request: NextRequest) {
 
     // Debug: afficher les conditions de recherche
     console.log(
-      "🔍 Conditions de recherche:",
+      "Conditions de recherche:",
       JSON.stringify(whereClause, null, 2)
     );
-    console.log("🏢 Compagnie d'assurance ID:", user.insuranceCompanyId);
+    console.log(
+      "Compagnie d'assurance ID:",
+      user.insuranceCompanyId
+    );
 
     const insuredPersons = await prisma.insuredPerson.findMany({
       where: whereClause,
@@ -116,9 +119,9 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log("📊 Nombre d'assurés trouvés:", insuredPersons.length);
+    console.log("Nombre d'assurés trouvés:", insuredPersons.length);
     console.log(
-      "👥 Assurés:",
+      "Assurés:",
       insuredPersons.map((p) => ({
         id: p.id,
         name: `${p.firstName} ${p.lastName}`,

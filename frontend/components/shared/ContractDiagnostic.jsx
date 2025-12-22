@@ -48,7 +48,7 @@ const ContractDiagnostic = () => {
     };
 
     setDiagnosticResults(results);
-    console.log("🔍 Diagnostic Results:", results);
+    console.log("Diagnostic results:", results);
   };
 
   return (
@@ -73,7 +73,7 @@ const ContractDiagnostic = () => {
                   </p>
                   <p>
                     <strong>Connecté:</strong>{" "}
-                    {isConnected ? "✅ Oui" : "❌ Non"}
+                    {isConnected ? "Oui" : "Non"}
                   </p>
                   <p>
                     <strong>Adresse utilisateur:</strong>{" "}
@@ -92,16 +92,16 @@ const ContractDiagnostic = () => {
                     {nextIdLoading
                       ? "Chargement..."
                       : nextIdError
-                        ? `❌ Erreur: ${nextIdError.message}`
-                        : `✅ ${nextId?.toString() || "0"}`}
+                        ? `Erreur: ${nextIdError.message}`
+                        : nextId?.toString() || "0"}
                   </p>
                   <p>
                     <strong>Cartes utilisateur:</strong>{" "}
                     {cardsLoading
                       ? "Chargement..."
                       : cardsError
-                        ? `❌ Erreur: ${cardsError.message}`
-                        : `✅ ${Array.isArray(userCards) ? userCards.length : 0} cartes`}
+                        ? `Erreur: ${cardsError.message}`
+                        : `${Array.isArray(userCards) ? userCards.length : 0} cartes`}
                   </p>
                 </div>
               </div>
@@ -112,7 +112,7 @@ const ContractDiagnostic = () => {
                   onClick={runDiagnostic}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
-                  🔍 Lancer le Diagnostic
+                  Lancer le diagnostic
                 </button>
               </div>
 

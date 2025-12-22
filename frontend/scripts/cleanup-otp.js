@@ -13,9 +13,11 @@ async function cleanupExpiredOTP() {
       },
     });
 
-    console.log(`✅ Nettoyage terminé: ${deleted.count} codes OTP supprimés`);
+    console.log(
+      `Nettoyage terminé: ${deleted.count} codes OTP supprimés`
+    );
   } catch (error) {
-    console.error("❌ Erreur lors du nettoyage:", error);
+    console.error("Erreur lors du nettoyage:", error);
   } finally {
     await prisma.$disconnect();
   }

@@ -24,7 +24,7 @@ function loadEnvFile() {
     return envVars;
   } catch (error) {
     console.error(
-      "❌ Erreur lors de la lecture du fichier .env:",
+      "Erreur lors de la lecture du fichier .env:",
       error.message
     );
     return {};
@@ -32,7 +32,7 @@ function loadEnvFile() {
 }
 
 async function testSMS() {
-  console.log("🧪 Test SMS avec Twilio (fichier .env)\n");
+  console.log("Test SMS avec Twilio (fichier .env)\n");
 
   // Charger les variables d'environnement
   const envVars = loadEnvFile();
@@ -42,19 +42,19 @@ async function testSMS() {
   const authToken = envVars.TWILIO_AUTH_TOKEN;
   const fromPhoneNumber = envVars.TWILIO_PHONE_NUMBER;
 
-  console.log("🔧 Configuration:");
+  console.log("Configuration:");
   console.log(
-    `TWILIO_ACCOUNT_SID: ${accountSid ? "✅ Configuré" : "❌ Manquant"}`
+    `TWILIO_ACCOUNT_SID: ${accountSid ? "OK (configuré)" : "Manquant"}`
   );
   console.log(
-    `TWILIO_AUTH_TOKEN: ${authToken ? "✅ Configuré" : "❌ Manquant"}`
+    `TWILIO_AUTH_TOKEN: ${authToken ? "OK (configuré)" : "Manquant"}`
   );
   console.log(
-    `TWILIO_PHONE_NUMBER: ${fromPhoneNumber ? "✅ Configuré" : "❌ Manquant"}\n`
+    `TWILIO_PHONE_NUMBER: ${fromPhoneNumber ? "OK (configuré)" : "Manquant"}\n`
   );
 
   if (!accountSid || !authToken || !fromPhoneNumber) {
-    console.log("❌ Credentials Twilio manquants dans le fichier .env");
+    console.log("Credentials Twilio manquants dans le fichier .env");
     console.log("📝 Vérifiez que votre fichier .env contient :");
     console.log("   TWILIO_ACCOUNT_SID=YOUR_TWILIO_ACCOUNT_SID");
     console.log("   TWILIO_AUTH_TOKEN=YOUR_TWILIO_AUTH_TOKEN");
@@ -67,7 +67,7 @@ async function testSMS() {
 
   // Générer un code OTP
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  console.log(`📱 Code OTP généré: ${otpCode}`);
+  console.log(`Code OTP généré: ${otpCode}`);
 
   // Demander le numéro de téléphone
   const rl = readline.createInterface({
@@ -76,10 +76,10 @@ async function testSMS() {
   });
 
   rl.question(
-    "📞 Entrez votre numéro de téléphone (format: +33123456789): ",
+    "Entrez votre numéro de téléphone (format: +33123456789): ",
     async (phoneNumber) => {
       try {
-        console.log(`\n📤 Envoi du SMS à ${phoneNumber}...`);
+        console.log(`\nEnvoi du SMS à ${phoneNumber}...`);
 
         const message = await client.messages.create({
           body: `Votre code de vérification SYSGA est: ${otpCode}. Ce code expire dans 5 minutes.`,
@@ -87,11 +87,11 @@ async function testSMS() {
           to: phoneNumber,
         });
 
-        console.log(`✅ SMS envoyé avec succès !`);
-        console.log(`📱 Message SID: ${message.sid}`);
-        console.log(`📱 Code OTP: ${otpCode}`);
+        console.log(`SMS envoyé avec succès !`);
+        console.log(`Message SID: ${message.sid}`);
+        console.log(`Code OTP: ${otpCode}`);
       } catch (error) {
-        console.error("❌ Erreur lors de l'envoi du SMS:", error.message);
+        console.error("Erreur lors de l'envoi du SMS:", error.message);
       }
 
       rl.close();

@@ -5,7 +5,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Début du seeding...");
+  console.log("Début du seeding...");
 
   // Créer les rôles par défaut
   const roles = [
@@ -38,7 +38,7 @@ async function main() {
       update: role,
       create: role,
     });
-    console.log(`✅ Rôle créé/mis à jour: ${role.name}`);
+    console.log(`Rôle créé/mis à jour: ${role.name}`);
   }
 
   // Créer une compagnie d'assurance par défaut si elle n'existe pas
@@ -61,7 +61,7 @@ async function main() {
     },
   });
   console.log(
-    `✅ Compagnie d'assurance créée/mise à jour: ${defaultCompany.name}`
+    `Compagnie d'assurance créée/mise à jour: ${defaultCompany.name}`
   );
 
   // Créer une entreprise par défaut
@@ -83,7 +83,7 @@ async function main() {
       lastModifiedBy: "system",
     },
   });
-  console.log(`✅ Entreprise créée/mise à jour: ${defaultEnterprise.name}`);
+  console.log(`Entreprise créée/mise à jour: ${defaultEnterprise.name}`);
 
   // Créer des assurés de test
   const testInsuredPersons = [
@@ -141,16 +141,16 @@ async function main() {
       create: insuredPerson,
     });
     console.log(
-      `✅ Assuré créé/mis à jour: ${insuredPerson.firstName} ${insuredPerson.lastName}`
+      `Assuré créé/mis à jour: ${insuredPerson.firstName} ${insuredPerson.lastName}`
     );
   }
 
-  console.log("🎉 Seeding terminé avec succès!");
+  console.log("Seeding terminé avec succès.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Erreur lors du seeding:", e);
+    console.error("Erreur lors du seeding:", e);
     process.exit(1);
   })
   .finally(async () => {

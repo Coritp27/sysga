@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log("👤 Utilisateur:", {
+    console.log("Utilisateur:", {
       id: user?.id,
       insuranceCompanyId: user?.insuranceCompanyId,
       insuranceCompany: user?.insuranceCompany?.name,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     // Récupérer toutes les compagnies d'assurance
     const allInsuranceCompanies = await prisma.insuranceCompany.findMany();
 
-    console.log("📊 Statistiques:");
+    console.log("Statistiques:");
     console.log("- Total assurés:", allInsuredPersons.length);
     console.log("- Total entreprises:", allEnterprises.length);
     console.log(

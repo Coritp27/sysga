@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function createTestPolicies() {
   try {
-    console.log("🔧 Création de polices de test...");
+    console.log("Création de polices de test...");
 
     // Récupérer la compagnie d'assurance existante
     const insuranceCompany = await prisma.insuranceCompany.findFirst({
@@ -12,11 +12,11 @@ async function createTestPolicies() {
     });
 
     if (!insuranceCompany) {
-      console.error("❌ Aucune compagnie d'assurance trouvée");
+      console.error("Aucune compagnie d'assurance trouvée");
       return;
     }
 
-    console.log("🏢 Compagnie trouvée:", insuranceCompany.name);
+    console.log("Compagnie trouvée:", insuranceCompany.name);
 
     // Créer des polices de test
     const testPolicies = [
@@ -74,7 +74,7 @@ async function createTestPolicies() {
         create: policyData,
       });
       console.log(
-        `✅ Police créée: #${policyData.policyNumber} - ${policyData.type}`
+        `Police créée: #${policyData.policyNumber} - ${policyData.type}`
       );
     }
 
@@ -82,7 +82,7 @@ async function createTestPolicies() {
     const totalPolicies = await prisma.policy.count();
     const totalCompanies = await prisma.insuranceCompany.count();
 
-    console.log("\n📊 Statistiques finales:");
+    console.log("\nStatistiques finales:");
     console.log(`- Total polices: ${totalPolicies}`);
     console.log(`- Total compagnies d'assurance: ${totalCompanies}`);
 
@@ -93,7 +93,7 @@ async function createTestPolicies() {
       },
     });
 
-    console.log("\n📋 Polices disponibles:");
+    console.log("\nPolices disponibles:");
     allPolicies.forEach((policy) => {
       console.log(`- Police #${policy.policyNumber} (${policy.type})`);
       console.log(`  Couverture: ${policy.coverage}`);
@@ -101,9 +101,9 @@ async function createTestPolicies() {
       console.log(`  Compagnie: ${policy.insuranceCompany.name}`);
     });
 
-    console.log("\n🎉 Polices de test créées avec succès!");
+    console.log("\nPolices de test créées avec succès.");
   } catch (error) {
-    console.error("❌ Erreur:", error);
+    console.error("Erreur:", error);
   } finally {
     await prisma.$disconnect();
   }

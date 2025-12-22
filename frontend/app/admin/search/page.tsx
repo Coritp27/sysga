@@ -2,6 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  User2,
+  Users,
+  FileText,
+  AlertTriangle,
+  Building2,
+  Landmark,
+  CreditCard,
+  Stethoscope,
+  Link2,
+  FileSearch,
+} from "lucide-react";
 
 interface SearchResult {
   id: string;
@@ -25,24 +37,24 @@ interface SearchFilters {
 }
 
 const searchTypes = [
-  { value: "insured-persons", label: "Personnes Assurées", icon: "👤" },
-  { value: "dependents", label: "Dépendants", icon: "👨‍👩‍👧‍👦" },
-  { value: "policies", label: "Polices", icon: "📋" },
-  { value: "claims", label: "Sinistres", icon: "🚨" },
-  { value: "enterprises", label: "Entreprises", icon: "🏢" },
-  { value: "insurance-companies", label: "Compagnies d'Assurance", icon: "🏛️" },
-  { value: "insurance-cards", label: "Cartes d'Assurance", icon: "💳" },
+  { value: "insured-persons", label: "Personnes Assurées", Icon: User2 },
+  { value: "dependents", label: "Dépendants", Icon: Users },
+  { value: "policies", label: "Polices", Icon: FileText },
+  { value: "claims", label: "Sinistres", Icon: AlertTriangle },
+  { value: "enterprises", label: "Entreprises", Icon: Building2 },
+  { value: "insurance-companies", label: "Compagnies d'Assurance", Icon: Landmark },
+  { value: "insurance-cards", label: "Cartes d'Assurance", Icon: CreditCard },
   {
     value: "medical-institutions",
     label: "Institutions Médicales",
-    icon: "🏥",
+    Icon: Stethoscope,
   },
   {
     value: "blockchain-references",
     label: "Références Blockchain",
-    icon: "🔗",
+    Icon: Link2,
   },
-];
+] as const;
 
 const statusOptions = [
   "ACTIVE",
@@ -254,7 +266,8 @@ export default function SearchPage() {
 
   const getTypeIcon = (type: string) => {
     const typeInfo = searchTypes.find((t) => t.value === type);
-    return typeInfo?.icon || "📄";
+    const Icon = typeInfo?.Icon || FileSearch;
+    return <Icon className="h-4 w-4" />;
   };
 
   const getStatusColor = (status?: string) => {
@@ -347,7 +360,8 @@ export default function SearchPage() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               }`}
             >
-              {type.icon} {type.label}
+              <type.Icon className="h-4 w-4 mr-1" />
+              {type.label}
             </button>
           ))}
         </div>
@@ -401,8 +415,9 @@ export default function SearchPage() {
                       onChange={() => handleTypeFilterChange(type.value)}
                       className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                      {type.icon} {type.label}
+                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                      <type.Icon className="h-4 w-4" />
+                      <span>{type.label}</span>
                     </span>
                   </label>
                 ))}
@@ -528,7 +543,9 @@ export default function SearchPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-3">
-                  <div className="text-2xl">{getTypeIcon(result.type)}</div>
+                  <div className="text-2xl">
+                    {getTypeIcon(result.type)}
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
                       <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -591,7 +608,9 @@ export default function SearchPage() {
                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors dark:border-strokedark dark:hover:bg-meta-4"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="text-2xl">{type.icon}</div>
+                  <div className="text-2xl">
+                    <type.Icon className="h-5 w-5" />
+                  </div>
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-white">
                       {type.label}

@@ -12,7 +12,7 @@ async function updateFrontendAddress() {
 
     if (!fs.existsSync(artifactsPath)) {
       console.log(
-        "❌ Fichier deployed_addresses.json non trouvé. Déployez d'abord le contrat."
+        "Fichier deployed_addresses.json non trouvé. Déployez d'abord le contrat."
       );
       return;
     }
@@ -24,12 +24,12 @@ async function updateFrontendAddress() {
 
     if (!contractAddress) {
       console.log(
-        "❌ Adresse du contrat non trouvée dans deployed_addresses.json"
+        "Adresse du contrat non trouvée dans deployed_addresses.json"
       );
       return;
     }
 
-    console.log("✅ Adresse du contrat déployé:", contractAddress);
+    console.log("Adresse du contrat déployé:", contractAddress);
 
     // Mettre à jour le fichier de configuration frontend
     const frontendConfigPath = path.join(
@@ -38,7 +38,7 @@ async function updateFrontendAddress() {
     );
 
     if (!fs.existsSync(frontendConfigPath)) {
-      console.log("❌ Fichier blockchain.js non trouvé dans le frontend");
+      console.log("Fichier blockchain.js non trouvé dans le frontend");
       return;
     }
 
@@ -52,15 +52,15 @@ async function updateFrontendAddress() {
       configContent = configContent.replace(oldAddressRegex, newAddressLine);
       fs.writeFileSync(frontendConfigPath, configContent);
       console.log(
-        "✅ Adresse mise à jour dans frontend/constants/blockchain.js"
+        "Adresse mise à jour dans frontend/constants/blockchain.js"
       );
     } else {
       console.log(
-        "⚠️ Aucune adresse trouvée à remplacer dans le fichier de configuration"
+        "Aucune adresse trouvée à remplacer dans le fichier de configuration"
       );
     }
   } catch (error) {
-    console.error("❌ Erreur lors de la mise à jour:", error);
+    console.error("Erreur lors de la mise à jour:", error);
   }
 }
 

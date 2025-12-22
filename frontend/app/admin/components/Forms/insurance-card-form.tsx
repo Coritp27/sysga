@@ -301,7 +301,7 @@ export function InsuranceCardForm({
     setIsSubmitting(true);
 
     try {
-      console.log("🚀 Tentative de création de carte sur la blockchain:");
+      console.log("Tentative de création de carte sur la blockchain:");
       console.log("- cardNumber:", formData.cardNumber);
       console.log("- policyNumber:", formData.policyNumber);
       console.log("- insuredPersonName:", formData.insuredPersonName);
@@ -327,11 +327,11 @@ export function InsuranceCardForm({
           account: address,
         });
       } catch (err) {
-        console.error("❌ Erreur lors de l'appel writeContract:", err);
+        console.error("Erreur lors de l'appel writeContract:", err);
         setIsSubmitting(false);
       }
     } catch (err) {
-      console.error("❌ Erreur lors de l'appel writeContract:", err);
+      console.error("Erreur lors de l'appel writeContract:", err);
       setIsSubmitting(false);
     }
   };
@@ -339,7 +339,7 @@ export function InsuranceCardForm({
   // Gérer les erreurs et la confirmation de transaction
   useEffect(() => {
     if (error) {
-      console.error("❌ Erreur writeContract:", error);
+      console.error("Erreur writeContract:", error);
       setIsSubmitting(false);
     }
   }, [error]);
@@ -347,7 +347,7 @@ export function InsuranceCardForm({
   // Gérer la confirmation de transaction et sauvegarder en base
   useEffect(() => {
     if (isConfirmed && hash) {
-      console.log("✅ Transaction confirmée sur la blockchain:", hash);
+      console.log("Transaction confirmée sur la blockchain:", hash);
 
       // Sauvegarder en base de données
       const saveToDatabase = async () => {
@@ -368,7 +368,7 @@ export function InsuranceCardForm({
             blockchainTxHash: hash,
           };
 
-          console.log("📤 Données envoyées à l'API:", requestData);
+          console.log("Données envoyées à l'API:", requestData);
 
           const response = await fetch("/api/insurance-cards", {
             method: "POST",
@@ -380,20 +380,20 @@ export function InsuranceCardForm({
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error("❌ Réponse d'erreur de l'API:", errorData);
+            console.error("Réponse d'erreur de l'API:", errorData);
             throw new Error(
               `Erreur HTTP: ${response.status} - ${errorData.error || "Erreur inconnue"}`
             );
           }
 
           const savedCard = await response.json();
-          console.log("✅ Carte sauvegardée en base:", savedCard);
+          console.log("Carte sauvegardée en base:", savedCard);
 
           setIsSubmitting(false);
           onSubmit(formData);
           onClose();
         } catch (error) {
-          console.error("❌ Erreur lors de la sauvegarde:", error);
+          console.error("Erreur lors de la sauvegarde:", error);
           setIsSubmitting(false);
           setErrors({
             submit: "Erreur lors de la sauvegarde en base de données",
