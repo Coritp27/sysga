@@ -1,10 +1,13 @@
-# 🚀 SYSGA - Guide Complet de Déploiement
+# 🚀 VeriCarte - Guide Complet de Déploiement
 
 > **Système de Gestion d'Assurance basé sur la Blockchain**
 
 ## 📋 Vue d'ensemble
 
-SYSGA est une application d'assurance décentralisée qui permet de gérer et tracer les cartes d'assurance sur la blockchain Ethereum.
+VeriCarte est une application d'assurance décentralisée qui permet de gérer et tracer les cartes d'assurance sur la blockchain Ethereum, avec :
+- un **frontend Next.js 14** (`frontend/`) protégé par **Clerk** pour l'authentification,
+- un **backend Hardhat** (`backend/`) qui gère les **smart contracts Solidity**,
+- une **base PostgreSQL** (via Prisma) pour les données métier off‑chain.
 
 ### 🏗️ Architecture
 
@@ -22,13 +25,13 @@ SYSGA est une application d'assurance décentralisée qui permet de gérer et tr
 flowchart LR
   U[Utilisateur web] --> FE[Frontend]
   subgraph FrontendZone["Frontend (Next.js)"]
-    FE --> DB[(PostgreSQL)]
+    FE --> DB[(PostgreSQL via Prisma)]
     FE --> Auth[(Clerk)]
     FE --> SMS[(Twilio)]
-    FE --> Mail[(SendGrid)]
+    FE --> Mail[(SendGrid / Nodemailer)]
     FE --> RPC[(RPC Ethereum)]
   end
-  subgraph BackendZone["Blockchain(Hardhat)"]
+  subgraph BackendZone["Blockchain (Hardhat)"]
     RPC --> SC[Smart contract SysGa.sol]
   end
 ```
@@ -60,53 +63,11 @@ flowchart LR
 
 ## 🛠️ Développement Local
 
-### Prérequis
-
-- [Docker](https://www.docker.com/products/docker-desktop) installé
-- [Docker Compose](https://docs.docker.com/compose/) (inclus dans Docker Desktop)
+- [Docker](https://www.docker.com/products/docker-desktop) et [Docker Compose](https://docs.docker.com/compose/) (ou un PostgreSQL local)
 - [Node.js](https://nodejs.org/) (v18+)
+- MetaMask pour interagir avec l’appli via un wallet
 
-### 🚀 Lancement rapide
-
-1. **Cloner le projet** :
-
-   ```bash
-   git clone <repo-url>
-   cd SYSGA
-   ```
-
-2. **Lancer l'application complète** :
-
-   ```bash
-   docker-compose up
-   ```
-
-3. **Accéder aux services** :
-   - **Frontend** : [http://localhost:3000](http://localhost:3000)
-   - **Blockchain locale** : `http://localhost:8545`
-   - **Base de données** : `localhost:5432`
-
-### 📝 Commandes utiles
-
-```bash
-# Arrêter l'application
-docker-compose down
-
-# Lancer les tests
-docker-compose run backend npx hardhat test
-
-# Déployer le contrat localement
-docker-compose run backend npx hardhat ignition deploy ./ignition/modules/SysGa.js
-
-# Voir les logs
-docker-compose logs -f
-```
-
-### 🔧 Développement
-
-- **Hot reload** : Les modifications frontend sont prises en compte automatiquement
-- **Smart contracts** : Relancer le service backend après modification des contrats
-- **Base de données** : Les données persistent dans le volume Docker
+➡️ Les étapes détaillées (avec et sans Docker) sont décrites dans la section **🎯 Workflow Recommandé** plus bas.
 
 ---
 
@@ -139,91 +100,7 @@ docker-compose logs -f
 2. Coller votre adresse wallet
 3. Recevoir des ETH de test
 
-### ⚙️ Configuration Backend
-
-1. **Créer le fichier .env** :
-
-   ```bash
-   cd backend
-   cp env.example .env
-   ```
-
-2. **Configurer .env** :
-
-   ```env
-   # Clé privée du wallet (⚠️ IMPORTANT: Ne jamais commiter)
-   PRIVATE_KEY=votre_clé_privée_ici
-
-   # URLs RPC Infura
-   SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR-PROJECT-ID
-   MAINNET_RPC_URL=https://mainnet.infura.io/v3/YOUR-PROJECT-ID
-
-   # Clés API
-   ETHERSCAN_API_KEY=votre_clé_etherscan
-   ```
-
-### 🚀 Déploiement du Smart Contract
-
-#### Testnet (Sepolia) - Recommandé pour les beta testeurs
-
-```bash
-cd backend
-
-# Vérifier la balance
-npm run check-balance --network sepolia
-
-# Déployer le contrat
-npm run deploy:sepolia
-
-# Vérifier le déploiement
-npm run verify:sepolia
-```
-
-#### Mainnet (Production finale)
-
-```bash
-cd backend
-
-# Déployer le contrat
-npm run deploy:mainnet
-
-# Vérifier le déploiement
-npm run verify:mainnet
-```
-
-### ⚙️ Configuration Frontend
-
-1. **Mettre à jour la configuration blockchain** :
-
-   ```javascript
-   // frontend/constants/blockchain.js
-   sepolia: {
-     chainId: 11155111,
-     name: "Sepolia",
-     rpcUrl: "https://sepolia.infura.io/v3/YOUR-PROJECT-ID",
-     explorer: "https://sepolia.etherscan.io",
-     contractAddress: "0xVOTRE_ADRESSE_DEPLOYEE" // À remplacer
-   }
-   ```
-
-2. **Configurer les variables d'environnement** :
-   ```env
-   # frontend/.env.local
-   NEXT_PUBLIC_INFURA_PROJECT_ID=your_project_id
-   NEXT_PUBLIC_CONTRACT_ADDRESS=0xVOTRE_ADRESSE_DEPLOYEE
-   NEXT_PUBLIC_DEFAULT_NETWORK=sepolia
-   ```
-
-### 🚀 Déploiement Frontend
-
-```bash
-# Commit des changements
-git add .
-git commit -m "Configure blockchain deployment"
-git push origin main
-
-# Vercel déploiera automatiquement
-```
+➡️ La configuration détaillée du backend, du frontend et le plan de déploiement (Sepolia / mainnet / Vercel) sont centralisés dans la section **🎯 Workflow Recommandé**.
 
 ---
 
@@ -241,11 +118,14 @@ git push origin main
 
 ### Frontend
 
+> Le frontend utilise `yarn` (voir `frontend/yarn.lock`).
+
 | Script          | Description            |
 | --------------- | ---------------------- |
-| `npm run dev`   | Développement local    |
-| `npm run build` | Build de production    |
-| `npm run start` | Démarrer en production |
+| `yarn dev`      | Développement local    |
+| `yarn build`    | Build de production    |
+| `yarn start`    | Démarrer en production |
+
 
 ---
 
@@ -330,7 +210,7 @@ git push origin main
 ## 📁 Structure du Projet
 
 ```
-SYSGA/
+sysga/    # Dossier du projet VeriCarte
 ├── backend/                 # Smart contracts, Hardhat
 │   ├── contracts/          # Contrats Solidity
 │   ├── scripts/           # Scripts de déploiement
@@ -347,30 +227,111 @@ SYSGA/
 
 ## 🎯 Workflow Recommandé
 
-### 1. **Développement** (Local)
+### 1. Déploiement local avec Docker (recommandé)
 
-```bash
-docker-compose up --build
-# Développer et tester en local
-```
+1. Cloner le projet et se placer dans le dossier `sysga` :
+   ```bash
+   git clone <repo-url>
+   cd sysga
+   ```
+2. Configurer les environnements de base :
+   - `cd backend && cp env.example .env` (facultatif pour le pur local, utile si vous déployez aussi sur Sepolia/Mainnet).
+   - `cd frontend && cp .env.example .env.local` puis adapter au moins :
+     - `DATABASE_URL=postgresql://sysga:sysga123@postgres:5432/sysga`
+     - `NEXT_PUBLIC_DEFAULT_NETWORK=localhost` si vous utilisez le nœud Hardhat local.
+3. Lancer toute la stack :
+   ```bash
+   docker-compose up --build
+   ```
+4. Accéder aux services :
+   - Frontend : `http://localhost:3000`
+   - Blockchain locale (Hardhat) : `http://localhost:8545`
+   - Base de données PostgreSQL : `localhost:5432`
+   - Prisma Studio (optionnel) : `http://localhost:5555` (service `prisma-studio`).
+5. (Optionnel) Lancer les tests et redéployer le contrat :
+   ```bash
+   docker-compose run backend npx hardhat test
+   docker-compose run backend npx hardhat ignition deploy ./ignition/modules/SysGa.js
+   ```
 
-### 2. **Testnet** (Beta testeurs)
+### 2. Déploiement local sans Docker
 
-```bash
-# Déployer sur Sepolia
-npm run deploy:sepolia
-# Configurer le frontend
-# Déployer sur Vercel
-```
+1. Installer et démarrer PostgreSQL localement, puis créer une base :
+   - DB : `sysga`
+   - User : `sysga` / `sysga123` (ou adapter `DATABASE_URL`).
+2. Backend (Hardhat) :
+   ```bash
+   cd backend
+   npm install
+   # (optionnel) cp env.example .env
+   npx hardhat node
+   ```
+3. Dans un autre terminal, déployer le contrat sur le nœud local :
+   ```bash
+   cd backend
+   npx hardhat ignition deploy ./ignition/modules/SysGa.js --network localhost
+   ```
+4. Frontend :
+   ```bash
+   cd frontend
+   yarn install
+   cp .env.example .env.local
+   # Adapter notamment :
+   # DATABASE_URL=postgresql://sysga:sysga123@localhost:5432/sysga
+   # NEXT_PUBLIC_DEFAULT_NETWORK=localhost
+   yarn prisma migrate dev --name init   # première initialisation
+   yarn dev
+   ```
+5. Ouvrir `http://localhost:3000` et se connecter via Clerk.
 
-### 3. **Production** (Final)
+### 3. Déploiement en production (testnet + Vercel)
 
-```bash
-# Déployer sur mainnet
-npm run deploy:mainnet
-# Mettre à jour la configuration
-# Déployer sur Vercel
-```
+1. Préparer le backend (contrat) :
+   ```bash
+   cd backend
+   cp env.example .env
+   # Renseigner PRIVATE_KEY, SEPOLIA_RPC_URL / MAINNET_RPC_URL, ETHERSCAN_API_KEY, etc.
+   npm run check-balance --network sepolia
+   npm run deploy:sepolia
+   npm run verify:sepolia
+   ```
+   - Noter l’adresse du contrat déployé sur Sepolia (ou Mainnet).
+2. Configurer le frontend pour la production :
+   - Dans `frontend/.env.local` (ou les variables d’environnement Vercel), renseigner :
+     - `NEXT_PUBLIC_CONTRACT_ADDRESS` = adresse du contrat déployé.
+     - `NEXT_PUBLIC_INFURA_PROJECT_ID` / `NEXT_PUBLIC_SEPOLIA_RPC_URL`.
+     - `NEXT_PUBLIC_DEFAULT_NETWORK=sepolia` (ou `mainnet`).
+     - Les clés Clerk, Twilio, SendGrid et la chaîne `DATABASE_URL` d’une base PostgreSQL managée.
+3. Déployer sur Vercel :
+   - Pousser le code sur GitHub/GitLab.
+   - Créer un projet sur [Vercel](https://vercel.com/) pointant sur `sysga/frontend`.
+   - Renseigner les variables d’environnement dans Vercel.
+   - Lancer un build (`yarn build`) et vérifier l’application en ligne.
+
+> 💡 **Option base de données managée avec Prisma Accelerate**  
+> Au lieu d’un PostgreSQL local ou managé classique, vous pouvez utiliser
+> [Prisma Accelerate](https://www.prisma.io/docs/orm/prisma-accelerate) :
+> - Configurez une base PostgreSQL (Neon, RDS, etc.) puis créez une API key Accelerate.  
+> - Dans `frontend/.env` et `frontend/.env.local`, définissez `DATABASE_URL` sous la forme :  
+>   `DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=..."`  
+> - Prisma CLI utilisera `frontend/.env`, tandis que Next.js utilisera `frontend/.env.local`.
+
+---
+
+## 🔗 Ressources utiles
+
+- Hardhat : https://hardhat.org/getting-started
+- Ignition (déploiement) : https://hardhat.org/ignition
+- Prisma : https://www.prisma.io/docs
+- Clerk : https://clerk.com/docs
+- Twilio : https://www.twilio.com/docs
+- SendGrid : https://docs.sendgrid.com
+- Vercel / Next.js : https://nextjs.org/docs/deployment
+- Infura : https://infura.io
+- Alchemy : https://www.alchemy.com
+- MetaMask : https://metamask.io
+- Etherscan : https://etherscan.io
+- Faucet Sepolia : https://sepoliafaucet.com
 
 ---
 

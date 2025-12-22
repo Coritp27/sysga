@@ -1,4 +1,4 @@
-# Backend SYSGA - Déploiement Blockchain
+# Backend VeriCarte - Déploiement Blockchain
 
 ## 🚀 Déploiement en Production
 

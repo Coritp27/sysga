@@ -1,59 +1,97 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## VeriCarte Frontend (Next.js 14 + Prisma)
 
-## Getting Started
+Application frontend de VeriCarte : tableau de bord d’assurance, gestion des cartes, OTP (SMS / email) et intégration blockchain.
 
-First, run the development server:
+### Stack principale
+
+- **Next.js 14** (App Router)  
+- **Clerk** pour l’authentification  
+- **Prisma + PostgreSQL** pour les données  
+- **Twilio / SendGrid / Nodemailer** pour l’OTP  
+- **wagmi / viem / RainbowKit** pour l’intégration Ethereum
+
+---
+
+## 1. Pré-requis
+
+- Node.js 18+  
+- PostgreSQL local (ou `docker-compose` depuis la racine `sysga/`)  
+- Un compte **Clerk**, **Twilio** et éventuellement **SendGrid**
+
+---
+
+## 2. Configuration de l'environnement
+
+Depuis `sysga/frontend` :
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Manage your data
-View and edit your data locally by running this command:
+Puis éditez `.env.local` pour renseigner :
+
+- les clés Clerk (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)  
+- la connexion base de données (`DATABASE_URL`)  
+- la partie blockchain (`NEXT_PUBLIC_INFURA_PROJECT_ID`, `NEXT_PUBLIC_CONTRACT_ADDRESS`, etc.)  
+- les providers OTP (Twilio / SendGrid / Gmail)
+
+---
+
+## 3. Installation & lancement en dev
+
+Depuis `sysga/frontend` :
 
 ```bash
-# Open Prisma Studio to view and edit your database records
-yarn prisma studio
+yarn install
+yarn dev
+```
 
-# Reset your database
-yarn prisma migrate reset
+L’interface est disponible sur [http://localhost:3000](http://localhost:3000).
 
-# Apply pending migrations to your database
-yarn prisma migrate dev --name init
+Si vous utilisez le `docker-compose` de la racine, la base PostgreSQL et le nœud Hardhat sont déjà provisionnés.
 
-# Generate the Prisma Client based on your schema
+---
+
+## 4. Gestion de la base (Prisma)
+
+Deux options principales :
+
+1. **PostgreSQL local / managé classique**  
+   - `DATABASE_URL="postgresql://user:password@host:5432/dbname"`  
+   - Utilisez vos propres outils pour démarrer PostgreSQL.
+
+2. **Prisma Accelerate (base distante)**  
+   - Créez une base Postgres (Neon, RDS, etc.) et une API key Accelerate.  
+   - Dans `frontend/.env` (pour Prisma CLI) et `frontend/.env.local` (pour Next.js), définissez :  
+     `DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=..."`.
+
+Commandes utiles (via `yarn` ou `npx prisma`) :
+
+```bash
+# Générer le client Prisma
 yarn prisma generate
 
-# Push the current state of your Prisma schema to your database
-yarn prisma db push
+# Appliquer les migrations existantes (prod / CI)
+yarn prisma migrate deploy
 
-# Seed your database with initial data
-yarn prisma db seed
+# En dev, créer/mettre à jour les migrations (à lancer manuellement)
+yarn prisma migrate dev --name <nom_migration>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+# Lancer Prisma Studio
+yarn prisma studio
 ```
+
+Le schéma se trouve dans `prisma/schema.prisma` et couvre les entités :
+utilisateurs, compagnies d’assurance, assurés, cartes, références blockchain (`BlockchainReference`), OTP, etc.
+
+---
+
+## 5. Build et production
+
+```bash
+yarn build   # génère le client Prisma + build Next.js
+yarn start   # lance le serveur en mode production
+```
+
+En production, le déploiement recommandé est sur **Vercel** avec une base PostgreSQL managée
+et un RPC Ethereum de type Infura / Alchemy.

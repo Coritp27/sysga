@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
     <footer className="footer">
-      All rights reserved &copy; SysGa-FDS {new Date().getFullYear()}
+      All rights reserved &copy; VeriCarte {new Date().getFullYear()}
     </footer>
   );
 };
