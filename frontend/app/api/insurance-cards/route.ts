@@ -15,15 +15,47 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Debug: afficher l'identifiant Clerk renvoyé par auth()
+    console.log(`[API GET insurance-cards] auth userId: ${userId}`);
+
     // Récupérer l'utilisateur et sa compagnie
     const user = await prisma.user.findFirst({
       where: { idClerk: userId, isDeleted: false },
     });
 
+    // Debug: afficher les informations essentielles de l'utilisateur récupéré
+    try {
+      console.log(
+        `[API GET insurance-cards] db user: ${
+          user
+            ? JSON.stringify({
+                id: user.id,
+                username: user.username,
+                userType: user.userType,
+                insuranceCompanyId: user.insuranceCompanyId,
+              })
+            : "null"
+        }`
+      );
+    } catch (e) {
+      console.log("[API GET insurance-cards] db user: (failed to stringify)");
+    }
+
     if (!user?.insuranceCompanyId) {
-      return NextResponse.json(
-        { error: "Aucune compagnie d'assurance associée" },
-        { status: 403 }
+      // Allow MEDICAL users to perform read-only searches even when they
+      // are not associated to a specific insurance company. Other user
+      // types still require an insuranceCompanyId.
+      if (user?.userType !== "MEDICAL") {
+        return NextResponse.json(
+          { error: "Aucune compagnie d'assurance associée" },
+          { status: 403 }
+        );
+      }
+      // For MEDICAL users we continue (read-only). We deliberately do not
+      // allow POST/PUT in this branch — those handlers still enforce the
+      // insuranceCompanyId check.
+      console.log(
+        `[API] MEDICAL user (${user.username || user.idClerk}) allowed to search across companies`
       );
     }
 
