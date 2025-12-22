@@ -1,4 +1,4 @@
-// Configuration blockchain pour SYSGA
+// Configuration blockchain pour VeriCarte
 // Mettre à jour ces valeurs après déploiement du contrat
 
 export const BLOCKCHAIN_CONFIG = {

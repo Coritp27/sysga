@@ -82,9 +82,9 @@ const Sidebar = () => {
       <div className="p-6">
         <div className="flex items-center space-x-3 mb-8">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">S</span>
+            <span className="text-white font-bold text-sm">V</span>
           </div>
-          <h1 className="text-xl font-bold text-gray-900">SYSGA</h1>
+          <h1 className="text-xl font-bold text-gray-900">VeriCarte</h1>
         </div>
 
         <nav className="space-y-2">

@@ -17,9 +17,9 @@ const BlockchainInfo = () => {
             Système Hybride : Base de Données + Blockchain
           </h3>
           <p className="text-sm text-gray-600 mb-4">
-            SYSGA combine une base de données traditionnelle pour la gestion
-            quotidienne et la blockchain pour la sécurité et l'immutabilité des
-            cartes d'assurance.
+            VeriCarte combine une base de données traditionnelle pour la
+            gestion quotidienne et la blockchain pour la sécurité et
+            l'immutabilité des cartes d'assurance.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

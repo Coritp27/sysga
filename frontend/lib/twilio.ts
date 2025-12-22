@@ -72,7 +72,7 @@ class TwilioOTPService implements OTPService {
 
     try {
       const message = await client.messages.create({
-        body: `Votre code de vérification SYSGA est: ${otpCode}. Ce code expire dans 5 minutes.`,
+        body: `Votre code de vérification VeriCarte est: ${otpCode}. Ce code expire dans 5 minutes.`,
         from: fromPhoneNumber,
         to: phoneNumber,
       });
@@ -92,11 +92,11 @@ class TwilioOTPService implements OTPService {
         const msg = {
           to: email,
           from: sendGridFromEmail,
-          subject: "Code de vérification SYSGA",
-          text: `Votre code de vérification SYSGA est: ${otpCode}. Ce code expire dans 5 minutes.`,
+          subject: "Code de vérification VeriCarte",
+          text: `Votre code de vérification VeriCarte est: ${otpCode}. Ce code expire dans 5 minutes.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">Code de vérification SYSGA</h2>
+              <h2 style="color: #2563eb;">Code de vérification VeriCarte</h2>
               <p>Votre code de vérification est :</p>
               <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0;">
                 <span style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px;">${otpCode}</span>
@@ -118,7 +118,7 @@ class TwilioOTPService implements OTPService {
     // Essayer Nodemailer avec Gmail
     if (nodemailer && emailUser && emailPass) {
       try {
-        const transporter = nodemailer.createTransporter({
+        const transporter = nodemailer.createTransport({
           service: emailService,
           auth: {
             user: emailUser,
@@ -129,11 +129,11 @@ class TwilioOTPService implements OTPService {
         const mailOptions = {
           from: emailUser,
           to: email,
-          subject: "Code de vérification SYSGA",
-          text: `Votre code de vérification SYSGA est: ${otpCode}. Ce code expire dans 5 minutes.`,
+          subject: "Code de vérification VeriCarte",
+          text: `Votre code de vérification VeriCarte est: ${otpCode}. Ce code expire dans 5 minutes.`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">Code de vérification SYSGA</h2>
+              <h2 style="color: #2563eb;">Code de vérification VeriCarte</h2>
               <p>Votre code de vérification est :</p>
               <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0;">
                 <span style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px;">${otpCode}</span>

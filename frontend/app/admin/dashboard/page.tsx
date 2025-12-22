@@ -8,7 +8,7 @@ import BlockchainInfo from "../components/Dashboard/BlockchainInfo";
 import WalletStatus from "../components/Dashboard/WalletStatus";
 
 export const metadata: Metadata = {
-  title: "Dashboard - SYSGA",
+  title: "Dashboard - VeriCarte",
   description:
     "Tableau de bord du système de gestion d'assurance avec blockchain",
 };
