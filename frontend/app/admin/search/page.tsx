@@ -415,8 +415,9 @@ export default function SearchPage() {
                       onChange={() => handleTypeFilterChange(type.value)}
                       className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                      {type.icon} {type.label}
+                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                      <type.Icon className="h-4 w-4" />
+                      <span>{type.label}</span>
                     </span>
                   </label>
                 ))}
