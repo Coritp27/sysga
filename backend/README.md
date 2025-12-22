@@ -1,6 +1,6 @@
 # Backend VeriCarte - Déploiement Blockchain
 
-## 🚀 Déploiement en Production
+## Déploiement en Production
 
 ### Prérequis
 
@@ -15,7 +15,7 @@
    ```
 
 2. **Configurer les variables dans `.env` :**
-   - `PRIVATE_KEY` : Votre clé privée (⚠️ Ne jamais commiter)
+   - `PRIVATE_KEY` : Votre clé privée (ne jamais commiter)
    - `SEPOLIA_RPC_URL` : URL RPC Sepolia (Infura/Alchemy)
    - `ETHERSCAN_API_KEY` : Clé API Etherscan
 
@@ -59,14 +59,14 @@ npm run verify:mainnet
 
 ### Coûts estimés
 
-- **Sepolia** : Gratuit (ETH de test)
-- **Ethereum mainnet** : ~0.01-0.05 ETH (déploiement + vérification)
-- **Polygon Mumbai** : Gratuit (MATIC de test)
+- **Sepolia** : gratuit (ETH de test).
+- **Ethereum mainnet** : ~0.01-0.05 ETH (déploiement + vérification).
+- **Polygon Mumbai** : gratuit (MATIC de test).
 
 ### Sécurité
 
-⚠️ **IMPORTANT** :
-- Ne jamais commiter votre clé privée
-- Utiliser un wallet dédié pour le déploiement
-- Tester d'abord sur testnet
-- Sauvegarder l'adresse du contrat déployé
+**IMPORTANT** :
+- Ne jamais commiter votre clé privée.
+- Utiliser un wallet dédié pour le déploiement.
+- Tester d'abord sur testnet.
+- Sauvegarder l'adresse du contrat déployé.

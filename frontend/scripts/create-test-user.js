@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function createTestUser() {
   try {
-    console.log("🔧 Création d'un utilisateur de test...");
+    console.log("Création d'un utilisateur de test...");
 
     // Récupérer la compagnie d'assurance existante
     const insuranceCompany = await prisma.insuranceCompany.findFirst({
@@ -12,11 +12,11 @@ async function createTestUser() {
     });
 
     if (!insuranceCompany) {
-      console.error("❌ Aucune compagnie d'assurance trouvée");
+      console.error("Aucune compagnie d'assurance trouvée");
       return;
     }
 
-    console.log("🏢 Compagnie trouvée:", insuranceCompany.name);
+    console.log("Compagnie trouvée:", insuranceCompany.name);
 
     // Créer un utilisateur de test
     const testUser = await prisma.user.upsert({
@@ -37,7 +37,7 @@ async function createTestUser() {
       },
     });
 
-    console.log("✅ Utilisateur de test créé:", {
+    console.log("Utilisateur de test créé:", {
       id: testUser.id,
       username: testUser.username,
       insuranceCompanyId: testUser.insuranceCompanyId,
@@ -54,7 +54,7 @@ async function createTestUser() {
       },
     });
 
-    console.log("📊 Assurés disponibles:");
+    console.log("Assurés disponibles:");
     insuredPersons.forEach((person) => {
       console.log(`- ${person.firstName} ${person.lastName} (${person.email})`);
       console.log(`  Entreprise: ${person.enterprise?.name || "Aucune"}`);
@@ -63,7 +63,7 @@ async function createTestUser() {
       );
     });
   } catch (error) {
-    console.error("❌ Erreur:", error);
+    console.error("Erreur:", error);
   } finally {
     await prisma.$disconnect();
   }

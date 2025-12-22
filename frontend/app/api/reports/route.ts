@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    console.log("🔍 API Reports appelée");
+    console.log("API reports appelée");
 
     // Calculer les statistiques (version sans authentification)
     const now = new Date();
@@ -14,7 +14,7 @@ export async function GET() {
 
     // Total des cartes
     const totalCards = await prisma.insuranceCard.count();
-    console.log("📊 Total cartes:", totalCards);
+    console.log("Total cartes:", totalCards);
 
     // Cartes actives
     const activeCards = await prisma.insuranceCard.count({
@@ -105,7 +105,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("❌ Erreur lors de la récupération des statistiques:", error);
+    console.error("Erreur lors de la récupération des statistiques:", error);
     return NextResponse.json(
       {
         error: "Erreur lors de la récupération des statistiques",

@@ -9,6 +9,8 @@ import {
   CreditCard,
   Shield,
   AlertTriangle,
+  Phone,
+  Lock,
 } from "lucide-react";
 import { useContractRead } from "wagmi";
 import { contractAbi } from "../../constants";
@@ -108,7 +110,7 @@ export default function BlockchainExplorerPage() {
       const response = await fetch(`/api/insurance-cards?${params.toString()}`);
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("❌ Erreur HTTP:", response.status, errorText);
+        console.error("Erreur HTTP:", response.status, errorText);
         throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
       }
 
@@ -287,13 +289,13 @@ export default function BlockchainExplorerPage() {
   const getVerificationText = () => {
     switch (verificationStatus) {
       case "verified":
-        return "✅ Vérification Blockchain Réussie";
+        return "Vérification blockchain réussie";
       case "mismatch":
-        return "⚠️ Données Incohérentes";
+        return "Données incohérentes";
       case "not-found":
-        return "❌ Non Trouvé sur Blockchain";
+        return "Non trouvé sur la blockchain";
       default:
-        return "⏳ Vérification en cours...";
+        return "Vérification en cours...";
     }
   };
 
@@ -422,13 +424,16 @@ export default function BlockchainExplorerPage() {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="max-w-2xl mx-auto">
             <div className="flex items-center justify-between">
-              {[
-                { step: "search", label: "Recherche", icon: "🔍" },
-                { step: "contact", label: "Contact", icon: "📱" },
-                { step: "otp", label: "Vérification", icon: "🔐" },
-                { step: "result", label: "Résultat", icon: "✅" },
-              ].map((item, index) => (
+              {(
+                [
+                  { step: "search", label: "Recherche", Icon: Search },
+                  { step: "contact", label: "Contact", Icon: Phone },
+                  { step: "otp", label: "Vérification", Icon: Lock },
+                  { step: "result", label: "Résultat", Icon: CheckCircle },
+                ] as const
+              ).map((item, index) => (
                 <div key={item.step} className="flex items-center">
+                  {/* Cercle d'étape avec icône */}
                   <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
                       currentStep === item.step
@@ -442,9 +447,11 @@ export default function BlockchainExplorerPage() {
                   >
                     {["search", "contact", "otp", "result"].indexOf(
                       currentStep
-                    ) > index
-                      ? "✓"
-                      : item.icon}
+                    ) > index ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <item.Icon className="h-4 w-4" />
+                    )}
                   </div>
                   <span
                     className={`ml-2 text-sm font-medium ${
@@ -477,7 +484,7 @@ export default function BlockchainExplorerPage() {
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
             <div className="max-w-2xl mx-auto">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                🔍 Rechercher une carte d'assurance
+                Rechercher une carte d'assurance
               </h2>
               <div className="flex gap-4">
                 <div className="flex-1">
@@ -522,7 +529,7 @@ export default function BlockchainExplorerPage() {
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
             <div className="max-w-2xl mx-auto">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                📱 Vérification d'identité
+                Vérification d'identité
               </h2>
               <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                 <p className="text-blue-800 text-center">
@@ -551,7 +558,8 @@ export default function BlockchainExplorerPage() {
                           : "border-gray-300 text-gray-600 hover:border-gray-400"
                       }`}
                     >
-                      📱 SMS
+                      <Phone className="inline-block h-4 w-4 mr-1" />
+                      SMS
                     </button>
                   </div>
                 </div>
@@ -618,7 +626,7 @@ export default function BlockchainExplorerPage() {
           <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
             <div className="max-w-2xl mx-auto">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                🔐 Code de vérification
+                Code de vérification
               </h2>
               <div className="mb-6 p-4 bg-green-50 rounded-lg">
                 <p className="text-green-800 text-center">
@@ -739,7 +747,7 @@ export default function BlockchainExplorerPage() {
                 {/* Données de la base de données */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                    📊 Données Base de Données
+                    Données base de données
                   </h3>
 
                   <div className="flex items-center">
@@ -796,7 +804,7 @@ export default function BlockchainExplorerPage() {
                 {/* Données blockchain */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                    ⛓️ Données Blockchain
+                    Données blockchain
                   </h3>
 
                   {blockchainData && isClient ? (

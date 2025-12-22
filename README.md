@@ -1,8 +1,8 @@
-# 🚀 VeriCarte - Guide Complet de Déploiement
+# VeriCarte - Guide Complet de Déploiement
 
-> **Système de Gestion d'Assurance basé sur la Blockchain**
+> Système de Gestion d'Assurance basé sur la Blockchain
 
-## 📋 Vue d'ensemble
+## Vue d'ensemble
 
 VeriCarte est une application d'assurance décentralisée qui permet de gérer et tracer les cartes d'assurance sur la blockchain Ethereum, avec :
 - un **frontend Next.js 14** (`frontend/`) protégé par **Clerk** pour l'authentification,
@@ -38,21 +38,21 @@ flowchart LR
 
 ## 🎯 Environnements de Déploiement
 
-### 🔧 **Développement Local** (Recommandé pour commencer)
+### Développement Local (recommandé pour commencer)
 
 - **Blockchain** : Hardhat (localhost)
 - **Frontend** : Next.js (localhost:3000)
 - **Base de données** : PostgreSQL (Docker)
 - **Coût** : Gratuit
 
-### 🌐 **Production** (Beta testeurs)
+### Environnement de test (beta testeurs)
 
 - **Blockchain** : Sepolia (testnet)
 - **Frontend** : Vercel
 - **Base de données** : PostgreSQL (Vercel)
 - **Coût** : Gratuit (ETH de test)
 
-### 🚀 **Production Finale**
+### Production finale
 
 - **Blockchain** : Ethereum mainnet
 - **Frontend** : Vercel
@@ -61,7 +61,7 @@ flowchart LR
 
 ---
 
-## 🛠️ Développement Local
+## Développement Local
 
 - [Docker](https://www.docker.com/products/docker-desktop) et [Docker Compose](https://docs.docker.com/compose/) (ou un PostgreSQL local)
 - [Node.js](https://nodejs.org/) (v18+)
@@ -71,9 +71,9 @@ flowchart LR
 
 ---
 
-## 🌐 Déploiement en Production
+## Déploiement en Production
 
-### 📋 Prérequis
+### Prérequis
 
 1. **Wallet Ethereum** avec des fonds
 2. **Comptes API** (Infura, Etherscan)
@@ -104,7 +104,7 @@ flowchart LR
 
 ---
 
-## 🔧 Scripts Disponibles
+## Scripts Disponibles
 
 ### Backend
 
@@ -129,7 +129,7 @@ flowchart LR
 
 ---
 
-## 🧪 Instructions pour les Beta Testeurs
+## Instructions pour les Beta Testeurs
 
 ### Prérequis
 
@@ -152,7 +152,7 @@ flowchart LR
 
 ---
 
-## 📊 Monitoring et Explorers
+## Monitoring et Explorers
 
 ### Explorers de contrats
 
@@ -168,14 +168,14 @@ flowchart LR
 
 ---
 
-## 🚨 Gestion des Erreurs
+## Gestion des Erreurs
 
 ### Erreurs communes
 
-1. **"Insufficient funds"** → Obtenir des ETH de test
-2. **"Wrong network"** → Basculer vers Sepolia
-3. **"Contract not found"** → Vérifier l'adresse du contrat
-4. **"RPC error"** → Vérifier les URLs RPC
+1. **"Insufficient funds"** : obtenir des ETH de test.
+2. **"Wrong network"** : basculer vers Sepolia.
+3. **"Contract not found"** : vérifier l'adresse du contrat.
+4. **"RPC error"** : vérifier les URLs RPC.
 
 ### Support
 
@@ -185,7 +185,7 @@ flowchart LR
 
 ---
 
-## 💰 Coûts Estimés
+## Coûts Estimés
 
 | Environnement     | Déploiement | Vérification | Total     |
 | ----------------- | ----------- | ------------ | --------- |
@@ -195,19 +195,19 @@ flowchart LR
 
 ---
 
-## 🔒 Sécurité
+## Sécurité
 
-⚠️ **IMPORTANT** :
+**IMPORTANT** :
 
-- Ne jamais commiter votre clé privée
-- Utiliser un wallet dédié pour le déploiement
-- Tester d'abord sur testnet
-- Sauvegarder l'adresse du contrat déployé
-- Utiliser des variables d'environnement
+- Ne jamais commiter votre clé privée.
+- Utiliser un wallet dédié pour le déploiement.
+- Tester d'abord sur testnet.
+- Sauvegarder l'adresse du contrat déployé.
+- Utiliser des variables d'environnement.
 
 ---
 
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 sysga/    # Dossier du projet VeriCarte
@@ -327,7 +327,7 @@ Ce script :
    - Renseigner les variables d’environnement dans Vercel.
    - Lancer un build (`yarn build`) et vérifier l’application en ligne.
 
-> 💡 **Option base de données managée avec Prisma Accelerate**  
+> Option base de données managée avec Prisma Accelerate  
 > Au lieu d’un PostgreSQL local ou managé classique, vous pouvez utiliser
 > [Prisma Accelerate](https://www.prisma.io/docs/orm/prisma-accelerate) :
 > - Configurez une base PostgreSQL (Neon, RDS, etc.) puis créez une API key Accelerate.  
@@ -337,7 +337,7 @@ Ce script :
 
 ---
 
-## 🔗 Ressources utiles
+## Ressources utiles
 
 - Hardhat : https://hardhat.org/getting-started
 - Ignition (déploiement) : https://hardhat.org/ignition
@@ -354,7 +354,7 @@ Ce script :
 
 ---
 
-## 📞 Support
+## Support
 
 En cas de problème :
 
@@ -365,4 +365,4 @@ En cas de problème :
 
 ---
 
-**🎉 Félicitations !** Votre application SYSGA est maintenant prête pour le déploiement !
+Félicitations, votre application VeriCarte est maintenant prête pour le déploiement.

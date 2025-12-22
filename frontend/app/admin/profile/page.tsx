@@ -92,17 +92,22 @@ export default function Page() {
 
         {/* Informations personnelles */}
         {profile.insuredPerson && (
-          <div className="bg-white rounded-lg border p-6">
+          <div className="bg-white rounded-lg border p-6 overflow-x-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-gray-600" />
               Informations Personnelles
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 min-w-0">
                 <Mail className="h-4 w-4 text-gray-400" />
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-gray-500">Email</p>
-                  <p className="text-gray-900">{profile.insuredPerson.email}</p>
+                  <p
+                    className="text-gray-900 text-sm truncate"
+                    title={profile.insuredPerson.email}
+                  >
+                    {profile.insuredPerson.email}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -177,38 +182,41 @@ export default function Page() {
               Compagnie d'Assurance
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Building2 className="h-4 w-4 text-gray-400" />
-                <div>
+              <div className="flex items-center space-x-3 min-w-0">
+                <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
                   <p className="text-sm text-gray-500">Nom</p>
-                  <p className="text-gray-900">
+                  <p className="text-gray-900 text-sm break-words">
                     {profile.insuranceCompany.name}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-gray-400" />
-                <div>
+              <div className="flex items-center space-x-3 min-w-0">
+                <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
                   <p className="text-sm text-gray-500">Email</p>
-                  <p className="text-gray-900">
+                  <p
+                    className="text-gray-900 text-sm break-words"
+                    title={profile.insuranceCompany.email}
+                  >
                     {profile.insuranceCompany.email}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-gray-400" />
-                <div>
+              <div className="flex items-center space-x-3 min-w-0">
+                <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
                   <p className="text-sm text-gray-500">Téléphone</p>
-                  <p className="text-gray-900">
+                  <p className="text-gray-900 text-sm">
                     {profile.insuranceCompany.phone1}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-gray-400" />
-                <div>
+              <div className="flex items-center space-x-3 min-w-0">
+                <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
                   <p className="text-sm text-gray-500">Adresse</p>
-                  <p className="text-gray-900">
+                  <p className="text-gray-900 text-sm break-words">
                     {profile.insuranceCompany.address}
                   </p>
                 </div>

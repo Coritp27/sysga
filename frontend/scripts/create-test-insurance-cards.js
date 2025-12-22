@@ -4,13 +4,13 @@ const prisma = new PrismaClient();
 
 async function createTestInsuranceCards() {
   try {
-    console.log("🚀 Création des cartes d'assurance de test...");
+    console.log("Création des cartes d'assurance de test...");
 
     // Récupérer la première compagnie d'assurance
     const insuranceCompany = await prisma.insuranceCompany.findFirst();
     if (!insuranceCompany) {
       console.log(
-        "❌ Aucune compagnie d'assurance trouvée. Création d'une compagnie de test..."
+        "Aucune compagnie d'assurance trouvée. Création d'une compagnie de test..."
       );
       const newCompany = await prisma.insuranceCompany.create({
         data: {
@@ -27,14 +27,14 @@ async function createTestInsuranceCards() {
           lastModifiedBy: "script",
         },
       });
-      console.log("✅ Compagnie créée:", newCompany.name);
+      console.log("Compagnie créée:", newCompany.name);
     }
 
     // Récupérer la première personne assurée
     const insuredPerson = await prisma.insuredPerson.findFirst();
     if (!insuredPerson) {
       console.log(
-        "❌ Aucune personne assurée trouvée. Création d'une personne de test..."
+        "Aucune personne assurée trouvée. Création d'une personne de test..."
       );
       const newPerson = await prisma.insuredPerson.create({
         data: {
@@ -55,7 +55,7 @@ async function createTestInsuranceCards() {
         },
       });
       console.log(
-        "✅ Personne assurée créée:",
+        "Personne assurée créée:",
         `${newPerson.firstName} ${newPerson.lastName}`
       );
     }
@@ -66,7 +66,7 @@ async function createTestInsuranceCards() {
 
     if (!company || !person) {
       console.log(
-        "❌ Impossible de créer les cartes sans compagnie ou personne assurée"
+        "Impossible de créer les cartes sans compagnie ou personne assurée"
       );
       return;
     }
@@ -134,7 +134,7 @@ async function createTestInsuranceCards() {
         data: cardDataWithoutRef,
       });
 
-      console.log(`✅ Carte créée: ${insuranceCard.cardNumber}`);
+      console.log(`Carte créée: ${insuranceCard.cardNumber}`);
 
       // Créer la référence blockchain
       if (blockchainReference) {
@@ -147,22 +147,22 @@ async function createTestInsuranceCards() {
         });
 
         console.log(
-          `✅ Référence blockchain créée: #${blockchainRef.reference}`
+          `Référence blockchain créée: #${blockchainRef.reference}`
         );
       }
     }
 
-    console.log("🎉 Création des cartes d'assurance terminée !");
+    console.log("Création des cartes d'assurance terminée.");
 
     // Afficher les statistiques
     const totalCards = await prisma.insuranceCard.count();
     const totalReferences = await prisma.blockchainReference.count();
 
-    console.log(`📊 Statistiques:`);
+    console.log(`Statistiques:`);
     console.log(`   - Cartes d'assurance: ${totalCards}`);
     console.log(`   - Références blockchain: ${totalReferences}`);
   } catch (error) {
-    console.error("❌ Erreur lors de la création des cartes:", error);
+    console.error("Erreur lors de la création des cartes:", error);
   } finally {
     await prisma.$disconnect();
   }

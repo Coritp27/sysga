@@ -6,7 +6,15 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
 import { WorkspaceMembers } from "../components/WorkspaceMembers";
-import { Wallet, Shield, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Wallet,
+  Shield,
+  CheckCircle,
+  AlertCircle,
+  Building2,
+  Link2,
+  Users,
+} from "lucide-react";
 
 export default function SettingsPage() {
   const { user, isLoading } = useWorkspace();
@@ -72,10 +80,10 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { id: "company", label: "Compagnie", icon: "🏢" },
-    { id: "blockchain", label: "Blockchain", icon: "🔗" },
-    { id: "members", label: "Membres", icon: "👥" },
-  ];
+    { id: "company", label: "Compagnie", Icon: Building2 },
+    { id: "blockchain", label: "Blockchain", Icon: Link2 },
+    { id: "members", label: "Membres", Icon: Users },
+  ] as const;
 
   if (isLoading) {
     return (
@@ -163,7 +171,7 @@ export default function SettingsPage() {
                         : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-meta-4"
                     }`}
                   >
-                    <span>{tab.icon}</span>
+                    <tab.Icon className="h-4 w-4" />
                     <span>{tab.label}</span>
                   </button>
                 ))}

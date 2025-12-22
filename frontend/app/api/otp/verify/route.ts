@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       data: serializedData,
     });
   } catch (error) {
-    console.error("❌ Error verifying OTP:", error);
+    console.error("Error verifying OTP:", error);
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 }

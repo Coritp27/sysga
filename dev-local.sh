@@ -15,7 +15,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 # ------------------------------------------------------------------
 # 1) Backend : nœud Hardhat local
 # ------------------------------------------------------------------
-echo "➡️  Lancement du nœud Hardhat (http://localhost:8545)..."
+echo "Lancement du nœud Hardhat (http://localhost:8545)..."
 cd "$ROOT_DIR/backend"
 npm install
 npx hardhat node --hostname 0.0.0.0 &
@@ -32,13 +32,13 @@ sleep 10
 # ------------------------------------------------------------------
 # 2) Déploiement du smart contract sur localhost
 # ------------------------------------------------------------------
-echo "➡️  Déploiement du contrat SysGa sur localhost..."
+echo "Déploiement du contrat SysGa sur localhost..."
 npx hardhat ignition deploy ./ignition/modules/SysGa.js --network localhost
 
 # ------------------------------------------------------------------
 # 3) Frontend : Prisma + Next.js
 # ------------------------------------------------------------------
-echo "➡️  Lancement du frontend (Next.js)..."
+echo "Lancement du frontend (Next.js)..."
 cd "$ROOT_DIR/frontend"
 yarn install
 # Si nécessaire, appliquer les migrations Prisma manuellement :

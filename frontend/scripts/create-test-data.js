@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function createTestData() {
   try {
-    console.log("🔧 Création de données de test...");
+    console.log("Création de données de test...");
 
     // Créer une compagnie d'assurance
     const insuranceCompany = await prisma.insuranceCompany.upsert({
@@ -25,7 +25,7 @@ async function createTestData() {
         lastModifiedBy: "system",
       },
     });
-    console.log("✅ Compagnie d'assurance:", insuranceCompany.name);
+    console.log("Compagnie d'assurance:", insuranceCompany.name);
 
     // Créer des entreprises
     const enterprises = [
@@ -59,7 +59,7 @@ async function createTestData() {
         },
       });
       createdEnterprises.push(enterprise);
-      console.log("✅ Entreprise créée:", enterprise.name);
+      console.log("Entreprise créée:", enterprise.name);
     }
 
     // Créer des assurés liés aux entreprises
@@ -133,7 +133,7 @@ async function createTestData() {
         create: insuredPerson,
       });
       console.log(
-        `✅ Assuré créé: ${insuredPerson.firstName} ${insuredPerson.lastName}`
+        `Assuré créé: ${insuredPerson.firstName} ${insuredPerson.lastName}`
       );
     }
 
@@ -142,14 +142,14 @@ async function createTestData() {
     const totalEnterprises = await prisma.enterprise.count();
     const totalCompanies = await prisma.insuranceCompany.count();
 
-    console.log("\n📊 Statistiques finales:");
+    console.log("\nStatistiques finales:");
     console.log(`- Total assurés: ${totalInsured}`);
     console.log(`- Total entreprises: ${totalEnterprises}`);
     console.log(`- Total compagnies d'assurance: ${totalCompanies}`);
 
-    console.log("\n🎉 Données de test créées avec succès!");
+    console.log("\nDonnées de test créées avec succès.");
   } catch (error) {
-    console.error("❌ Erreur:", error);
+    console.error("Erreur:", error);
   } finally {
     await prisma.$disconnect();
   }

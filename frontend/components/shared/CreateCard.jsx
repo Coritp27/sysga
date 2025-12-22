@@ -31,7 +31,7 @@ const CreateCard = () => {
   const insuranceCompanyAddress = user?.insuranceCompany?.blockchainAddress;
 
   const handleCreateCard = async () => {
-    console.log("🚀 Tentative de création de carte:");
+    console.log("Tentative de création de carte:");
     console.log("- cardNumber:", cardNumber);
     console.log("- issuedOn:", issuedOn);
     console.log("- status:", status);
@@ -41,7 +41,7 @@ const CreateCard = () => {
     console.log("- contractAddress:", contractAddress);
 
     if (!insuranceCompanyAddress) {
-      console.error("❌ Aucune adresse de compagnie d'assurance trouvée");
+      console.error("Aucune adresse de compagnie d'assurance trouvée");
       alert(
         "Erreur: Aucune adresse de compagnie d'assurance configurée. Veuillez contacter l'administrateur."
       );
@@ -56,7 +56,7 @@ const CreateCard = () => {
     }
 
     try {
-      console.log("📡 Envoi de la transaction...");
+      console.log("Envoi de la transaction...");
 
       // Ajouter un timeout pour éviter les blocages
       const timeoutPromise = new Promise((_, reject) => {
@@ -79,9 +79,9 @@ const CreateCard = () => {
       // Race entre le timeout et la transaction
       await Promise.race([contractPromise, timeoutPromise]);
 
-      console.log("✅ Transaction envoyée avec succès");
+      console.log("Transaction envoyée avec succès");
     } catch (err) {
-      console.error("❌ Erreur lors de l'appel writeContract:", err);
+      console.error("Erreur lors de l'appel writeContract:", err);
 
       // Gestion spécifique des erreurs de timeout
       if (err.message.includes("Timeout")) {
@@ -105,7 +105,7 @@ const CreateCard = () => {
 
   // Logs pour les erreurs
   if (error) {
-    console.error("❌ Erreur writeContract:", error);
+    console.error("Erreur writeContract:", error);
   }
 
   // Afficher un message si l'utilisateur n'a pas de compagnie d'assurance

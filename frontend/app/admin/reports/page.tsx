@@ -50,21 +50,21 @@ export default function ReportsPage() {
         setIsLoading(true);
         setError(null);
 
-        console.log("🔍 Appel de l'API reports...");
+        console.log("Appel de l'API reports...");
         const response = await fetch("/api/reports");
-        console.log("📡 Réponse reçue:", response.status, response.statusText);
+        console.log("Réponse reçue:", response.status, response.statusText);
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error("❌ Erreur HTTP:", response.status, errorText);
+          console.error("Erreur HTTP:", response.status, errorText);
           throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
         }
 
         const reportsData = await response.json();
-        console.log("✅ Données reçues:", reportsData);
+        console.log("Données reçues:", reportsData);
         setData(reportsData);
       } catch (err) {
-        console.error("❌ Erreur complète:", err);
+        console.error("Erreur complète:", err);
         setError(err instanceof Error ? err.message : "Erreur inconnue");
       } finally {
         setIsLoading(false);

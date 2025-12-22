@@ -24,15 +24,13 @@ try {
     client = twilio(accountSid, authToken);
   }
 } catch (error) {
-  console.warn("⚠️ Twilio not installed. Using development mode for SMS.");
+  console.warn("Twilio not installed. Using development mode for SMS.");
 }
 
 try {
   nodemailer = require("nodemailer");
 } catch (error) {
-  console.warn(
-    "⚠️ Nodemailer not installed. Using development mode for Email."
-  );
+  console.warn("Nodemailer not installed. Using development mode for email.");
 }
 
 try {
@@ -41,18 +39,18 @@ try {
     sgMail.setApiKey(sendGridApiKey);
   }
 } catch (error) {
-  console.warn("⚠️ SendGrid not installed. Using development mode for Email.");
+  console.warn("SendGrid not installed. Using development mode for email.");
 }
 
 if (!accountSid || !authToken || !fromPhoneNumber) {
   console.warn(
-    "⚠️ Twilio credentials not configured. SMS will work in development mode only."
+    "Twilio credentials not configured. SMS will work in development mode only."
   );
 }
 
 if (!emailUser || !emailPass) {
   console.warn(
-    "⚠️ Email credentials not configured. Email will work in development mode only."
+    "Email credentials not configured. Email will work in development mode only."
   );
 }
 
@@ -65,7 +63,7 @@ class TwilioOTPService implements OTPService {
   async sendSMS(phoneNumber: string, otpCode: string): Promise<boolean> {
     if (!client || !fromPhoneNumber) {
       console.log(
-        `📱 [DEV] SMS OTP would be sent to ${phoneNumber}: ${otpCode}`
+        `[DEV] SMS OTP would be sent to ${phoneNumber}: ${otpCode}`
       );
       return true; // En développement, on simule l'envoi
     }
@@ -77,10 +75,10 @@ class TwilioOTPService implements OTPService {
         to: phoneNumber,
       });
 
-      console.log(`✅ SMS OTP sent successfully: ${message.sid}`);
+      console.log(`SMS OTP sent successfully: ${message.sid}`);
       return true;
     } catch (error) {
-      console.error("❌ Error sending SMS OTP:", error);
+      console.error("Error sending SMS OTP:", error);
       return false;
     }
   }
@@ -108,10 +106,10 @@ class TwilioOTPService implements OTPService {
         };
 
         await sgMail.send(msg);
-        console.log(`✅ Email OTP sent successfully via SendGrid to ${email}`);
+        console.log(`Email OTP sent successfully via SendGrid to ${email}`);
         return true;
       } catch (error) {
-        console.error("❌ Error sending email via SendGrid:", error);
+        console.error("Error sending email via SendGrid:", error);
       }
     }
 
@@ -146,16 +144,16 @@ class TwilioOTPService implements OTPService {
 
         await transporter.sendMail(mailOptions);
         console.log(
-          `✅ Email OTP sent successfully via Nodemailer to ${email}`
+          `Email OTP sent successfully via Nodemailer to ${email}`
         );
         return true;
       } catch (error) {
-        console.error("❌ Error sending email via Nodemailer:", error);
+        console.error("Error sending email via Nodemailer:", error);
       }
     }
 
     // Mode développement
-    console.log(`📧 [DEV] Email OTP would be sent to ${email}: ${otpCode}`);
+    console.log(`[DEV] Email OTP would be sent to ${email}: ${otpCode}`);
     return true;
   }
 }
