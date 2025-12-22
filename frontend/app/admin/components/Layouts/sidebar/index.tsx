@@ -3,16 +3,58 @@ import React from "react";
 import { cn } from "../../../lib/utils";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NAV_DATA } from "./data";
+import { NAV_DATA, NavSection, NavItem, NavSubItem } from "./data";
 import { ArrowLeftIcon, ChevronUp } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
+import { useUser } from "@clerk/nextjs";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar, isMounted } =
     useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { user } = useUser();
+
+  const metaTypeRaw =
+    (user?.publicMetadata?.userType as string | undefined) ||
+    ((user as any)?.privateMetadata?.userType as string | undefined);
+  const userType = (
+    metaTypeRaw ? metaTypeRaw.toString().toUpperCase() : "INSURER"
+  ) as "ADMIN" | "INSURER" | "MEDICAL";
+
+  const navData = (() => {
+    const systemSection = NAV_DATA.find(
+      (section: NavSection | undefined) => section?.label === "SYSTÈME"
+    );
+    const explorerItem =
+      systemSection?.items.find(
+        (item: NavItem) => item.url === "/admin/explorer"
+      ) || null;
+
+    if (userType === "MEDICAL") {
+      if (!explorerItem) return NAV_DATA;
+      return [
+        {
+          label: "SYSTÈME",
+          items: [explorerItem],
+        },
+      ];
+    }
+
+    if (userType === "INSURER") {
+      // Tout voir sauf la vérification des cartes
+      return NAV_DATA.map((section: NavSection) => ({
+        ...section,
+        items: section.items.filter(
+          (item: NavItem) => item.url !== "/admin/explorer"
+        ),
+      }));
+    }
+
+    // ADMIN (ou autre) : tout voir
+    return NAV_DATA;
+  })();
 
   const toggleExpanded = (title: string) => {
     setExpandedItems((prev) => (prev.includes(title) ? [] : [title]));
@@ -26,10 +68,10 @@ export function Sidebar() {
   useEffect(() => {
     if (!isMounted) return;
 
-    // Keep collapsible open, when it's subpage is active
-    NAV_DATA.some((section) => {
-      return section.items.some((item) => {
-        return item.items.some((subItem) => {
+    // Keep collapsible open, when its subpage is active
+    navData.some((section: NavSection) => {
+      return section.items.some((item: NavItem) => {
+        return item.items.some((subItem: NavSubItem) => {
           if (subItem.url === pathname) {
             if (!expandedItems.includes(item.title)) {
               toggleExpanded(item.title);
@@ -71,11 +113,11 @@ export function Sidebar() {
           <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
             {/* Loading skeleton */}
             <div className="animate-pulse">
-              {NAV_DATA.map((section) => (
+              {navData.map((section: NavSection) => (
                 <div key={section.label} className="mb-6">
                   <div className="mb-5 h-4 w-20 bg-gray-200 rounded dark:bg-gray-700"></div>
                   <div className="space-y-2">
-                    {section.items.map((item) => (
+                    {section.items.map((item: NavItem) => (
                       <div
                         key={item.title}
                         className="h-10 bg-gray-200 rounded dark:bg-gray-700"
@@ -128,7 +170,7 @@ export function Sidebar() {
 
           {/* Navigation */}
           <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
-            {NAV_DATA.map((section) => (
+            {navData.map((section: NavSection) => (
               <div key={section.label} className="mb-6">
                 <h2 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
                   {section.label}
@@ -136,79 +178,83 @@ export function Sidebar() {
 
                 <nav role="navigation" aria-label={section.label}>
                   <ul className="space-y-2">
-                    {section.items.map((item) => (
-                      <li key={item.title}>
-                        {item.items.length ? (
-                          <div>
-                            <MenuItem
-                              isActive={item.items.some(
-                                ({ url }) => url === pathname
-                              )}
-                              onClick={() => toggleExpanded(item.title)}
-                            >
-                              <item.icon
-                                className="size-6 shrink-0"
-                                aria-hidden="true"
-                              />
+                    {section.items.map((item: NavItem) => {
+                      const Icon =
+                        (item.icon as React.ComponentType<any>) || (() => null);
 
-                              <span>{item.title}</span>
-
-                              <ChevronUp
-                                className={cn(
-                                  "ml-auto rotate-180 transition-transform duration-200",
-                                  expandedItems.includes(item.title) &&
-                                    "rotate-0"
-                                )}
-                                aria-hidden="true"
-                              />
-                            </MenuItem>
-
-                            {expandedItems.includes(item.title) && (
-                              <ul
-                                className="ml-9 mr-0 space-y-1.5 pb-[15px] pr-0 pt-2"
-                                role="menu"
-                              >
-                                {item.items.map((subItem) => (
-                                  <li key={subItem.title} role="none">
-                                    <MenuItem
-                                      as="link"
-                                      href={subItem.url}
-                                      isActive={pathname === subItem.url}
-                                    >
-                                      <span>{subItem.title}</span>
-                                    </MenuItem>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        ) : (
-                          (() => {
-                            const href =
-                              "url" in item
-                                ? item.url + ""
-                                : "/" +
-                                  item.title.toLowerCase().split(" ").join("-");
-
-                            return (
+                      return (
+                        <li key={item.title}>
+                          {item.items.length ? (
+                            <div>
                               <MenuItem
-                                className="flex items-center gap-3 py-3"
-                                as="link"
-                                href={href}
-                                isActive={pathname === href}
+                                isActive={item.items.some(
+                                  ({ url }) => url === pathname
+                                )}
+                                onClick={() => toggleExpanded(item.title)}
                               >
-                                <item.icon
+                                <Icon
                                   className="size-6 shrink-0"
                                   aria-hidden="true"
                                 />
 
                                 <span>{item.title}</span>
+
+                                <ChevronUp
+                                  className={cn(
+                                    "ml-auto rotate-180 transition-transform duration-200",
+                                    expandedItems.includes(item.title) &&
+                                      "rotate-0"
+                                  )}
+                                  aria-hidden="true"
+                                />
                               </MenuItem>
-                            );
-                          })()
-                        )}
-                      </li>
-                    ))}
+
+                              {expandedItems.includes(item.title) && (
+                                <ul
+                                  className="ml-9 mr-0 space-y-1.5 pb-[15px] pr-0 pt-2"
+                                  role="menu"
+                                >
+                                  {item.items.map((subItem: NavSubItem) => (
+                                    <li key={subItem.title} role="none">
+                                      <MenuItem
+                                        as="link"
+                                        href={subItem.url}
+                                        isActive={pathname === subItem.url}
+                                      >
+                                        <span>{subItem.title}</span>
+                                      </MenuItem>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          ) : (
+                            (() => {
+                              const href = item.url
+                                ? String(item.url)
+                                : "/" +
+                                  item.title.toLowerCase().split(" ").join("-");
+
+                              return (
+                                <MenuItem
+                                  className="flex items-center gap-3 py-3"
+                                  as="link"
+                                  href={href}
+                                  isActive={pathname === href}
+                                >
+                                  <Icon
+                                    className="size-6 shrink-0"
+                                    aria-hidden="true"
+                                  />
+
+                                  <span>{item.title}</span>
+                                </MenuItem>
+                              );
+                            })()
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </nav>
               </div>

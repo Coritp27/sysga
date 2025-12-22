@@ -14,6 +14,8 @@ import type { Metadata } from "next";
 import type { PropsWithChildren } from "react";
 import ClientTopLoader from "./components/ClientTopLoader";
 import { Providers } from "./providers";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +26,13 @@ export const metadata: Metadata = {
     "Système de gestion d'assurance moderne avec interface d'administration complète pour la gestion des polices, assurés et compagnies.",
 };
 
-export default function AdminLayout({ children }: PropsWithChildren) {
+export default async function AdminLayout({ children }: PropsWithChildren) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
   return (
     <Providers>
       <ClientTopLoader color="#5750F1" showSpinner={false} />

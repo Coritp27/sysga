@@ -1,5 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import DashboardStats from "../components/Dashboard/DashboardStats";
 import RecentActivity from "../components/Dashboard/RecentActivity";
 import BlockchainStatus from "../components/Dashboard/BlockchainStatus";
@@ -13,7 +15,25 @@ export const metadata: Metadata = {
     "Tableau de bord du système de gestion d'assurance avec blockchain",
 };
 
-const DashboardPage = () => {
+const DashboardPage = async () => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  const user = await currentUser();
+  const metaTypeRaw =
+    (user?.publicMetadata?.userType as string | undefined) ||
+    (user?.privateMetadata?.userType as string | undefined);
+  const userType = metaTypeRaw
+    ? metaTypeRaw.toString().toUpperCase()
+    : "INSURER";
+
+  if (userType === "MEDICAL") {
+    redirect("/admin/explorer");
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
