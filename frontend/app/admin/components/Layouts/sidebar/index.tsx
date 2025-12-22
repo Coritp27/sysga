@@ -232,7 +232,8 @@ export function Sidebar() {
                             (() => {
                               const href = item.url
                                 ? String(item.url)
-                                : "/" + item.title.toLowerCase().split(" ").join("-");
+                                : "/" +
+                                  item.title.toLowerCase().split(" ").join("-");
 
                               return (
                                 <MenuItem

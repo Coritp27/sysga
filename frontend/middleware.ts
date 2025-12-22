@@ -35,7 +35,8 @@ export default clerkMiddleware(async (auth, req) => {
 
   try {
     // `clerkClient` may be an async factory in this @clerk/nextjs version.
-    const client = typeof clerkClient === "function" ? await clerkClient() : clerkClient;
+    const client =
+      typeof clerkClient === "function" ? await clerkClient() : clerkClient;
     const clerkUser = await client.users.getUser(userId as string);
     const meta =
       (clerkUser.publicMetadata?.userType as string | undefined) ||
