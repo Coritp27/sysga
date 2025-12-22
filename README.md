@@ -256,6 +256,8 @@ sysga/    # Dossier du projet VeriCarte
 
 ### 2. Déploiement local sans Docker
 
+#### 2.1 Chemin “manuel” (PostgreSQL local)
+
 1. Installer et démarrer PostgreSQL localement, puis créer une base :
    - DB : `sysga`
    - User : `sysga` / `sysga123` (ou adapter `DATABASE_URL`).
@@ -283,6 +285,23 @@ sysga/    # Dossier du projet VeriCarte
    yarn dev
    ```
 5. Ouvrir `http://localhost:3000` et se connecter via Clerk.
+
+#### 2.2 Lancement rapide avec le script `dev-local.sh`
+
+Une fois vos fichiers d’environnement configurés (`frontend/.env` et
+`frontend/.env.local`, y compris `DATABASE_URL` vers Prisma Accelerate ou une
+base PostgreSQL), vous pouvez lancer toute l’application avec un seul script :
+
+```bash
+cd sysga
+chmod +x dev-local.sh      # première fois seulement
+./dev-local.sh
+```
+
+Ce script :
+- démarre un nœud Hardhat local,
+- déploie le smart contract SysGa sur `localhost`,
+- lance le frontend Next.js (`yarn dev`).
 
 ### 3. Déploiement en production (testnet + Vercel)
 
