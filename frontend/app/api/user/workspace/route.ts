@@ -66,12 +66,12 @@ export async function GET(request: NextRequest) {
       const insuranceCompany = await prisma.insuranceCompany.create({
         data: {
           name: `Compagnie de ${userId}`,
-          email: `contact+${userId}@assurance.com`,
-          phone1: "+33 1 23 45 67 89",
+          email: `contact+${userId}@assurance.ht`,
+          phone1: "+509 34 12 34 56",
           phone2: "",
-          address: "1 rue du nouvel utilisateur, 75000 Paris, France",
+          address: "Delmas 33, Port-au-Prince, Haïti",
           website: "",
-          fiscalNumber: `FR${Math.floor(Math.random() * 1e10)}`,
+          fiscalNumber: `HT${Math.floor(Math.random() * 1e10)}`,
           numberOfEmployees: 1,
           blockchainAddress: null,
           createdBy: "system",

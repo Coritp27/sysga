@@ -32,12 +32,7 @@ export const NAV_DATA = [
         title: "Cartes d'Assurance",
         url: "/admin/insurance-cards",
         icon: Icons.Table,
-        items: [
-          {
-            title: "Liste des Cartes",
-            url: "/admin/insurance-cards",
-          },
-        ],
+        items: [],
       },
       // {
       //   title: "Réclamations",
@@ -62,14 +57,16 @@ export const NAV_DATA = [
         items: [],
       },
       {
+        title: "Vérification des cartes",
+        url: "/admin/explorer",
+        icon: Icons.Authentication,
+        items: [],
+      },
+      {
         title: "Paramètres",
-        icon: Icons.Alphabet,
-        items: [
-          {
-            title: "Paramètres",
-            url: "/admin/settings",
-          },
-        ],
+        url: "/admin/settings",
+        icon: Icons.Settings,
+        items: [],
       },
     ],
   },

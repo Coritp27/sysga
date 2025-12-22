@@ -7,12 +7,54 @@ import { NAV_DATA } from "./data";
 import { ArrowLeftIcon, ChevronUp } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
+import { useUser } from "@clerk/nextjs";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar, isMounted } =
     useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { user } = useUser();
+
+  const metaTypeRaw =
+    (user?.publicMetadata?.userType as string | undefined) ||
+    (user?.privateMetadata?.userType as string | undefined);
+  const userType = (metaTypeRaw
+    ? metaTypeRaw.toString().toUpperCase()
+    : "INSURER") as "ADMIN" | "INSURER" | "MEDICAL";
+
+  const navData = (() => {
+    const systemSection = NAV_DATA.find(
+      (section: any) => section.label === "SYSTÈME"
+    ) as any;
+    const explorerItem =
+      systemSection?.items.find(
+        (item: any) => item.url === "/admin/explorer"
+      ) || null;
+
+    if (userType === "MEDICAL") {
+      if (!explorerItem) return NAV_DATA;
+      return [
+        {
+          label: "SYSTÈME",
+          items: [explorerItem],
+        },
+      ];
+    }
+
+    if (userType === "INSURER") {
+      // Tout voir sauf la vérification des cartes
+      return NAV_DATA.map((section: any) => ({
+        ...section,
+        items: section.items.filter(
+          (item: any) => item.url !== "/admin/explorer"
+        ),
+      }));
+    }
+
+    // ADMIN (ou autre) : tout voir
+    return NAV_DATA;
+  })();
 
   const toggleExpanded = (title: string) => {
     setExpandedItems((prev) => (prev.includes(title) ? [] : [title]));
@@ -27,7 +69,7 @@ export function Sidebar() {
     if (!isMounted) return;
 
     // Keep collapsible open, when it's subpage is active
-    NAV_DATA.some((section) => {
+    navData.some((section) => {
       return section.items.some((item) => {
         return item.items.some((subItem) => {
           if (subItem.url === pathname) {
@@ -71,7 +113,7 @@ export function Sidebar() {
           <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
             {/* Loading skeleton */}
             <div className="animate-pulse">
-              {NAV_DATA.map((section) => (
+              {navData.map((section) => (
                 <div key={section.label} className="mb-6">
                   <div className="mb-5 h-4 w-20 bg-gray-200 rounded dark:bg-gray-700"></div>
                   <div className="space-y-2">
@@ -128,7 +170,7 @@ export function Sidebar() {
 
           {/* Navigation */}
           <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
-            {NAV_DATA.map((section) => (
+            {navData.map((section) => (
               <div key={section.label} className="mb-6">
                 <h2 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
                   {section.label}

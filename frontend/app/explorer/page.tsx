@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useContractRead } from "wagmi";
 import { contractAbi } from "../../constants";
+import Header from "@/components/shared/Header";
+import { usePathname } from "next/navigation";
 
 interface DatabaseCard {
   id: number;
@@ -57,6 +59,7 @@ interface BlockchainCard {
 type VerificationStep = "search" | "contact" | "otp" | "result";
 
 export default function BlockchainExplorerPage() {
+  const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState<VerificationStep>("search");
   const [searchValue, setSearchValue] = useState("");
   const [contactMethod, setContactMethod] = useState<"phone" | "email">(
@@ -336,14 +339,17 @@ export default function BlockchainExplorerPage() {
     setOtpExpiresIn(0);
   };
 
+  const isStandalone = pathname === "/explorer";
+
   // Éviter l'hydratation complète si pas côté client
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className={isStandalone ? "min-h-screen bg-gray-50" : ""}>
+        {isStandalone && <Header />}
         <div className="max-w-4xl mx-auto p-6">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <Shield className="h-12 w-12 text-blue-600 mr-3" />
+              <Shield className="h-12 w-12 text-primary mr-3" />
               <h1 className="text-3xl font-bold text-gray-900">
                 Vérification Carte d'Assurance
               </h1>
@@ -359,12 +365,12 @@ export default function BlockchainExplorerPage() {
                   <input
                     type="text"
                     placeholder="Numéro de carte, CIN ou nom..."
-                    className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <button
                   disabled
-                  className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center"
+                  className="px-8 py-4 bg-primary text-white rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center"
                 >
                   <Search className="h-5 w-5 mr-2" />
                   Vérifier
@@ -379,7 +385,7 @@ export default function BlockchainExplorerPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-blue-600 font-bold text-lg">1</span>
+                  <span className="text-primary font-bold text-lg">1</span>
                 </div>
                 <p className="text-gray-600">
                   Entrez le numéro de carte, CIN ou nom
@@ -387,13 +393,13 @@ export default function BlockchainExplorerPage() {
               </div>
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-blue-600 font-bold text-lg">2</span>
+                  <span className="text-primary font-bold text-lg">2</span>
                 </div>
                 <p className="text-gray-600">Cliquez sur "Vérifier"</p>
               </div>
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-blue-600 font-bold text-lg">3</span>
+                  <span className="text-primary font-bold text-lg">3</span>
                 </div>
                 <p className="text-gray-600">Consultez le résultat</p>
               </div>
@@ -405,12 +411,13 @@ export default function BlockchainExplorerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={isStandalone ? "min-h-screen bg-gray-50" : ""}>
+      {isStandalone && <Header />}
       <div className="max-w-4xl mx-auto p-6">
         {/* En-tête simple */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Shield className="h-12 w-12 text-blue-600 mr-3" />
+            <Shield className="h-12 w-12 text-primary mr-3" />
             <h1 className="text-3xl font-bold text-gray-900">
               Vérification Carte d'Assurance
             </h1>
@@ -437,7 +444,7 @@ export default function BlockchainExplorerPage() {
                   <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
                       currentStep === item.step
-                        ? "bg-blue-600 text-white"
+                        ? "bg-primary text-white"
                         : ["search", "contact", "otp", "result"].indexOf(
                               currentStep
                             ) > index
@@ -456,7 +463,7 @@ export default function BlockchainExplorerPage() {
                   <span
                     className={`ml-2 text-sm font-medium ${
                       currentStep === item.step
-                        ? "text-blue-600"
+                        ? "text-primary"
                         : "text-gray-600"
                     }`}
                   >
@@ -494,13 +501,13 @@ export default function BlockchainExplorerPage() {
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && searchCard()}
-                    className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-6 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <button
                   onClick={searchCard}
                   disabled={!searchValue.trim() || isSearching}
-                  className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center"
+                  className="px-8 py-4 bg-primary text-white rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg flex items-center"
                 >
                   {isSearching ? (
                     <>
@@ -532,14 +539,14 @@ export default function BlockchainExplorerPage() {
                 Vérification d'identité
               </h2>
               <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                <p className="text-blue-800 text-center">
+                <p className="text-primary text-center">
                   Carte trouvée pour{" "}
                   <strong>
                     {searchResult.insuredPerson.firstName}{" "}
                     {searchResult.insuredPerson.lastName}
                   </strong>
                 </p>
-                <p className="text-blue-600 text-sm text-center mt-1">
+                <p className="text-primary text-sm text-center mt-1">
                   Carte: {searchResult.cardNumber}
                 </p>
               </div>
@@ -554,7 +561,7 @@ export default function BlockchainExplorerPage() {
                       onClick={() => setContactMethod("phone")}
                       className={`flex-1 py-3 px-4 rounded-lg border-2 font-medium ${
                         contactMethod === "phone"
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          ? "border-primary bg-blue-50 text-primary"
                           : "border-gray-300 text-gray-600 hover:border-gray-400"
                       }`}
                     >
@@ -580,14 +587,14 @@ export default function BlockchainExplorerPage() {
                     value={contactValue}
                     onChange={(e) => setContactValue(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && sendOTP()}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
 
                 <button
                   onClick={sendOTP}
                   disabled={!contactValue.trim() || isSendingOTP}
-                  className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+                  className="w-full py-3 bg-primary text-white rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
                 >
                   {isSendingOTP ? (
                     <>
@@ -711,177 +718,65 @@ export default function BlockchainExplorerPage() {
           </div>
         )}
 
-        {/* Étape 4: Résultat avec vérification blockchain */}
+        {/* Étape 4: Résultat (e-carte) */}
         {currentStep === "result" && searchResult && (
           <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="max-w-4xl mx-auto">
-              {/* En-tête avec statut et vérification blockchain */}
-              <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {searchResult.insuredPerson.firstName}{" "}
-                    {searchResult.insuredPerson.lastName}
-                  </h2>
-                  <p className="text-gray-600">
-                    Carte: {searchResult.cardNumber}
-                  </p>
-                </div>
-                <div className="text-center space-y-2">
-                  <div className="flex items-center justify-center">
-                    {getStatusIcon(searchResult.status)}
-                    <p className="text-sm font-medium ml-2">
-                      {getStatusText(searchResult.status)}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    {getVerificationIcon()}
-                    <p className="text-sm font-medium ml-2">
-                      {getVerificationText()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Informations essentielles */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Données de la base de données */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                    Données base de données
-                  </h3>
-
-                  <div className="flex items-center">
-                    <CreditCard className="h-5 w-5 text-blue-600 mr-3" />
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        Police #{searchResult.policyNumber}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {searchResult.insuranceCompany.name}
-                      </p>
-                    </div>
-                  </div>
-
+            <div className="max-w-3xl mx-auto">
+              <div className="flex flex-col items-center gap-6">
+                {/* E-card visual (kept) */}
+                <div className="w-full bg-gradient-to-r from-white to-blue-50 border border-gray-100 rounded-xl p-6 shadow-sm">
                   <div>
-                    <p className="font-medium text-gray-900">Validité</p>
-                    <p className="text-sm text-gray-600">
-                      {isClient ? (
-                        <>
-                          Du {formatDate(searchResult.policyEffectiveDate)} au{" "}
-                          {formatDate(searchResult.validUntil)}
-                        </>
-                      ) : (
-                        <span className="text-gray-400">Chargement...</span>
-                      )}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="font-medium text-gray-900">Identité</p>
-                    <p className="text-sm text-gray-600">
-                      CIN: {searchResult.insuredPerson.cin} | NIF:{" "}
-                      {searchResult.insuredPerson.nif}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="font-medium text-gray-900">Contact</p>
-                    <p className="text-sm text-gray-600">
-                      {searchResult.insuredPerson.email}
-                    </p>
-                  </div>
-
-                  {searchResult.hadDependent && (
-                    <div>
-                      <p className="font-medium text-gray-900">Dépendants</p>
-                      <p className="text-sm text-gray-600">
-                        {searchResult.numberOfDependent} personne(s)
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Données blockchain */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                    Données blockchain
-                  </h3>
-
-                  {blockchainData && isClient ? (
-                    <>
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">
-                          Référence Blockchain
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          #{blockchainData.id}
+                        <p className="text-sm text-gray-500">Assuré</p>
+                        <h3 className="text-2xl font-bold text-gray-900">
+                          {searchResult.insuredPerson.firstName} {" "}
+                          {searchResult.insuredPerson.lastName}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {searchResult.insuranceCompany.name}
                         </p>
                       </div>
-
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          Numéro de Carte
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {blockchainData.cardNumber}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          Date d'Émission
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {isClient
-                            ? formatBlockchainDate(blockchainData.issuedOn)
-                            : "Chargement..."}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium text-gray-900">Statut</p>
-                        <p className="text-sm text-gray-600">
-                          {blockchainData.status}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium text-gray-900">Compagnie</p>
-                        <p className="text-sm text-gray-600">
-                          {blockchainData.insuranceCompany}
-                        </p>
-                      </div>
-
-                      {searchResult.blockchainReference && (
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            Transaction Hash
-                          </p>
-                          <p className="text-sm text-gray-600 font-mono">
-                            {searchResult.blockchainReference.blockchainTxHash}
-                          </p>
+                      <div className="text-right">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/80 border">
+                          {getStatusIcon(searchResult.status)}
+                          <span className="ml-2 text-sm font-medium">
+                            {getStatusText(searchResult.status)}
+                          </span>
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-8">
-                      <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500">
-                        Aucune donnée blockchain trouvée
-                      </p>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Bouton nouvelle recherche */}
-              <div className="text-center mt-8">
-                <button
-                  onClick={resetFlow}
-                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
-                >
-                  Nouvelle Recherche
-                </button>
+                    <div className="mt-6 grid grid-cols-2 gap-4 text-sm text-gray-700">
+                      <div>
+                        <p className="text-xs text-gray-500">Carte</p>
+                        <p className="font-medium">{searchResult.cardNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Police</p>
+                        <p className="font-medium">#{searchResult.policyNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">CIN</p>
+                        <p className="font-medium">{searchResult.insuredPerson.cin}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">NIF</p>
+                        <p className="font-medium">{searchResult.insuredPerson.nif}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Button (kept) */}
+                <div className="w-full max-w-xs">
+                  <button
+                    onClick={resetFlow}
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium"
+                  >
+                    Nouvelle recherche
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -896,7 +791,7 @@ export default function BlockchainExplorerPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-blue-600 font-bold text-lg">1</span>
+                  <span className="text-primary font-bold text-lg">1</span>
                 </div>
                 <p className="text-gray-600">
                   Entrez le numéro de carte, CIN ou nom
@@ -904,13 +799,13 @@ export default function BlockchainExplorerPage() {
               </div>
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-blue-600 font-bold text-lg">2</span>
+                  <span className="text-primary font-bold text-lg">2</span>
                 </div>
                 <p className="text-gray-600">Cliquez sur "Vérifier"</p>
               </div>
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-blue-600 font-bold text-lg">3</span>
+                  <span className="text-primary font-bold text-lg">3</span>
                 </div>
                 <p className="text-gray-600">Consultez le résultat</p>
               </div>
