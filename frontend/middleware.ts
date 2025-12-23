@@ -4,6 +4,7 @@ import {
   clerkClient,
 } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -43,7 +44,7 @@ export default clerkMiddleware(async (auth, req) => {
       (clerkUser.privateMetadata?.userType as string | undefined);
     userType = meta ? meta.toString().toUpperCase() : undefined;
   } catch (e) {
-    console.warn("[middleware] Impossible de lire userType depuis Clerk", e);
+    logger.warn("middleware", "Impossible de lire userType depuis Clerk", e);
   }
 
   const pathname = req.nextUrl.pathname;
@@ -53,6 +54,10 @@ export default clerkMiddleware(async (auth, req) => {
     const url = req.nextUrl.clone();
     url.pathname = "/admin/explorer";
     url.search = "";
+    logger.info(
+      "middleware",
+      `Redirect MEDICAL user to /admin/explorer from ${pathname}`
+    );
     return NextResponse.redirect(url);
   }
 
@@ -61,6 +66,10 @@ export default clerkMiddleware(async (auth, req) => {
     const url = req.nextUrl.clone();
     url.pathname = "/admin/dashboard";
     url.search = "";
+    logger.info(
+      "middleware",
+      `Redirect INSURER user to /admin/dashboard from ${pathname}`
+    );
     return NextResponse.redirect(url);
   }
 });
