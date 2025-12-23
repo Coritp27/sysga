@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 const prisma = new PrismaClient();
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Debug: afficher l'identifiant Clerk renvoyé par auth()
-    console.log(`[API GET insurance-cards] auth userId: ${userId}`);
+    logger.debug("insurance-cards", `auth userId: ${userId}`);
 
     // Récupérer l'utilisateur et sa compagnie
     const user = await prisma.user.findFirst({
@@ -25,20 +26,20 @@ export async function GET(request: NextRequest) {
 
     // Debug: afficher les informations essentielles de l'utilisateur récupéré
     try {
-      console.log(
-        `[API GET insurance-cards] db user: ${
-          user
-            ? JSON.stringify({
-                id: user.id,
-                username: user.username,
-                userType: user.userType,
-                insuranceCompanyId: user.insuranceCompanyId,
-              })
-            : "null"
-        }`
+      logger.debug(
+        "insurance-cards",
+        "db user:",
+        user
+          ? {
+              id: user.id,
+              username: user.username,
+              userType: user.userType,
+              insuranceCompanyId: user.insuranceCompanyId,
+            }
+          : null
       );
     } catch (e) {
-      console.log("[API GET insurance-cards] db user: (failed to stringify)");
+      logger.warn("insurance-cards", "db user: (failed to stringify)");
     }
 
     if (!user?.insuranceCompanyId) {
@@ -54,8 +55,9 @@ export async function GET(request: NextRequest) {
       // For MEDICAL users we continue (read-only). We deliberately do not
       // allow POST/PUT in this branch — those handlers still enforce the
       // insuranceCompanyId check.
-      console.log(
-        `[API] MEDICAL user (${user.username || user.idClerk}) allowed to search across companies`
+      logger.info(
+        "insurance-cards",
+        `MEDICAL user (${user.username || user.idClerk}) allowed to search across companies`
       );
     }
 
@@ -96,7 +98,11 @@ export async function GET(request: NextRequest) {
             policyNumber: { equals: BigInt(numericSearch) },
           });
         } catch (error) {
-          console.log("Impossible de convertir en BigInt:", search);
+          logger.warn(
+            "insurance-cards",
+            "Impossible de convertir en BigInt:",
+            search
+          );
         }
       }
 
@@ -148,9 +154,14 @@ export async function GET(request: NextRequest) {
         : null,
     }));
 
+    logger.info(
+      "insurance-cards",
+      `Returning ${serializedCards.length} card(s)`
+    );
     return NextResponse.json(serializedCards);
   } catch (error) {
-    console.error(
+    logger.error(
+      "insurance-cards",
       "Erreur lors de la récupération des cartes d'assurance:",
       error
     );

@@ -255,7 +255,6 @@ export default function BlockchainExplorerPage() {
   const loadPoliciesForCard = async (policyNumber?: number) => {
     if (!policyNumber) return;
     try {
-      console.debug("loadPoliciesForCard called with:", policyNumber);
       const res = await fetch(`/api/policies?search=${policyNumber}`);
       if (!res.ok) {
         console.error("Erreur fetching policies:", res.status);
@@ -269,13 +268,6 @@ export default function BlockchainExplorerPage() {
       setPolicies([]);
     }
   };
-
-  // Charger les polices lorsque l'étape résultat est affichée
-  useEffect(() => {
-    if (currentStep === "result" && searchResult?.policyNumber) {
-      loadPoliciesForCard(searchResult.policyNumber);
-    }
-  }, [currentStep, searchResult?.policyNumber]);
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -786,15 +778,15 @@ export default function BlockchainExplorerPage() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">CIN</p>
+                        <p className="text-xs text-gray-500">Valide jusqu'au</p>
                         <p className="font-medium">
-                          {searchResult.insuredPerson.cin}
+                          {formatDate(searchResult.validUntil)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">NIF</p>
+                        <p className="text-xs text-gray-500">CIN</p>
                         <p className="font-medium">
-                          {searchResult.insuredPerson.nif}
+                          {searchResult.insuredPerson.cin}
                         </p>
                       </div>
                     </div>
