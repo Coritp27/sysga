@@ -5,12 +5,22 @@ import { prisma } from "@/lib/prisma";
 function serializeBigInt(obj: any): any {
   if (obj === null || obj === undefined) return obj;
 
+  if (Array.isArray(obj)) {
+    return obj.map(serializeBigInt);
+  }
+
   if (typeof obj === "bigint") {
     return obj.toString();
   }
 
-  if (Array.isArray(obj)) {
-    return obj.map(serializeBigInt);
+  // Normaliser les dates en ISO (string) pour le client
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+
+  // Gérer les types Prisma (Decimal, etc.) via leur toJSON natif
+  if (typeof obj === "object" && typeof (obj as any).toJSON === "function") {
+    return (obj as any).toJSON();
   }
 
   if (typeof obj === "object") {

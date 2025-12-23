@@ -20,27 +20,52 @@ export async function GET(request: NextRequest) {
       where: { idClerk: userId, isDeleted: false },
     });
 
-    if (!user?.insuranceCompanyId) {
-      return NextResponse.json(
-        { error: "Aucune compagnie d'assurance associée" },
-        { status: 403 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
 
-    let whereClause: any = {
-      insuranceCompanyId: user.insuranceCompanyId,
-    };
+    let whereClause: any = {};
+
+    // Filtrage par compagnie :
+    // - Pour les utilisateurs "classiques", on limite aux polices de leur compagnie
+    // - Pour les utilisateurs MEDICAL sans compagnie, on autorise une recherche
+    //   globale en lecture seule (pas de filtre insuranceCompanyId)
+    if (user?.insuranceCompanyId) {
+      whereClause.insuranceCompanyId = user.insuranceCompanyId;
+    } else {
+      if (user?.userType !== "MEDICAL") {
+        return NextResponse.json(
+          { error: "Aucune compagnie d'assurance associée" },
+          { status: 403 }
+        );
+      }
+      // MEDICAL sans compagnie : pas de filtre supplémentaire ici
+    }
 
     // Recherche par numéro de police ou description
     if (search) {
-      whereClause.OR = [
-        { policyNumber: { equals: parseInt(search) || 0 } },
-        { description: { contains: search, mode: "insensitive" } },
-        { type: { contains: search, mode: "insensitive" } },
-      ];
+      const orConditions: any[] = [];
+
+      // Si la recherche ressemble à un nombre, filtrer sur policyNumber
+      const parsedNumber = parseInt(search, 10);
+      if (!Number.isNaN(parsedNumber)) {
+        orConditions.push({ policyNumber: { equals: parsedNumber } });
+      }
+
+      // Recherche dans la description
+      orConditions.push({
+        description: { contains: search, mode: "insensitive" },
+      });
+
+      // Recherche sur le type (enum) via une valeur normalisée
+      const normalized = search.toUpperCase();
+      const validTypes = ["INDIVIDUAL", "FAMILY", "GROUP", "ENTERPRISE"];
+      if (validTypes.includes(normalized)) {
+        orConditions.push({ type: normalized });
+      }
+
+      if (orConditions.length > 0) {
+        whereClause.OR = orConditions;
+      }
     }
 
     const policies = await prisma.policy.findMany({

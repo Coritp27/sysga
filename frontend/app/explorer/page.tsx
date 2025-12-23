@@ -83,6 +83,9 @@ export default function BlockchainExplorerPage() {
   const [isClient, setIsClient] = useState(false);
   const [otpExpiresIn, setOtpExpiresIn] = useState(0);
 
+  // Première police associée (pour le résumé sur la carte)
+  const primaryPolicy = policies.length > 0 ? policies[0] : null;
+
   // Éviter l'hydratation avec des données qui changent
   useEffect(() => {
     setIsClient(true);
@@ -324,8 +327,12 @@ export default function BlockchainExplorerPage() {
   const formatDate = (dateString: string) => {
     // Éviter l'hydratation avec des dates qui changent
     if (!isClient) return "";
+    if (!dateString) return "-";
 
-    return new Date(dateString).toLocaleDateString("fr-FR", {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+
+    return date.toLocaleDateString("fr-FR", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -766,98 +773,77 @@ export default function BlockchainExplorerPage() {
                       </div>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div className="mt-6 space-y-4 text-sm text-gray-700">
+                      {/* Informations personnelles */}
                       <div>
-                        <p className="text-xs text-gray-500">Carte</p>
-                        <p className="font-medium">{searchResult.cardNumber}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Police</p>
-                        <p className="font-medium">
-                          #{searchResult.policyNumber}
+                        <p className="text-xs font-semibold text-gray-500">
+                          Informations personnelles
                         </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Valide jusqu'au</p>
-                        <p className="font-medium">
-                          {formatDate(searchResult.validUntil)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">CIN</p>
-                        <p className="font-medium">
-                          {searchResult.insuredPerson.cin}
-                        </p>
-                      </div>
-                    </div>
-                    {/* Détails des polices associées (si trouvées) */}
-                    {policies.length > 0 && (
-                      <div className="mt-6">
-                        <h4 className="text-sm text-gray-500 mb-2">
-                          Détails des polices
-                        </h4>
-                        <div className="space-y-3">
-                          {policies.map((p: any) => (
-                            <div
-                              key={p.id}
-                              className="p-3 bg-white border rounded-md"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs text-gray-500">
-                                    Numéro
-                                  </p>
-                                  <p className="font-medium">
-                                    #{p.policyNumber}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-xs text-gray-500">Type</p>
-                                  <p className="font-medium">{p.type}</p>
-                                </div>
-                              </div>
-                              <div className="mt-2 text-sm text-gray-700 grid grid-cols-2 gap-4">
-                                <div>
-                                  <p className="text-xs text-gray-500">
-                                    Couverture
-                                  </p>
-                                  <p className="font-medium">{p.coverage}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-gray-500">Prime</p>
-                                  <p className="font-medium">
-                                    {p.premiumAmount}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-gray-500">
-                                    Franchise
-                                  </p>
-                                  <p className="font-medium">{p.deductible}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-gray-500">
-                                    Valide jusqu'au
-                                  </p>
-                                  <p className="font-medium">
-                                    {p.validUntil
-                                      ? new Date(
-                                          p.validUntil
-                                        ).toLocaleDateString("fr-FR")
-                                      : "-"}
-                                  </p>
-                                </div>
-                              </div>
-                              {p.description && (
-                                <p className="mt-2 text-sm text-gray-600">
-                                  {p.description}
-                                </p>
-                              )}
-                            </div>
-                          ))}
+                        <div className="mt-2 grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500">Carte</p>
+                            <p className="font-medium">
+                              {searchResult.cardNumber}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">CIN</p>
+                            <p className="font-medium">
+                              {searchResult.insuredPerson.cin}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">
+                              Date de naissance
+                            </p>
+                            <p className="font-medium">
+                              {searchResult.dateOfBirth
+                                ? formatDate(searchResult.dateOfBirth)
+                                : "-"}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    )}
+
+                      {/* Informations de la police */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500">
+                          Informations de la police
+                        </p>
+                        <div className="mt-2 grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500">Police</p>
+                            <p className="font-medium">
+                              {primaryPolicy
+                                ? `#${primaryPolicy.policyNumber}`
+                                : searchResult.policyNumber
+                                  ? `#${searchResult.policyNumber}`
+                                  : "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">
+                              Début de validité
+                            </p>
+                            <p className="font-medium">
+                              {searchResult.policyEffectiveDate
+                                ? formatDate(searchResult.policyEffectiveDate)
+                                : "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">
+                              Fin de validité
+                            </p>
+                            <p className="font-medium">
+                              {searchResult.validUntil
+                                ? formatDate(searchResult.validUntil)
+                                : "-"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -870,37 +856,6 @@ export default function BlockchainExplorerPage() {
                     Nouvelle recherche
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Instructions simples */}
-        {currentStep === "search" && !isSearching && (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Comment vérifier une carte d'assurance ?
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
-              <div className="text-center">
-                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-primary font-bold text-lg">1</span>
-                </div>
-                <p className="text-gray-600">
-                  Entrez le numéro de carte, CIN ou nom
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-primary font-bold text-lg">2</span>
-                </div>
-                <p className="text-gray-600">Cliquez sur "Vérifier"</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-primary font-bold text-lg">3</span>
-                </div>
-                <p className="text-gray-600">Consultez le résultat</p>
               </div>
             </div>
           </div>

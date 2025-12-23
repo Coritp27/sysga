@@ -142,17 +142,50 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Convertir BigInt en Number pour la sérialisation JSON
-    const serializedCards = insuranceCards.map((card) => ({
-      ...card,
-      policyNumber: Number(card.policyNumber),
-      blockchainReference: card.blockchainReference
-        ? {
-            ...card.blockchainReference,
-            reference: Number(card.blockchainReference.reference),
-          }
-        : null,
-    }));
+    // For each card, try to load the linked policy (by policyNumber + company)
+    const serializedCards = await Promise.all(
+      insuranceCards.map(async (card) => {
+        // find policy matching the card's policyNumber and company
+        let policy = null;
+        try {
+          policy = await prisma.policy.findFirst({
+            where: {
+              policyNumber: Number(card.policyNumber),
+              insuranceCompanyId: card.insuranceCompanyId,
+            },
+          });
+        } catch (e) {
+          logger.warn("insurance-cards", "policy lookup failed", e);
+        }
+
+        return {
+          ...card,
+          policyNumber: Number(card.policyNumber),
+          blockchainReference: card.blockchainReference
+            ? {
+                ...card.blockchainReference,
+                reference: Number(card.blockchainReference.reference),
+              }
+            : null,
+          policy: policy
+            ? {
+                id: policy.id,
+                policyNumber: policy.policyNumber,
+                type: policy.type,
+                coverage: policy.coverage,
+                deductible: policy.deductible
+                  ? String(policy.deductible)
+                  : null,
+                premiumAmount: policy.premiumAmount
+                  ? String(policy.premiumAmount)
+                  : null,
+                description: policy.description,
+                validUntil: policy.validUntil,
+              }
+            : null,
+        };
+      })
+    );
 
     logger.info(
       "insurance-cards",
