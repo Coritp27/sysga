@@ -71,6 +71,7 @@ export default function BlockchainExplorerPage() {
   const [blockchainData, setBlockchainData] = useState<BlockchainCard | null>(
     null
   );
+  const [policies, setPolicies] = useState<Array<any>>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isSendingOTP, setIsSendingOTP] = useState(false);
   const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
@@ -247,6 +248,24 @@ export default function BlockchainExplorerPage() {
       console.error("Erreur vérification OTP:", error);
     } finally {
       setIsVerifyingOTP(false);
+    }
+  };
+
+  // Charger les détails des polices associées à la carte affichée
+  const loadPoliciesForCard = async (policyNumber?: number) => {
+    if (!policyNumber) return;
+    try {
+      const res = await fetch(`/api/policies?search=${policyNumber}`);
+      if (!res.ok) {
+        console.error("Erreur fetching policies:", res.status);
+        setPolicies([]);
+        return;
+      }
+      const data = await res.json();
+      setPolicies(data || []);
+    } catch (e) {
+      console.error("Erreur fetching policies:", e);
+      setPolicies([]);
     }
   };
 
@@ -759,18 +778,86 @@ export default function BlockchainExplorerPage() {
                         </p>
                       </div>
                       <div>
+                        <p className="text-xs text-gray-500">Valide jusqu'au</p>
+                        <p className="font-medium">
+                          {formatDate(searchResult.validUntil)}
+                        </p>
+                      </div>
+                      <div>
                         <p className="text-xs text-gray-500">CIN</p>
                         <p className="font-medium">
                           {searchResult.insuredPerson.cin}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-xs text-gray-500">NIF</p>
-                        <p className="font-medium">
-                          {searchResult.insuredPerson.nif}
-                        </p>
-                      </div>
                     </div>
+                    {/* Détails des polices associées (si trouvées) */}
+                    {policies.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-sm text-gray-500 mb-2">
+                          Détails des polices
+                        </h4>
+                        <div className="space-y-3">
+                          {policies.map((p: any) => (
+                            <div
+                              key={p.id}
+                              className="p-3 bg-white border rounded-md"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs text-gray-500">
+                                    Numéro
+                                  </p>
+                                  <p className="font-medium">
+                                    #{p.policyNumber}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-gray-500">Type</p>
+                                  <p className="font-medium">{p.type}</p>
+                                </div>
+                              </div>
+                              <div className="mt-2 text-sm text-gray-700 grid grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-xs text-gray-500">
+                                    Couverture
+                                  </p>
+                                  <p className="font-medium">{p.coverage}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500">Prime</p>
+                                  <p className="font-medium">
+                                    {p.premiumAmount}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500">
+                                    Franchise
+                                  </p>
+                                  <p className="font-medium">{p.deductible}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500">
+                                    Valide jusqu'au
+                                  </p>
+                                  <p className="font-medium">
+                                    {p.validUntil
+                                      ? new Date(
+                                          p.validUntil
+                                        ).toLocaleDateString("fr-FR")
+                                      : "-"}
+                                  </p>
+                                </div>
+                              </div>
+                              {p.description && (
+                                <p className="mt-2 text-sm text-gray-600">
+                                  {p.description}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
